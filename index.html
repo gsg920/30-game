@@ -133,6 +133,7 @@ label{display:inline-flex;align-items:center;gap:8px;margin:8px 12px 8px 0}
     resetRound();
     state = "playing";
     lastTime = performance.now();
+    $("pause").textContent = "일시정지";
     setMessage("게임 진행 중! 장애물을 피하세요.");
     animationId = requestAnimationFrame(loop);
   }
