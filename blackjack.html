@@ -210,10 +210,20 @@
         </div>
 
         <div class="flex items-center space-x-3 sm:space-x-4">
-            <button onclick="openRulesModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-                <i class="fa-solid fa-circle-question"></i>
-                <span>규칙</span>
-            </button>
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <button onclick="openShopModal()" class="text-xs sm:text-sm text-amber-300 hover:text-amber-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30">
+                    <i class="fa-solid fa-store"></i><span>상점</span>
+                </button>
+                <button onclick="openInventoryModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <i class="fa-solid fa-box-open"></i><span>소지품</span>
+                </button>
+                <button onclick="leaveCasino()" class="text-xs sm:text-sm text-rose-300 hover:text-rose-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-rose-500/30">
+                    <i class="fa-solid fa-door-open"></i><span>카지노 나가기</span>
+                </button>
+                <button onclick="openRulesModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <i class="fa-solid fa-circle-question"></i><span>규칙</span>
+                </button>
+            </div>
             <div class="bg-slate-950 px-4 py-1.5 rounded-xl border border-amber-500/40 flex items-center space-x-2">
                 <i class="fa-solid fa-coins text-amber-400 text-sm"></i>
                 <span class="text-xs text-slate-400">잔액:</span>
@@ -221,6 +231,13 @@
             </div>
         </div>
     </header>
+
+    <!-- Story Context -->
+    <section class="max-w-7xl w-full mx-auto mb-2 px-4 py-3 rounded-xl border border-slate-800 bg-slate-900/70 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <i class="fa-solid fa-scroll text-amber-400 mr-2"></i>
+        <span class="font-bold text-amber-300">당신의 이야기</span> — 도박으로 가진 것을 모두 잃고 옷과 스마트폰, 지갑, 자동차까지 전당포에 넘겼다. 지금 남은 돈은 단돈 <strong class="text-amber-300">$1,000</strong>. 블랙잭으로 돈을 모아 물건을 되찾고, 원하는 모습으로 카지노를 떠나라.
+        <span class="text-slate-500 ml-1">상점에서 물건을 되찾을 수 있다.</span>
+    </section>
 
     <!-- Main Casino Floor -->
     <main class="max-w-7xl w-full mx-auto flex-1 flex flex-col justify-between my-1">
@@ -319,8 +336,24 @@
         </div>
     </footer>
 
+    <!-- MODAL: Story Introduction (shown before rules) -->
+    <div id="intro-modal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 modal-backdrop bg-black/90">
+        <div class="bg-slate-950 border-2 border-amber-500/50 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl text-center">
+            <div class="text-amber-400 text-5xl mb-4"><i class="fa-solid fa-cloud-moon"></i></div>
+            <p class="text-xs tracking-[0.3em] text-amber-300 font-bold mb-2">ROYAL CASINO : THE LAST CHANCE</p>
+            <h2 class="text-2xl sm:text-3xl font-black text-white mb-4">빈털터리의 마지막 승부</h2>
+            <div class="text-sm sm:text-base text-slate-300 leading-relaxed text-left bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <p>당신은 한때 평범한 삶을 살았지만, 도박으로 모든 돈을 잃고 말았다. 입고 있던 옷과 지갑, 스마트폰, 자동차마저 전당포에 맡겼다.</p>
+                <p>지금 당신에게 남은 것은 카지노 입장료처럼 쥐여진 <strong class="text-amber-300">단돈 $1,000</strong>뿐이다. 전당포 주인은 물건을 되찾으려면 더 비싼 값을 치르라고 한다.</p>
+                <p>블랙잭으로 돈을 불려 물건을 하나씩 되찾아라. 하지만 욕심을 부리다 다시 빈털터리가 된다면, 되찾은 물건마저 헐값에 강제로 팔릴 것이다.</p>
+                <p class="text-amber-200 font-bold">돈을 챙겨 떠날 것인가, 모든 것을 걸고 카지노의 왕이 될 것인가?</p>
+            </div>
+            <button onclick="continueToRules()" class="w-full mt-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">이야기 확인 · 규칙 보기 <i class="fa-solid fa-arrow-right ml-1"></i></button>
+        </div>
+    </div>
+
     <!-- MODAL 1: Rules Modal -->
-    <div id="rules-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/70">
+    <div id="rules-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/70">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-slate-200">
             <button onclick="closeRulesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
                 <i class="fa-solid fa-xmark"></i>
@@ -359,43 +392,70 @@
         </div>
     </div>
 
-    <!-- MODAL 2: Bankrupt & Kicked Out Overlay with Beggar Character -->
+    <!-- MODAL 2: Bankrupt Ending -->
     <div id="bankrupt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/90 hidden">
         <div class="bg-slate-950 border-2 border-red-600 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center relative overflow-hidden door-slam-anim">
-            
             <div class="absolute -right-12 -top-12 w-40 h-40 bg-red-600/10 rounded-full blur-2xl pointer-events-none"></div>
-
-            <!-- Beggar Character SVG Illustration -->
             <div class="w-32 h-32 mx-auto mb-2 beggar-float relative">
                 <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-[0_10px_15px_rgba(239,68,68,0.4)]">
                     <ellipse cx="100" cy="180" rx="70" ry="10" fill="#0f172a" />
-                    <!-- Body / Rags -->
                     <path d="M 60 130 L 140 130 L 150 180 L 50 180 Z" fill="#334155" />
-                    <!-- Head -->
                     <circle cx="100" cy="95" r="32" fill="#cbd5e1" />
-                    <!-- Sad Eyes -->
-                    <path d="M 85 88 L 93 94 M 93 88 L 85 94" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/>
-                    <path d="M 107 88 L 115 94 M 115 88 L 107 94" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/>
-                    <!-- Sad Mouth -->
+                    <path d="M 85 88 L 93 94 M 93 88 L 85 94 M 107 88 L 115 94 M 115 88 L 107 94" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/>
                     <path d="M 88 112 Q 100 102 112 112" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                    <!-- Tattered Hat / Hair -->
                     <path d="M 62 88 C 65 55 135 55 138 88 Z" fill="#1e293b" />
                     <rect x="55" y="84" width="90" height="7" rx="3.5" fill="#0f172a" />
                 </svg>
             </div>
-
-            <h2 class="text-2xl font-black text-red-500 tracking-wide mb-1">카지노에서 쫓겨났습니다!</h2>
-            <p class="text-xs text-slate-400 mb-4">"빈털터리 손님은 더 이상 모실 수 없습니다!"</p>
-
-            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl mb-6 text-left text-xs text-slate-300 space-y-2">
-                <p class="text-amber-400 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 파산 및 강제 퇴장</p>
-                <p>가드들에게 이끌려 뒷골목으로 내쫓겼습니다. 호주머니엔 먼지만 가득합니다.</p>
+            <h2 class="text-2xl font-black text-red-500 tracking-wide mb-2">빈털터리의 최후</h2>
+            <p class="text-sm text-slate-400 mb-4">마지막 칩까지 잃었습니다.</p>
+            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl mb-5 text-left text-sm text-slate-300 leading-relaxed">
+                카지노의 경비원들이 당신을 카지노 밖으로 끌어냈습니다. 주머니에는 한 푼도 없고, 되찾았던 물건마저 전당포에 넘어갔습니다. 이제 당신에게 남은 것은 후회뿐입니다.
             </div>
+            <div class="space-y-3">
+                <button onclick="restartGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-3.5 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i><span>처음부터 다시 시작</span>
+                </button>
+                <button onclick="finishBankruptGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl border border-slate-700 transition">
+                    카지노를 떠난다
+                </button>
+            </div>
+        </div>
+    </div>
 
-            <button onclick="restartGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-3.5 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-hand-holding-dollar text-base"></i>
-                <span>초기 지원금 ($1,000) 받고 재입장</span>
-            </button>
+    <!-- MODAL: Pawn Shop -->
+    <div id="shop-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/80">
+        <div class="bg-slate-950 border border-amber-500/40 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start gap-3 mb-2">
+                <div><h2 class="text-xl sm:text-2xl font-black text-amber-400 serif"><i class="fa-solid fa-store mr-2"></i>전당포 상점</h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">맡겨둔 물건을 되찾아라. 되찾은 물건은 파산 직전에 강제로 팔릴 수 있다.</p></div>
+                <button onclick="closeShopModal()" class="text-slate-400 hover:text-white text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="shop-story" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-300 mb-4">전당포 주인이 물건 목록을 내민다. “돈만 가져오면 돌려주지.”</div>
+            <div id="shop-items" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            <div class="flex justify-between items-center mt-5 gap-3"><span id="shop-message" class="text-xs text-slate-400"></span><button onclick="closeShopModal()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-2.5 rounded-xl border border-slate-700">카지노로 돌아가기</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Inventory -->
+    <div id="inventory-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/80">
+        <div class="bg-slate-950 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-black text-amber-400"><i class="fa-solid fa-box-open mr-2"></i>소지품</h2><button onclick="closeInventoryModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="inventory-items" class="space-y-2"></div>
+            <p class="text-xs text-slate-500 mt-4">옷을 되찾아야 카지노를 정상적으로 떠날 수 있다. 잔액이 $10 미만이 되면 보유 물건이 매입가보다 낮은 가격에 강제 처분된다.</p>
+            <button onclick="closeInventoryModal()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl">닫기</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Story Ending -->
+    <div id="ending-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 modal-backdrop bg-black/90">
+        <div class="bg-slate-950 border-2 border-amber-500/60 rounded-3xl max-w-lg w-full p-6 shadow-2xl text-center">
+            <div id="ending-art" class="w-full h-44 sm:h-52 mb-4 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center"></div>
+            <div id="ending-icon" class="text-3xl text-amber-400 mb-2"><i class="fa-solid fa-person-walking"></i></div>
+            <h2 id="ending-title" class="text-2xl font-black text-amber-400 mb-3">카지노를 떠나다</h2>
+            <p id="ending-text" class="text-sm sm:text-base text-slate-300 leading-relaxed"></p>
+            <div id="ending-stats" class="mt-4 text-xs text-slate-500"></div>
+            <button onclick="restartGame()" class="w-full mt-6 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">처음으로 돌아가기 <i class="fa-solid fa-rotate-right ml-1"></i></button>
         </div>
     </div>
 
@@ -486,6 +546,16 @@
         let playerHand = [];
         let npcHands = [];
 
+        // Story inventory: items begin pawned; prices include a steep buyback fee.
+        const storyItems = [
+            { id: 'clothes', name: '멀쩡한 옷 한 벌', icon: 'fa-shirt', price: 2000, resale: 700, desc: '카지노를 떠나기 위한 최소한의 품위.' },
+            { id: 'wallet', name: '가죽 지갑', icon: 'fa-wallet', price: 8000, resale: 3000, desc: '현금과 신분증을 넣을 수 있다.' },
+            { id: 'phone', name: '스마트폰', icon: 'fa-mobile-screen-button', price: 10000, resale: 6000, desc: '택시를 부를 수 있게 된다.' },
+            { id: 'car', name: '자동차 열쇠와 차량', icon: 'fa-car', price: 50000, resale: 20000, desc: '직접 운전해서 집으로 돌아간다.' }
+        ];
+        const ownedItems = { clothes: false, wallet: false, phone: false, car: false };
+        let lifetimeProfit = 0;
+
         const suits = ['♠', '♥', '♦', '♣'];
         const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
@@ -501,11 +571,103 @@
         const btnHit = document.getElementById('btn-hit');
         const btnStand = document.getElementById('btn-stand');
 
+        function continueToRules() {
+            document.getElementById('intro-modal').classList.add('hidden');
+            openRulesModal();
+        }
         function openRulesModal() { document.getElementById('rules-modal').classList.remove('hidden'); }
         function closeRulesModal() { document.getElementById('rules-modal').classList.add('hidden'); }
+        function openShopModal() {
+            renderShop();
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+        function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
+        function openInventoryModal() {
+            renderInventory();
+            document.getElementById('inventory-modal').classList.remove('hidden');
+        }
+        function closeInventoryModal() { document.getElementById('inventory-modal').classList.add('hidden'); }
+        function closeEndingModal() { document.getElementById('ending-modal').classList.add('hidden'); }
+        function renderShop() {
+            const container = document.getElementById('shop-items');
+            container.innerHTML = storyItems.map(item => {
+                const owned = ownedItems[item.id];
+                const canAfford = balance >= item.price;
+                return `<div class="bg-slate-900 border ${owned ? 'border-emerald-600/50' : 'border-slate-800'} rounded-xl p-4 flex gap-3 items-center">
+                    <div class="w-12 h-12 flex-shrink-0 rounded-xl bg-slate-800 flex items-center justify-center text-2xl ${owned ? 'text-emerald-400' : 'text-amber-400'}"><i class="fa-solid ${item.icon}"></i></div>
+                    <div class="flex-1 min-w-0"><div class="font-bold text-white">${item.name}</div><div class="text-xs text-slate-400 mt-1">${item.desc}</div><div class="text-amber-300 font-black mt-2">$${item.price.toLocaleString()}</div></div>
+                    <button onclick="buyStoryItem('${item.id}')" ${owned || !canAfford ? 'disabled' : ''} class="text-xs font-black px-3 py-2 rounded-lg whitespace-nowrap ${owned ? 'bg-emerald-900 text-emerald-300' : canAfford ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-500'} disabled:opacity-80">${owned ? '되찾음' : canAfford ? '되찾기' : '잔액 부족'}</button>
+                </div>`;
+            }).join('');
+            document.getElementById('shop-message').innerText = `보유 자금: $${balance.toLocaleString()}`;
+        }
+        function buyStoryItem(id) {
+            const item = storyItems.find(entry => entry.id === id);
+            if (!item || ownedItems[id]) return;
+            if (balance < item.price) {
+                document.getElementById('shop-message').innerText = '돈이 부족하다. 블랙잭으로 더 모아야 한다.';
+                return;
+            }
+            balance -= item.price;
+            ownedItems[id] = true;
+            updateUI();
+            playSound('chip');
+            document.getElementById('shop-story').innerText = `전당포 주인이 ${item.name}을(를) 돌려줬다. 남은 돈은 $${balance.toLocaleString()}이다.`;
+            document.getElementById('shop-message').innerText = `${item.name}을(를) 되찾았다.`;
+            renderShop();
+        }
+        function renderInventory() {
+            const container = document.getElementById('inventory-items');
+            container.innerHTML = storyItems.map(item => `<div class="flex items-center gap-3 p-3 rounded-xl border ${ownedItems[item.id] ? 'border-emerald-700/50 bg-emerald-950/30' : 'border-slate-800 bg-slate-900/70'}"><i class="fa-solid ${item.icon} w-6 text-center ${ownedItems[item.id] ? 'text-emerald-400' : 'text-slate-600'}"></i><span class="flex-1 text-sm ${ownedItems[item.id] ? 'text-white' : 'text-slate-500'}">${item.name}</span><span class="text-xs font-bold ${ownedItems[item.id] ? 'text-emerald-400' : 'text-slate-500'}">${ownedItems[item.id] ? '보유 중' : '전당포에 맡김'}</span></div>`).join('');
+        }
+        function endingIllustration(kind) {
+            const scenes = {
+                king: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="goldbg" x2="0" y2="1"><stop stop-color="#78350f"/><stop offset="1" stop-color="#111827"/></linearGradient></defs><rect width="640" height="260" fill="url(#goldbg)"/><circle cx="320" cy="100" r="82" fill="#f59e0b" opacity=".13"/><path d="M0 210 L640 210" stroke="#fbbf24" stroke-width="2" opacity=".6"/><path d="M255 70 L275 105 L320 55 L365 105 L385 70 L375 130 L265 130 Z" fill="#fbbf24" stroke="#fff1a8" stroke-width="4"/><circle cx="275" cy="70" r="7" fill="#fff1a8"/><circle cx="320" cy="55" r="7" fill="#fff1a8"/><circle cx="385" cy="70" r="7" fill="#fff1a8"/><path d="M280 150 Q320 125 360 150 L390 230 L250 230 Z" fill="#1e293b" stroke="#fbbf24" stroke-width="3"/><path d="M310 145 L320 175 L330 145" fill="#f8fafc"/><text x="320" y="247" fill="#fde68a" text-anchor="middle" font-size="17" font-weight="bold">KING OF THE CASINO</text></svg>`,
+                car: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="night" y2="1"><stop stop-color="#172554"/><stop offset="1" stop-color="#020617"/></linearGradient></defs><rect width="640" height="260" fill="url(#night)"/><circle cx="510" cy="45" r="25" fill="#fde68a" opacity=".8"/><path d="M0 170 L70 110 L120 165 L190 95 L260 165 L330 120 L400 170 L470 115 L550 170 L610 125 L640 150 V260 H0Z" fill="#1e293b"/><path d="M0 220 H640" stroke="#f8fafc" stroke-width="3" stroke-dasharray="28 22"/><path d="M160 170 L210 125 H360 L410 170 Z" fill="#38bdf8" stroke="#bae6fd" stroke-width="3"/><rect x="145" y="168" width="285" height="42" rx="13" fill="#dc2626" stroke="#fecaca" stroke-width="3"/><circle cx="205" cy="210" r="25" fill="#020617" stroke="#cbd5e1" stroke-width="7"/><circle cx="370" cy="210" r="25" fill="#020617" stroke="#cbd5e1" stroke-width="7"/><text x="320" y="42" fill="#e2e8f0" text-anchor="middle" font-size="18" font-weight="bold">HOMEWARD BOUND</text></svg>`,
+                taxi: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="260" fill="#0f172a"/><path d="M0 0 H640 V100 L0 160Z" fill="#312e81" opacity=".65"/><g fill="#fbbf24"><rect x="55" y="40" width="12" height="75"/><rect x="105" y="20" width="12" height="85"/><rect x="500" y="30" width="12" height="90"/><rect x="550" y="55" width="12" height="65"/></g><path d="M0 220 H640" stroke="#64748b" stroke-width="4"/><path d="M175 155 L220 115 H370 L415 155Z" fill="#fef3c7" stroke="#fbbf24" stroke-width="3"/><rect x="150" y="152" width="300" height="58" rx="12" fill="#facc15" stroke="#fef08a" stroke-width="3"/><rect x="265" y="130" width="65" height="18" rx="4" fill="#f8fafc"/><text x="298" y="143" fill="#111827" text-anchor="middle" font-size="11" font-weight="bold">TAXI</text><circle cx="210" cy="210" r="22" fill="#020617" stroke="#cbd5e1" stroke-width="6"/><circle cx="390" cy="210" r="22" fill="#020617" stroke="#cbd5e1" stroke-width="6"/><text x="320" y="40" fill="#f8fafc" text-anchor="middle" font-size="18" font-weight="bold">A RIDE HOME</text></svg>`,
+                walk: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="walkbg" y2="1"><stop stop-color="#1e1b4b"/><stop offset="1" stop-color="#020617"/></linearGradient></defs><rect width="640" height="260" fill="url(#walkbg)"/><circle cx="500" cy="45" r="22" fill="#e2e8f0"/><path d="M0 190 L80 145 L145 185 L230 130 L310 190 L405 145 L480 185 L560 135 L640 175 V260 H0Z" fill="#1e293b"/><path d="M310 260 L280 185 H360 L390 260Z" fill="#334155"/><circle cx="320" cy="112" r="22" fill="#f1c7a5"/><path d="M297 108 Q295 78 323 80 Q348 84 343 108Z" fill="#111827"/><path d="M294 140 L346 140 L360 194 L280 194Z" fill="#64748b"/><path d="M305 190 L300 238 M338 190 L350 238" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round"/><text x="320" y="30" fill="#e2e8f0" text-anchor="middle" font-size="18" font-weight="bold">THE LONG WALK HOME</text></svg>`,
+                blocked: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="260" fill="#1f2937"/><rect x="70" y="35" width="500" height="190" rx="12" fill="#111827" stroke="#b91c1c" stroke-width="4"/><path d="M100 80 H540 M100 125 H540 M100 170 H540" stroke="#7f1d1d" stroke-width="12"/><circle cx="320" cy="122" r="48" fill="#475569"/><path d="M295 100 L345 145 M345 100 L295 145" stroke="#fecaca" stroke-width="9" stroke-linecap="round"/><text x="320" y="242" fill="#fca5a5" text-anchor="middle" font-size="18" font-weight="bold">NOT READY TO LEAVE</text></svg>`
+            };
+            return scenes[kind] || scenes.blocked;
+        }
+        function leaveCasino() {
+            if (inRound || currentBet > 0) {
+                statusEl.innerText = '라운드를 끝내고 베팅금을 초기화한 뒤 떠날 수 있습니다.';
+                return;
+            }
+            let title, icon, story, scene;
+            if (balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car) {
+                title = '카지노의 왕'; icon = 'fa-crown'; scene = 'king'; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. 카지노의 누구도 당신을 무시하지 못한다. 이제 당신은 이곳의 전설, 카지노의 왕이다.`;
+            } else if (!ownedItems.clothes) {
+                title = '아직 떠날 수 없다'; icon = 'fa-ban'; scene = 'blocked'; story = '전당포에 맡긴 옷조차 되찾지 못했다. 이 차림으로는 카지노를 나갈 수 없다. 돈을 더 모아 옷부터 되찾아라.';
+            } else if (ownedItems.phone && ownedItems.car) {
+                title = '내 차로 귀가'; icon = 'fa-car'; scene = 'car'; story = '옷을 갖춰 입고 스마트폰과 자동차까지 되찾았다. 차 키를 돌리자 엔진 소리가 울린다. 당신은 직접 운전해 집으로 향한다.';
+            } else if (ownedItems.phone) {
+                title = '택시를 타고 귀가'; icon = 'fa-taxi'; scene = 'taxi'; story = '옷을 되찾고 스마트폰도 손에 넣었다. 택시를 호출하고, 카지노의 네온사인을 뒤로한 채 집으로 향한다.';
+            } else {
+                title = '걸어서 귀가'; icon = 'fa-person-walking'; scene = 'walk'; story = '옷 한 벌을 되찾은 당신은 무거운 발걸음으로 카지노를 나선다. 차도, 스마트폰도 없으니 집까지 걸어가야 한다.';
+            }
+            document.getElementById('ending-art').innerHTML = endingIllustration(scene);
+            document.getElementById('ending-title').innerText = title;
+            document.getElementById('ending-icon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            document.getElementById('ending-text').innerText = story;
+            document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 되찾은 물건: ${storyItems.filter(item => ownedItems[item.id]).length}/4 · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
+            document.getElementById('ending-modal').classList.remove('hidden');
+            if (ownedItems.clothes) playSound('win');
+        }
         function showBankruptModal() {
             playSound('kickout');
             document.getElementById('bankrupt-modal').classList.remove('hidden');
+        }
+
+        function finishBankruptGame() {
+            document.getElementById('bankrupt-modal').classList.add('hidden');
+            document.getElementById('ending-art').innerHTML = endingIllustration('blocked');
+            document.getElementById('ending-title').innerText = '빈털터리의 최후';
+            document.getElementById('ending-icon').innerHTML = '<i class="fa-solid fa-person-walking"></i>';
+            document.getElementById('ending-text').innerText = '카지노의 경비원들에게 쫓겨난 당신은 빈 주머니를 붙잡고 어두운 거리로 걸어 나왔습니다. 되찾았던 물건도 모두 사라졌습니다. 도박으로 모든 것을 잃은 오늘을 후회하며, 당신의 이야기는 여기서 끝납니다.';
+            document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 되찾은 물건: ${storyItems.filter(item => ownedItems[item.id]).length}/4 · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
+            document.getElementById('ending-modal').classList.remove('hidden');
         }
 
         function changeNpcCount(delta) {
@@ -628,6 +790,7 @@
         function updateUI() {
             balanceEl.innerText = `$${balance.toLocaleString()}`;
             betEl.innerText = `$${currentBet.toLocaleString()}`;
+            if (!document.getElementById('shop-modal').classList.contains('hidden')) renderShop();
         }
 
         function calculateScore(hand) {
@@ -827,6 +990,25 @@
             }, 600);
         }
 
+        function forceSellItemsIfBroke() {
+            if (balance >= 10) return;
+            // Sell the highest-resale item first; each item returns less than its buyback price.
+            const ownedForSale = storyItems.filter(item => ownedItems[item.id]).sort((a, b) => b.resale - a.resale);
+            const sold = [];
+            for (const item of ownedForSale) {
+                if (balance >= 10) break;
+                ownedItems[item.id] = false;
+                balance += item.resale;
+                sold.push(`${item.name} ($${item.resale.toLocaleString()})`);
+            }
+            if (sold.length) {
+                statusEl.innerText = `파산 위기! 물건을 강제로 헐값에 처분했습니다: ${sold.join(', ')}. 현재 잔액 $${balance.toLocaleString()}`;
+                document.getElementById('shop-story').innerText = `전당포 주인이 당신이 되찾았던 물건을 헐값에 가져갔다. 처분 내역: ${sold.join(', ')}.`;
+                renderShop();
+                renderInventory();
+            }
+        }
+
         function settleRound() {
             inRound = false;
             document.getElementById('player-count-control').classList.remove('opacity-40', 'pointer-events-none');
@@ -842,6 +1024,7 @@
             } else if (dScore > 21 || pScore > dScore) {
                 const winAmount = currentBet * 2;
                 balance += winAmount;
+                lifetimeProfit += currentBet;
                 message = `🎉 승리! $${winAmount.toLocaleString()} 획득!`;
                 playSound('win');
             } else if (pScore === dScore) {
@@ -859,14 +1042,19 @@
             btnDeal.disabled = false;
 
             if (balance < 10) {
-                setTimeout(showBankruptModal, 800);
+                forceSellItemsIfBroke();
+                updateUI();
+                if (balance < 10) setTimeout(showBankruptModal, 800);
             }
         }
 
+        
         function restartGame() {
             balance = 1000;
             currentBet = 0;
             inRound = false;
+            Object.keys(ownedItems).forEach(id => ownedItems[id] = false);
+            lifetimeProfit = 0;
             activeNpcCount = 0; // Reset NPC count to default 0 (1:1 with dealer)
             npcCountDisplayEl.innerText = `0명`;
 
@@ -877,13 +1065,15 @@
             updateUI();
 
             document.getElementById('bankrupt-modal').classList.add('hidden');
-            statusEl.innerText = "초기 지원금 $1,000이 지급되었습니다!";
+            document.getElementById('ending-modal').classList.add('hidden');
+            document.getElementById('rules-modal').classList.add('hidden');
+            document.getElementById('intro-modal').classList.remove('hidden');
+            statusEl.innerText = "새로운 이야기가 시작됩니다.";
             playSound('win');
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             setupPlayerSeats();
-            openRulesModal();
         });
     </script>
 </body>
