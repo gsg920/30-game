@@ -3,757 +3,1078 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Cyber Dodge - 8-Bit Mini Game</title>
+    <title>럭셔리 카지노 블랙잭 - NPC 초기화 수정</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap');
-
-        .font-pixel {
-            font-family: 'Press Start 2P', monospace;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            user-select: none;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            overflow-x: hidden;
         }
 
-        .bg-cyber-dark {
-            background-color: #0d0f18;
+        .serif {
+            font-family: 'Playfair Display', serif;
         }
 
-        .border-neon-cyan {
-            border-color: #00f0ff;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        /* Casino Table Felt Background */
+        .casino-table {
+            background: radial-gradient(circle at center, #115e3b 0%, #064e3b 50%, #022c22 100%);
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+            border: 14px solid #3d2314;
+            border-radius: 180px 180px 50px 50px;
         }
 
-        .text-neon-cyan {
-            color: #00f0ff;
-            text-shadow: 0 0 5px rgba(0, 240, 255, 0.6);
+        @media (max-width: 1024px) {
+            .casino-table {
+                border-radius: 40px;
+                border-width: 8px;
+            }
         }
 
-        .text-neon-pink {
-            color: #ff007f;
-            text-shadow: 0 0 5px rgba(255, 0, 127, 0.6);
-        }
-
-        /* Scanline Overlay */
-        .scanlines {
+        /* Card Visuals Base */
+        .playing-card {
+            width: 68px;
+            height: 98px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: -2px 5px 12px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px;
+            font-weight: 800;
             position: relative;
-            overflow: hidden;
-        }
-        .scanlines::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            background-size: 100% 4px;
-            z-index: 10;
-            pointer-events: none;
-            opacity: 0.6;
+            flex-shrink: 0;
+            will-change: transform, opacity;
         }
 
-        canvas {
-            touch-action: none;
+        @media (min-width: 640px) {
+            .playing-card {
+                width: 84px;
+                height: 120px;
+                border-radius: 10px;
+                padding: 8px;
+            }
+        }
+
+        .playing-card.back {
+            background: linear-gradient(135deg, #1e3a8a 25%, #1e40af 25%, #1e40af 50%, #1e3a8a 50%, #1e3a8a 75%, #1e40af 75%, #1e40af 100%);
+            background-size: 20px 20px;
+            border: 3px solid #ffffff;
+        }
+
+        .playing-card.red { color: #dc2626; }
+        .playing-card.black { color: #111827; }
+
+        /* Comfort Eye - Smooth Card Animation Slide In */
+        @keyframes dealCard {
+            0% {
+                opacity: 0;
+                transform: translateY(-160px) scale(0.6) rotate(10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .deal-animation {
+            animation: dealCard 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Chips Styling & Hover Tooltips */
+        .chip-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .chip-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%) translateY(5px);
+            background: rgba(15, 23, 42, 0.95);
+            color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .chip-wrapper:hover .chip-tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .chip {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.4), inset 0 0 0 5px dashed rgba(255,255,255,0.6);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+        }
+
+        .chip:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 rgba(0,0,0,0.4), inset 0 0 0 5px dashed rgba(255,255,255,0.8);
+        }
+
+        .chip:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+        }
+
+        .chip-10 { background: radial-gradient(circle, #ef4444, #991b1b); color: white; border: 3px solid #fca5a5; }
+        .chip-25 { background: radial-gradient(circle, #3b82f6, #1e40af); color: white; border: 3px solid #93c5fd; }
+        .chip-50 { background: radial-gradient(circle, #10b981, #065f46); color: white; border: 3px solid #6ee7b7; }
+        .chip-100 { background: radial-gradient(circle, #374151, #111827); color: #f3f4f6; border: 3px solid #9ca3af; }
+        .chip-500 { background: radial-gradient(circle, #8b5cf6, #5b21b6); color: white; border: 3px solid #c4b5fd; }
+        .chip-1000 { background: radial-gradient(circle, #f59e0b, #78350f); color: white; border: 3px solid #fde047; }
+
+        /* All-In Button */
+        .btn-allin {
+            background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
+            border: 2px solid #fca5a5;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
+        }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+        }
+
+        /* Bankruptcy Animation Effects */
+        @keyframes doorSlam {
+            0% { transform: scale(1.4); opacity: 0; }
+            60% { transform: scale(0.95); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .door-slam-anim {
+            animation: doorSlam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes beggarFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .beggar-float {
+            animation: beggarFloat 3s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="bg-cyber-dark text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-pink-500 selection:text-white">
+<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4">
 
-    <!-- Top Navigation / Header -->
-    <header class="w-full bg-slate-900/90 border-b border-cyan-500/30 px-4 py-3 sticky top-0 z-30 backdrop-blur">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center space-x-3">
-                <span class="text-2xl">🕹️</span>
-                <h1 class="font-pixel text-sm md:text-base text-neon-cyan tracking-wider">NEON ESCAPE 8-BIT</h1>
+    <!-- Top Header -->
+    <header class="max-w-7xl w-full mx-auto flex flex-wrap justify-between items-center py-2.5 px-4 bg-slate-900/90 backdrop-blur rounded-2xl border border-slate-800 shadow-lg mb-2 gap-3">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-crown text-amber-400 text-2xl"></i>
+            <h1 class="text-xl sm:text-2xl font-black tracking-wider text-amber-400 serif">ROYAL CASINO</h1>
+        </div>
+
+        <!-- NPC Player Count Adjuster (Min: 0, Max: 4) -->
+        <div id="player-count-control" class="flex items-center bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 space-x-3">
+            <span class="text-xs font-bold text-slate-400">NPC 인원:</span>
+            <div class="flex items-center space-x-2">
+                <button onclick="changeNpcCount(-1)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded-lg flex items-center justify-center transition border border-slate-700 active:scale-95">
+                    -
+                </button>
+                <span id="npc-count-display" class="font-black text-amber-300 text-sm min-w-[36px] text-center">0명</span>
+                <button onclick="changeNpcCount(1)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded-lg flex items-center justify-center transition border border-slate-700 active:scale-95">
+                    +
+                </button>
             </div>
-            
-            <!-- Quick Settings Bar -->
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-                <button id="btn-audio-toggle" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center gap-1.5 transition">
-                    <span id="audio-icon">🔊</span>
-                    <span id="audio-status-text">사운드: ON</span>
-                </button>
+        </div>
 
-                <button id="btn-motion-toggle" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center gap-1.5 transition">
-                    <span id="motion-icon">✨</span>
-                    <span id="motion-status-text">연출: 일반</span>
+        <div class="flex items-center space-x-3 sm:space-x-4">
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <button onclick="openShopModal()" class="text-xs sm:text-sm text-amber-300 hover:text-amber-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30">
+                    <i class="fa-solid fa-store"></i><span>상점</span>
                 </button>
-
-                <!-- Difficulty Select -->
-                <div class="flex items-center bg-slate-800 rounded border border-slate-600 px-2 py-1">
-                    <label for="difficulty-select" class="text-slate-400 mr-1.5 text-xs">속도:</label>
-                    <select id="difficulty-select" class="bg-transparent text-cyan-400 font-bold focus:outline-none cursor-pointer">
-                        <option value="4" class="bg-slate-800 text-slate-100">보통 (4배속)</option>
-                        <option value="6" class="bg-slate-800 text-slate-100">빠름 (6배속)</option>
-                        <option value="8" class="bg-slate-800 text-yellow-400 font-bold" selected>🔥 하이퍼 (8배속)</option>
-                    </select>
-                </div>
+                <button onclick="openInventoryModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <i class="fa-solid fa-box-open"></i><span>소지품</span>
+                </button>
+                <button onclick="leaveCasino()" class="text-xs sm:text-sm text-rose-300 hover:text-rose-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-rose-500/30">
+                    <i class="fa-solid fa-door-open"></i><span>카지노 나가기</span>
+                </button>
+                <button onclick="openRulesModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <i class="fa-solid fa-circle-question"></i><span>규칙</span>
+                </button>
+            </div>
+            <div class="bg-slate-950 px-4 py-1.5 rounded-xl border border-amber-500/40 flex items-center space-x-2">
+                <i class="fa-solid fa-coins text-amber-400 text-sm"></i>
+                <span class="text-xs text-slate-400">잔액:</span>
+                <span id="user-balance" class="font-extrabold text-amber-400 text-base sm:text-lg">$1,000</span>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="w-full max-w-4xl mx-auto p-3 md:p-6 flex-grow flex flex-col items-center justify-center">
+    <!-- Story Context -->
+    <section class="max-w-7xl w-full mx-auto mb-2 px-4 py-3 rounded-xl border border-slate-800 bg-slate-900/70 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <i class="fa-solid fa-scroll text-amber-400 mr-2"></i>
+        <span class="font-bold text-amber-300">당신의 이야기</span> — 도박으로 가진 것을 모두 잃고 옷과 스마트폰, 지갑, 자동차까지 전당포에 넘겼다. 지금 남은 돈은 단돈 <strong class="text-amber-300">$1,000</strong>. 블랙잭으로 돈을 모아 물건을 되찾고, 원하는 모습으로 카지노를 떠나라.
+        <span class="text-slate-500 ml-1">상점에서 물건을 되찾을 수 있다.</span>
+    </section>
 
-        <!-- Info HUD / Rule Bar -->
-        <div class="w-full bg-slate-900/80 rounded-xl p-4 border border-slate-700 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs md:text-sm">
-            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <p class="font-bold text-neon-cyan mb-1">📜 게임 규칙 & 아이템 정보</p>
-                <p class="text-slate-300 leading-relaxed text-xs">
-                    장애물 회피(+10점) 및 아이템 획득 시 점수 상승! 30초 생존 미션.<br>
-                    🟡점수(+50) | ⚡부스터(+10) | 🧊슬로우(+10) | 🛡️방어막(+10) | 💥폭탄(+10)
-                </p>
-            </div>
-
-            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <p class="font-bold text-neon-cyan mb-1">🎮 조작 방법</p>
-                <p class="text-slate-300 leading-relaxed">
-                    <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">→</kbd> 또는 <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">A</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">D</kbd>: 이동<br>
-                    <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">Space</kbd>: 일시정지 / 재개
-                </p>
-            </div>
-
-            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                <div>
-                    <p class="font-bold text-neon-cyan mb-1">📊 현재 상태</p>
-                    <p class="text-slate-300">상태: <span id="hud-state" class="font-pixel text-yellow-400">대기 중</span></p>
-                </div>
-                <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-800">
-                    <p class="text-slate-300">점수: <span id="hud-score" class="font-bold text-white">0</span></p>
-                    <p class="text-slate-300">최고기록: <span id="hud-highscore" class="font-bold text-yellow-400">0</span></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Game Screen Wrap -->
-        <div class="relative w-full max-w-md bg-slate-950 rounded-xl border-2 border-slate-700 scanlines shadow-2xl overflow-hidden flex flex-col items-center">
+    <!-- Main Casino Floor -->
+    <main class="max-w-7xl w-full mx-auto flex-1 flex flex-col justify-between my-1">
+        <div class="casino-table flex-1 flex flex-col justify-between p-4 sm:p-6 relative min-h-[500px]">
             
-            <!-- Canvas HUD Overlay -->
-            <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center pointer-events-none z-20 font-pixel text-xs">
-                <div class="bg-slate-900/80 px-2.5 py-1.5 rounded border border-cyan-500/40 text-cyan-300 flex items-center gap-2">
-                    <span>TIME: <span id="canvas-timer">30.0</span>s</span>
-                    <span id="wave-badge" class="text-pink-500 font-bold">WAVE 1</span>
+            <!-- Dealer Zone -->
+            <div class="flex flex-col items-center justify-start text-center mb-3">
+                <div class="flex items-center space-x-2 mb-1">
+                    <span class="bg-amber-500/20 text-amber-300 text-xs px-2.5 py-0.5 rounded-full border border-amber-500/30 font-bold">DEALER</span>
+                    <span id="dealer-score" class="bg-black/70 text-white font-bold text-xs px-2 py-0.5 rounded-md min-w-[28px] hidden">-</span>
                 </div>
-                
-                <div id="buff-container" class="flex gap-1.5 text-xs"></div>
-                <div class="bg-slate-900/80 px-2.5 py-1.5 rounded border border-pink-500/40 text-pink-400">
-                    SCORE: <span id="canvas-score">0</span>
+                <div id="dealer-cards" class="flex justify-center -space-x-4 sm:-space-x-6 min-h-[100px] sm:min-h-[122px] items-center px-2">
+                    <!-- Dealer cards -->
                 </div>
             </div>
 
-            <!-- Game Canvas -->
-            <canvas id="gameCanvas" width="480" height="640" class="w-full h-auto block bg-slate-950"></canvas>
-
-            <!-- State Overlay -->
-            <div id="game-overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
-                <h2 id="overlay-title" class="font-pixel text-xl md:text-2xl text-neon-cyan mb-3">NEON ESCAPE</h2>
-                <p id="overlay-desc" class="text-slate-300 text-xs md:text-sm max-w-xs mb-6 leading-relaxed">
-                    30초 동안 떨어지는 장애물을 피하며 끝까지 생존하세요! 장애물 회피와 아이템 획득 시 점수가 올라갑니다.
-                </p>
-                <div class="flex flex-wrap justify-center gap-3">
-                    <button id="btn-start" class="px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-pixel text-xs md:text-sm transition transform active:scale-95 shadow-lg shadow-cyan-500/40">
-                        GAME START
-                    </button>
-                    <button id="btn-pause" class="hidden px-6 py-3 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold font-pixel text-xs md:text-sm transition">
-                        PAUSE
-                    </button>
+            <!-- Table Center Status Message -->
+            <div class="text-center my-2">
+                <div id="game-status" class="inline-block px-5 py-2 rounded-full bg-black/65 backdrop-blur border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold shadow-xl">
+                    NPC 인원(+/-)을 선택하고 베팅 후 DEAL을 누르세요.
                 </div>
             </div>
-        </div>
 
-        <!-- Touch Controls -->
-        <div class="w-full max-w-md mt-3 flex justify-between items-center gap-3 md:hidden">
-            <button id="btn-touch-left" class="flex-1 py-3.5 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-white active:bg-cyan-600 text-base">◀ LEFT</button>
-            <button id="btn-touch-pause" class="px-3.5 py-3.5 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-yellow-400 active:bg-yellow-600 text-xs">⏸ PAUSE</button>
-            <button id="btn-touch-right" class="flex-1 py-3.5 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-white active:bg-cyan-600 text-base">RIGHT ▶</button>
-        </div>
+            <!-- Dynamic Players Seats Row -->
+            <div id="players-container" class="flex justify-center items-end gap-2 sm:gap-4 mt-2 w-full px-2">
+                <!-- Dynamic Player Seats (NPCs + You) Render Here -->
+            </div>
 
+        </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="w-full border-t border-slate-800 py-3 text-center text-xs text-slate-500">
-        Neon Escape 8-Bit Mini Game &copy; 2026.
+    <!-- Bottom Controls & Chips Deck -->
+    <footer class="max-w-7xl w-full mx-auto mt-2 bg-slate-900/90 backdrop-blur p-3 sm:p-4 rounded-2xl border border-slate-800 shadow-2xl">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
+            
+            <!-- Chips Panel & All-In -->
+            <div id="chips-panel" class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full lg:w-auto">
+                <div class="chip-wrapper">
+                    <div class="chip chip-10" onclick="addBet(10)">$10</div>
+                    <div class="chip-tooltip">+$10 추가</div>
+                </div>
+                <div class="chip-wrapper">
+                    <div class="chip chip-25" onclick="addBet(25)">$25</div>
+                    <div class="chip-tooltip">+$25 추가</div>
+                </div>
+                <div class="chip-wrapper">
+                    <div class="chip chip-50" onclick="addBet(50)">$50</div>
+                    <div class="chip-tooltip">+$50 추가</div>
+                </div>
+                <div class="chip-wrapper">
+                    <div class="chip chip-100" onclick="addBet(100)">$100</div>
+                    <div class="chip-tooltip">+$100 추가</div>
+                </div>
+                <div class="chip-wrapper">
+                    <div class="chip chip-500" onclick="addBet(500)">$500</div>
+                    <div class="chip-tooltip">+$500 고액 베팅</div>
+                </div>
+                <div class="chip-wrapper">
+                    <div class="chip chip-1000" onclick="addBet(1000)">$1K</div>
+                    <div class="chip-tooltip">+$1,000 최고액 베팅</div>
+                </div>
+
+                <!-- ALL IN -->
+                <button onclick="allInBet()" class="btn-allin text-white font-black px-3.5 py-2 rounded-full text-xs sm:text-sm flex items-center gap-1.5 transform active:scale-95 transition">
+                    <i class="fa-solid fa-fire text-amber-300"></i>
+                    <span>ALL IN</span>
+                </button>
+
+                <button onclick="resetBet()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">
+                    초기화
+                </button>
+            </div>
+
+            <!-- Bet Status & Action Buttons -->
+            <div class="flex items-center justify-between w-full lg:w-auto gap-3">
+                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-amber-500/30 text-center min-w-[120px]">
+                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">내 베팅액</div>
+                    <div id="current-bet" class="text-lg font-black text-amber-400">$0</div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-1 lg:flex-none">
+                    <button id="btn-deal" onclick="startGameRound()" class="flex-1 lg:flex-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none">
+                        <i class="fa-solid fa-play mr-1"></i> DEAL
+                    </button>
+                    
+                    <button id="btn-hit" onclick="playerHit()" disabled class="flex-1 lg:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-3 rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none">
+                        HIT
+                    </button>
+
+                    <button id="btn-stand" onclick="playerStand()" disabled class="flex-1 lg:flex-none bg-rose-600 hover:bg-rose-500 text-white font-bold px-5 py-3 rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none">
+                        STAND
+                    </button>
+                </div>
+            </div>
+
+        </div>
     </footer>
 
-    <!-- Game Engine -->
-    <script>
-        // Web Audio API
-        class SoundFX {
-            constructor() {
-                this.ctx = null;
-                this.muted = false;
-            }
+    <!-- MODAL: Story Introduction (shown before rules) -->
+    <div id="intro-modal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 modal-backdrop bg-black/90">
+        <div class="bg-slate-950 border-2 border-amber-500/50 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl text-center">
+            <div class="text-amber-400 text-5xl mb-4"><i class="fa-solid fa-cloud-moon"></i></div>
+            <p class="text-xs tracking-[0.3em] text-amber-300 font-bold mb-2">ROYAL CASINO : THE LAST CHANCE</p>
+            <h2 class="text-2xl sm:text-3xl font-black text-white mb-4">빈털터리의 마지막 승부</h2>
+            <div class="text-sm sm:text-base text-slate-300 leading-relaxed text-left bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <p>당신은 한때 평범한 삶을 살았지만, 도박으로 모든 돈을 잃고 말았다. 입고 있던 옷과 지갑, 스마트폰, 자동차마저 전당포에 맡겼다.</p>
+                <p>지금 당신에게 남은 것은 카지노 입장료처럼 쥐여진 <strong class="text-amber-300">단돈 $1,000</strong>뿐이다. 전당포 주인은 물건을 되찾으려면 더 비싼 값을 치르라고 한다.</p>
+                <p>블랙잭으로 돈을 불려 물건을 하나씩 되찾아라. 하지만 욕심을 부리다 다시 빈털터리가 된다면, 되찾은 물건마저 헐값에 강제로 팔릴 것이다.</p>
+                <p class="text-amber-200 font-bold">돈을 챙겨 떠날 것인가, 모든 것을 걸고 카지노의 왕이 될 것인가?</p>
+            </div>
+            <button onclick="continueToRules()" class="w-full mt-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">이야기 확인 · 규칙 보기 <i class="fa-solid fa-arrow-right ml-1"></i></button>
+        </div>
+    </div>
 
-            init() {
-                if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        this.ctx = new AudioContext();
-                    }
+    <!-- MODAL 1: Rules Modal -->
+    <div id="rules-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/70">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-slate-200">
+            <button onclick="closeRulesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="p-3 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+                    <i class="fa-solid fa-spade text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white serif">블랙잭 게임 규칙</h2>
+                    <p class="text-xs text-slate-400">NPC 플레이어 수를 직접 설정할 수 있습니다.</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+                <div class="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
+                    <strong class="text-amber-400">1. 게임 목표:</strong><br>
+                    카드의 합이 <span class="text-amber-300 font-bold">21</span>에 가장 가깝게 만드는 플레이어가 승리합니다. 21을 초과하면 BUST로 즉시 패배합니다.
+                </div>
+                <div class="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
+                    <strong class="text-amber-400">2. 카드 점수:</strong><br>
+                    • 2 ~ 10: 숫자 그대로<br>
+                    • J, Q, K: 모두 <span class="text-white font-bold">10점</span><br>
+                    • A (Ace): 유리함에 따라 <span class="text-white font-bold">1점 또는 11점</span>으로 자동 계산
+                </div>
+                <div class="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
+                    <strong class="text-amber-400">3. 파산 주의:</strong><br>
+                    잔액이 최소 베팅액보다 부족해지면 거지가 되어 카지노 밖으로 쫓겨나게 됩니다!
+                </div>
+            </div>
+
+            <button onclick="closeRulesModal()" class="w-full mt-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">
+                게임 시작하기
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Bankrupt Ending -->
+    <div id="bankrupt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/90 hidden">
+        <div class="bg-slate-950 border-2 border-red-600 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center relative overflow-hidden door-slam-anim">
+            <div class="absolute -right-12 -top-12 w-40 h-40 bg-red-600/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="w-32 h-32 mx-auto mb-2 beggar-float relative">
+                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-[0_10px_15px_rgba(239,68,68,0.4)]">
+                    <ellipse cx="100" cy="180" rx="70" ry="10" fill="#0f172a" />
+                    <path d="M 60 130 L 140 130 L 150 180 L 50 180 Z" fill="#334155" />
+                    <circle cx="100" cy="95" r="32" fill="#cbd5e1" />
+                    <path d="M 85 88 L 93 94 M 93 88 L 85 94 M 107 88 L 115 94 M 115 88 L 107 94" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M 88 112 Q 100 102 112 112" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                    <path d="M 62 88 C 65 55 135 55 138 88 Z" fill="#1e293b" />
+                    <rect x="55" y="84" width="90" height="7" rx="3.5" fill="#0f172a" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-black text-red-500 tracking-wide mb-2">빈털터리의 최후</h2>
+            <p class="text-sm text-slate-400 mb-4">마지막 칩까지 잃었습니다.</p>
+            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl mb-5 text-left text-sm text-slate-300 leading-relaxed">
+                카지노의 경비원들이 당신을 카지노 밖으로 끌어냈습니다. 주머니에는 한 푼도 없고, 되찾았던 물건마저 전당포에 넘어갔습니다. 이제 당신에게 남은 것은 후회뿐입니다.
+            </div>
+            <div class="space-y-3">
+                <button onclick="restartGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-3.5 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i><span>처음부터 다시 시작</span>
+                </button>
+                <button onclick="finishBankruptGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl border border-slate-700 transition">
+                    카지노를 떠난다
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Pawn Shop -->
+    <div id="shop-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/80">
+        <div class="bg-slate-950 border border-amber-500/40 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start gap-3 mb-2">
+                <div><h2 class="text-xl sm:text-2xl font-black text-amber-400 serif"><i class="fa-solid fa-store mr-2"></i>전당포 상점</h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">맡겨둔 물건을 되찾아라. 되찾은 물건은 파산 직전에 강제로 팔릴 수 있다.</p></div>
+                <button onclick="closeShopModal()" class="text-slate-400 hover:text-white text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="shop-story" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-300 mb-4">전당포 주인이 물건 목록을 내민다. “돈만 가져오면 돌려주지.”</div>
+            <div id="shop-items" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            <div class="flex justify-between items-center mt-5 gap-3"><span id="shop-message" class="text-xs text-slate-400"></span><button onclick="closeShopModal()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-2.5 rounded-xl border border-slate-700">카지노로 돌아가기</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Inventory -->
+    <div id="inventory-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/80">
+        <div class="bg-slate-950 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-black text-amber-400"><i class="fa-solid fa-box-open mr-2"></i>소지품</h2><button onclick="closeInventoryModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="inventory-items" class="space-y-2"></div>
+            <p class="text-xs text-slate-500 mt-4">옷을 되찾아야 카지노를 정상적으로 떠날 수 있다. 잔액이 $10 미만이 되면 보유 물건이 매입가보다 낮은 가격에 강제 처분된다.</p>
+            <button onclick="closeInventoryModal()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl">닫기</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Story Ending -->
+    <div id="ending-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 modal-backdrop bg-black/90">
+        <div class="bg-slate-950 border-2 border-amber-500/60 rounded-3xl max-w-lg w-full p-6 shadow-2xl text-center">
+            <div id="ending-art" class="w-full h-44 sm:h-52 mb-4 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center"></div>
+            <div id="ending-icon" class="text-3xl text-amber-400 mb-2"><i class="fa-solid fa-person-walking"></i></div>
+            <h2 id="ending-title" class="text-2xl font-black text-amber-400 mb-3">카지노를 떠나다</h2>
+            <p id="ending-text" class="text-sm sm:text-base text-slate-300 leading-relaxed"></p>
+            <div id="ending-stats" class="mt-4 text-xs text-slate-500"></div>
+            <button onclick="restartGame()" class="w-full mt-6 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">처음으로 돌아가기 <i class="fa-solid fa-rotate-right ml-1"></i></button>
+        </div>
+    </div>
+
+    <!-- Audio Effects -->
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'chip') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'card') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(280, now);
+                osc.frequency.linearRampToValueAtTime(140, now + 0.06);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            } else if (type === 'win') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'lose') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'kickout') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'allin') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+                osc.start(now);
+                osc.stop(now + 0.22);
+            }
+        }
+    </script>
+
+    <!-- Main Game Logic -->
+    <script>
+        const npcPool = [
+            { name: '김철수', color: 'text-blue-400', risk: 16 },
+            { name: '이지은', color: 'text-purple-400', risk: 17 },
+            { name: '박민수', color: 'text-emerald-400', risk: 15 },
+            { name: '제시카', color: 'text-pink-400', risk: 17 }
+        ];
+
+        let activeNpcCount = 0; // Default 0 (1:1 with dealer)
+        let balance = 1000;
+        let currentBet = 0;
+        let deck = [];
+        let inRound = false;
+
+        let dealerHand = [];
+        let playerHand = [];
+        let npcHands = [];
+
+        // Story inventory: items begin pawned; prices include a steep buyback fee.
+        const storyItems = [
+            { id: 'clothes', name: '멀쩡한 옷 한 벌', icon: 'fa-shirt', price: 2000, resale: 700, desc: '카지노를 떠나기 위한 최소한의 품위.' },
+            { id: 'wallet', name: '가죽 지갑', icon: 'fa-wallet', price: 8000, resale: 3000, desc: '현금과 신분증을 넣을 수 있다.' },
+            { id: 'phone', name: '스마트폰', icon: 'fa-mobile-screen-button', price: 10000, resale: 6000, desc: '택시를 부를 수 있게 된다.' },
+            { id: 'car', name: '자동차 열쇠와 차량', icon: 'fa-car', price: 50000, resale: 20000, desc: '직접 운전해서 집으로 돌아간다.' }
+        ];
+        const ownedItems = { clothes: false, wallet: false, phone: false, car: false };
+        let lifetimeProfit = 0;
+
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+        const balanceEl = document.getElementById('user-balance');
+        const betEl = document.getElementById('current-bet');
+        const statusEl = document.getElementById('game-status');
+        const playersContainerEl = document.getElementById('players-container');
+        const npcCountDisplayEl = document.getElementById('npc-count-display');
+        const dealerCardsEl = document.getElementById('dealer-cards');
+        const dealerScoreEl = document.getElementById('dealer-score');
+
+        const btnDeal = document.getElementById('btn-deal');
+        const btnHit = document.getElementById('btn-hit');
+        const btnStand = document.getElementById('btn-stand');
+
+        function continueToRules() {
+            document.getElementById('intro-modal').classList.add('hidden');
+            openRulesModal();
+        }
+        function openRulesModal() { document.getElementById('rules-modal').classList.remove('hidden'); }
+        function closeRulesModal() { document.getElementById('rules-modal').classList.add('hidden'); }
+        function openShopModal() {
+            renderShop();
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+        function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
+        function openInventoryModal() {
+            renderInventory();
+            document.getElementById('inventory-modal').classList.remove('hidden');
+        }
+        function closeInventoryModal() { document.getElementById('inventory-modal').classList.add('hidden'); }
+        function closeEndingModal() { document.getElementById('ending-modal').classList.add('hidden'); }
+        function renderShop() {
+            const container = document.getElementById('shop-items');
+            container.innerHTML = storyItems.map(item => {
+                const owned = ownedItems[item.id];
+                const canAfford = balance >= item.price;
+                return `<div class="bg-slate-900 border ${owned ? 'border-emerald-600/50' : 'border-slate-800'} rounded-xl p-4 flex gap-3 items-center">
+                    <div class="w-12 h-12 flex-shrink-0 rounded-xl bg-slate-800 flex items-center justify-center text-2xl ${owned ? 'text-emerald-400' : 'text-amber-400'}"><i class="fa-solid ${item.icon}"></i></div>
+                    <div class="flex-1 min-w-0"><div class="font-bold text-white">${item.name}</div><div class="text-xs text-slate-400 mt-1">${item.desc}</div><div class="text-amber-300 font-black mt-2">$${item.price.toLocaleString()}</div></div>
+                    <button onclick="buyStoryItem('${item.id}')" ${owned || !canAfford ? 'disabled' : ''} class="text-xs font-black px-3 py-2 rounded-lg whitespace-nowrap ${owned ? 'bg-emerald-900 text-emerald-300' : canAfford ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-500'} disabled:opacity-80">${owned ? '되찾음' : canAfford ? '되찾기' : '잔액 부족'}</button>
+                </div>`;
+            }).join('');
+            document.getElementById('shop-message').innerText = `보유 자금: $${balance.toLocaleString()}`;
+        }
+        function buyStoryItem(id) {
+            const item = storyItems.find(entry => entry.id === id);
+            if (!item || ownedItems[id]) return;
+            if (balance < item.price) {
+                document.getElementById('shop-message').innerText = '돈이 부족하다. 블랙잭으로 더 모아야 한다.';
+                return;
+            }
+            balance -= item.price;
+            ownedItems[id] = true;
+            updateUI();
+            playSound('chip');
+            document.getElementById('shop-story').innerText = `전당포 주인이 ${item.name}을(를) 돌려줬다. 남은 돈은 $${balance.toLocaleString()}이다.`;
+            document.getElementById('shop-message').innerText = `${item.name}을(를) 되찾았다.`;
+            renderShop();
+        }
+        function renderInventory() {
+            const container = document.getElementById('inventory-items');
+            container.innerHTML = storyItems.map(item => `<div class="flex items-center gap-3 p-3 rounded-xl border ${ownedItems[item.id] ? 'border-emerald-700/50 bg-emerald-950/30' : 'border-slate-800 bg-slate-900/70'}"><i class="fa-solid ${item.icon} w-6 text-center ${ownedItems[item.id] ? 'text-emerald-400' : 'text-slate-600'}"></i><span class="flex-1 text-sm ${ownedItems[item.id] ? 'text-white' : 'text-slate-500'}">${item.name}</span><span class="text-xs font-bold ${ownedItems[item.id] ? 'text-emerald-400' : 'text-slate-500'}">${ownedItems[item.id] ? '보유 중' : '전당포에 맡김'}</span></div>`).join('');
+        }
+        function endingIllustration(kind) {
+            const scenes = {
+                king: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="goldbg" x2="0" y2="1"><stop stop-color="#78350f"/><stop offset="1" stop-color="#111827"/></linearGradient></defs><rect width="640" height="260" fill="url(#goldbg)"/><circle cx="320" cy="100" r="82" fill="#f59e0b" opacity=".13"/><path d="M0 210 L640 210" stroke="#fbbf24" stroke-width="2" opacity=".6"/><path d="M255 70 L275 105 L320 55 L365 105 L385 70 L375 130 L265 130 Z" fill="#fbbf24" stroke="#fff1a8" stroke-width="4"/><circle cx="275" cy="70" r="7" fill="#fff1a8"/><circle cx="320" cy="55" r="7" fill="#fff1a8"/><circle cx="385" cy="70" r="7" fill="#fff1a8"/><path d="M280 150 Q320 125 360 150 L390 230 L250 230 Z" fill="#1e293b" stroke="#fbbf24" stroke-width="3"/><path d="M310 145 L320 175 L330 145" fill="#f8fafc"/><text x="320" y="247" fill="#fde68a" text-anchor="middle" font-size="17" font-weight="bold">KING OF THE CASINO</text></svg>`,
+                car: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="night" y2="1"><stop stop-color="#172554"/><stop offset="1" stop-color="#020617"/></linearGradient></defs><rect width="640" height="260" fill="url(#night)"/><circle cx="510" cy="45" r="25" fill="#fde68a" opacity=".8"/><path d="M0 170 L70 110 L120 165 L190 95 L260 165 L330 120 L400 170 L470 115 L550 170 L610 125 L640 150 V260 H0Z" fill="#1e293b"/><path d="M0 220 H640" stroke="#f8fafc" stroke-width="3" stroke-dasharray="28 22"/><path d="M160 170 L210 125 H360 L410 170 Z" fill="#38bdf8" stroke="#bae6fd" stroke-width="3"/><rect x="145" y="168" width="285" height="42" rx="13" fill="#dc2626" stroke="#fecaca" stroke-width="3"/><circle cx="205" cy="210" r="25" fill="#020617" stroke="#cbd5e1" stroke-width="7"/><circle cx="370" cy="210" r="25" fill="#020617" stroke="#cbd5e1" stroke-width="7"/><text x="320" y="42" fill="#e2e8f0" text-anchor="middle" font-size="18" font-weight="bold">HOMEWARD BOUND</text></svg>`,
+                taxi: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="260" fill="#0f172a"/><path d="M0 0 H640 V100 L0 160Z" fill="#312e81" opacity=".65"/><g fill="#fbbf24"><rect x="55" y="40" width="12" height="75"/><rect x="105" y="20" width="12" height="85"/><rect x="500" y="30" width="12" height="90"/><rect x="550" y="55" width="12" height="65"/></g><path d="M0 220 H640" stroke="#64748b" stroke-width="4"/><path d="M175 155 L220 115 H370 L415 155Z" fill="#fef3c7" stroke="#fbbf24" stroke-width="3"/><rect x="150" y="152" width="300" height="58" rx="12" fill="#facc15" stroke="#fef08a" stroke-width="3"/><rect x="265" y="130" width="65" height="18" rx="4" fill="#f8fafc"/><text x="298" y="143" fill="#111827" text-anchor="middle" font-size="11" font-weight="bold">TAXI</text><circle cx="210" cy="210" r="22" fill="#020617" stroke="#cbd5e1" stroke-width="6"/><circle cx="390" cy="210" r="22" fill="#020617" stroke="#cbd5e1" stroke-width="6"/><text x="320" y="40" fill="#f8fafc" text-anchor="middle" font-size="18" font-weight="bold">A RIDE HOME</text></svg>`,
+                walk: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="walkbg" y2="1"><stop stop-color="#1e1b4b"/><stop offset="1" stop-color="#020617"/></linearGradient></defs><rect width="640" height="260" fill="url(#walkbg)"/><circle cx="500" cy="45" r="22" fill="#e2e8f0"/><path d="M0 190 L80 145 L145 185 L230 130 L310 190 L405 145 L480 185 L560 135 L640 175 V260 H0Z" fill="#1e293b"/><path d="M310 260 L280 185 H360 L390 260Z" fill="#334155"/><circle cx="320" cy="112" r="22" fill="#f1c7a5"/><path d="M297 108 Q295 78 323 80 Q348 84 343 108Z" fill="#111827"/><path d="M294 140 L346 140 L360 194 L280 194Z" fill="#64748b"/><path d="M305 190 L300 238 M338 190 L350 238" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round"/><text x="320" y="30" fill="#e2e8f0" text-anchor="middle" font-size="18" font-weight="bold">THE LONG WALK HOME</text></svg>`,
+                blocked: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="260" fill="#1f2937"/><rect x="70" y="35" width="500" height="190" rx="12" fill="#111827" stroke="#b91c1c" stroke-width="4"/><path d="M100 80 H540 M100 125 H540 M100 170 H540" stroke="#7f1d1d" stroke-width="12"/><circle cx="320" cy="122" r="48" fill="#475569"/><path d="M295 100 L345 145 M345 100 L295 145" stroke="#fecaca" stroke-width="9" stroke-linecap="round"/><text x="320" y="242" fill="#fca5a5" text-anchor="middle" font-size="18" font-weight="bold">NOT READY TO LEAVE</text></svg>`
+            };
+            return scenes[kind] || scenes.blocked;
+        }
+        function leaveCasino() {
+            if (inRound || currentBet > 0) {
+                statusEl.innerText = '라운드를 끝내고 베팅금을 초기화한 뒤 떠날 수 있습니다.';
+                return;
+            }
+            let title, icon, story, scene;
+            if (balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car) {
+                title = '카지노의 왕'; icon = 'fa-crown'; scene = 'king'; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. 카지노의 누구도 당신을 무시하지 못한다. 이제 당신은 이곳의 전설, 카지노의 왕이다.`;
+            } else if (!ownedItems.clothes) {
+                title = '아직 떠날 수 없다'; icon = 'fa-ban'; scene = 'blocked'; story = '전당포에 맡긴 옷조차 되찾지 못했다. 이 차림으로는 카지노를 나갈 수 없다. 돈을 더 모아 옷부터 되찾아라.';
+            } else if (ownedItems.phone && ownedItems.car) {
+                title = '내 차로 귀가'; icon = 'fa-car'; scene = 'car'; story = '옷을 갖춰 입고 스마트폰과 자동차까지 되찾았다. 차 키를 돌리자 엔진 소리가 울린다. 당신은 직접 운전해 집으로 향한다.';
+            } else if (ownedItems.phone) {
+                title = '택시를 타고 귀가'; icon = 'fa-taxi'; scene = 'taxi'; story = '옷을 되찾고 스마트폰도 손에 넣었다. 택시를 호출하고, 카지노의 네온사인을 뒤로한 채 집으로 향한다.';
+            } else {
+                title = '걸어서 귀가'; icon = 'fa-person-walking'; scene = 'walk'; story = '옷 한 벌을 되찾은 당신은 무거운 발걸음으로 카지노를 나선다. 차도, 스마트폰도 없으니 집까지 걸어가야 한다.';
+            }
+            document.getElementById('ending-art').innerHTML = endingIllustration(scene);
+            document.getElementById('ending-title').innerText = title;
+            document.getElementById('ending-icon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            document.getElementById('ending-text').innerText = story;
+            document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 되찾은 물건: ${storyItems.filter(item => ownedItems[item.id]).length}/4 · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
+            document.getElementById('ending-modal').classList.remove('hidden');
+            if (ownedItems.clothes) playSound('win');
+        }
+        function showBankruptModal() {
+            playSound('kickout');
+            document.getElementById('bankrupt-modal').classList.remove('hidden');
+        }
+
+        function finishBankruptGame() {
+            document.getElementById('bankrupt-modal').classList.add('hidden');
+            document.getElementById('ending-art').innerHTML = endingIllustration('blocked');
+            document.getElementById('ending-title').innerText = '빈털터리의 최후';
+            document.getElementById('ending-icon').innerHTML = '<i class="fa-solid fa-person-walking"></i>';
+            document.getElementById('ending-text').innerText = '카지노의 경비원들에게 쫓겨난 당신은 빈 주머니를 붙잡고 어두운 거리로 걸어 나왔습니다. 되찾았던 물건도 모두 사라졌습니다. 도박으로 모든 것을 잃은 오늘을 후회하며, 당신의 이야기는 여기서 끝납니다.';
+            document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 되찾은 물건: ${storyItems.filter(item => ownedItems[item.id]).length}/4 · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
+            document.getElementById('ending-modal').classList.remove('hidden');
+        }
+
+        function changeNpcCount(delta) {
+            if (inRound) return;
+            const newCount = activeNpcCount + delta;
+            if (newCount >= 0 && newCount <= 4) {
+                activeNpcCount = newCount;
+                npcCountDisplayEl.innerText = `${activeNpcCount}명`;
+                setupPlayerSeats();
+                playSound('chip');
+            }
+        }
+
+        function setupPlayerSeats() {
+            npcHands = [];
+            for (let i = 0; i < activeNpcCount; i++) {
+                npcHands.push({
+                    info: npcPool[i],
+                    cards: [],
+                    bet: 0,
+                    status: '대기 중'
+                });
+            }
+            renderSeatsUI();
+        }
+
+        function renderSeatsUI() {
+            playersContainerEl.innerHTML = '';
+            const leftNpcCount = Math.ceil(activeNpcCount / 2);
+            
+            for (let i = 0; i < leftNpcCount; i++) {
+                playersContainerEl.appendChild(createNpcSeatElement(i));
+            }
+            playersContainerEl.appendChild(createPlayerSeatElement());
+            for (let i = leftNpcCount; i < activeNpcCount; i++) {
+                playersContainerEl.appendChild(createNpcSeatElement(i));
+            }
+        }
+
+        function createNpcSeatElement(index) {
+            const npc = npcHands[index];
+            const div = document.createElement('div');
+            div.className = "flex flex-col items-center bg-black/35 p-2 sm:p-3 rounded-2xl border border-white/10 backdrop-blur-sm min-w-[100px] sm:min-w-[130px] flex-shrink-0";
+            div.innerHTML = `
+                <div class="flex items-center space-x-1 mb-1">
+                    <i class="fa-solid fa-robot ${npc.info.color} text-xs"></i>
+                    <span class="text-xs font-bold text-slate-200">${npc.info.name}</span>
+                </div>
+                <div id="npc-cards-${index}" class="flex justify-center -space-x-5 sm:-space-x-7 min-h-[100px] sm:min-h-[122px] items-center my-1 scale-90 sm:scale-100"></div>
+                <div class="flex items-center space-x-1 mt-0.5 text-xs">
+                    <span id="npc-score-${index}" class="bg-slate-900 text-amber-300 font-bold px-2 py-0.5 rounded text-[11px]">-</span>
+                    <span id="npc-bet-${index}" class="text-slate-400 font-medium text-[11px]">$${npc.bet}</span>
+                </div>
+                <div id="npc-status-${index}" class="text-[10px] sm:text-xs text-amber-400 mt-0.5 font-bold h-4">${npc.status}</div>
+            `;
+            return div;
+        }
+
+        function createPlayerSeatElement() {
+            const div = document.createElement('div');
+            const widthClass = activeNpcCount === 0 ? "min-w-[200px] sm:min-w-[280px] px-4" : "min-w-[130px] sm:min-w-[170px]";
+            
+            div.className = `flex flex-col items-center bg-amber-500/10 p-2 sm:p-3 rounded-2xl border-2 border-amber-500/40 backdrop-blur-md shadow-2xl relative ${widthClass}`;
+            div.innerHTML = `
+                <div class="absolute -top-3 bg-amber-500 text-black font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">
+                    YOU (나)
+                </div>
+                <div id="player-cards" class="flex justify-center -space-x-4 sm:-space-x-5 min-h-[100px] sm:min-h-[122px] items-center my-1 w-full px-1"></div>
+                <div class="flex items-center space-x-2 mt-0.5">
+                    <span id="player-score" class="bg-black/80 text-amber-400 font-extrabold text-xs sm:text-sm px-2.5 py-0.5 rounded-lg border border-amber-500/40">-</span>
+                </div>
+                <div id="player-status" class="text-xs text-emerald-400 mt-0.5 font-extrabold h-4"></div>
+            `;
+            return div;
+        }
+
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let val of values) {
+                    deck.push({ suit, value: val });
                 }
             }
-
-            playBeep(freq, type = 'square', duration = 0.1, vol = 0.1) {
-                if (this.muted || !this.ctx) return;
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = type;
-                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + duration);
-                } catch (e) {}
-            }
-
-            playItemCollect() {
-                this.playBeep(587.33, 'square', 0.08, 0.15);
-                setTimeout(() => this.playBeep(880, 'square', 0.12, 0.15), 80);
-            }
-
-            playBuffSound() {
-                this.playBeep(440, 'triangle', 0.1, 0.15);
-                setTimeout(() => this.playBeep(659.25, 'triangle', 0.1, 0.15), 60);
-                setTimeout(() => this.playBeep(880, 'triangle', 0.15, 0.2), 120);
-            }
-
-            playDebuffSound() {
-                this.playBeep(300, 'sawtooth', 0.15, 0.15);
-                setTimeout(() => this.playBeep(180, 'sawtooth', 0.2, 0.2), 100);
-            }
-
-            playBombSound() {
-                this.playBeep(120, 'square', 0.3, 0.3);
-                setTimeout(() => this.playBeep(60, 'sawtooth', 0.4, 0.3), 100);
-            }
-
-            playShieldBreak() {
-                this.playBeep(523.25, 'square', 0.1, 0.2);
-                setTimeout(() => this.playBeep(261.63, 'square', 0.2, 0.2), 80);
-            }
-
-            playGameOver() {
-                if (this.muted || !this.ctx) return;
-                [200, 150, 100, 80].forEach((f, i) => {
-                    setTimeout(() => this.playBeep(f, 'sawtooth', 0.15, 0.2), i * 120);
-                });
-            }
-
-            playGameWin() {
-                if (this.muted || !this.ctx) return;
-                [440, 554.37, 659.25, 880].forEach((f, i) => {
-                    setTimeout(() => this.playBeep(f, 'square', 0.12, 0.15), i * 100);
-                });
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
             }
         }
 
-        const sound = new SoundFX();
-
-        const STORAGE_KEY = 'NEON_ESCAPE_SAVED_DATA_V1';
-        const DEFAULT_STORAGE = { highScore: 0, playCount: 0, muted: false, reduceMotion: false };
-
-        function loadStorageData() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return { ...DEFAULT_STORAGE };
-                const parsed = JSON.parse(raw);
-                if (typeof parsed !== 'object' || parsed === null || typeof parsed.highScore !== 'number') throw new Error();
-                return { ...DEFAULT_STORAGE, ...parsed };
-            } catch (err) {
-                return { ...DEFAULT_STORAGE };
+        function addBet(amount) {
+            if (inRound) return;
+            if (balance >= amount) {
+                balance -= amount;
+                currentBet += amount;
+                updateUI();
+                playSound('chip');
+            } else {
+                statusEl.innerText = "잔액이 부족합니다!";
             }
         }
 
-        function saveStorageData(data) {
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+        function allInBet() {
+            if (inRound) return;
+            if (balance <= 0) return;
+            currentBet += balance;
+            balance = 0;
+            updateUI();
+            playSound('allin');
+            statusEl.innerText = "🔥 전 재산을 올인하셨습니다!";
         }
 
-        let persistentData = loadStorageData();
+        function resetBet() {
+            if (inRound) return;
+            balance += currentBet;
+            currentBet = 0;
+            updateUI();
+            playSound('chip');
+        }
 
-        const ITEM_TYPES = {
-            SCORE: { color: '#ffd700', label: '+50', shadow: '#ffd700' },
-            SPEED_UP: { color: '#00bfff', label: '⚡', shadow: '#00bfff' },
-            SLOW_DOWN: { color: '#a855f7', label: '🧊', shadow: '#a855f7' },
-            SHIELD: { color: '#22c55e', label: '🛡️', shadow: '#22c55e' },
-            BOMB: { color: '#f97316', label: '💥', shadow: '#f97316' }
-        };
+        function updateUI() {
+            balanceEl.innerText = `$${balance.toLocaleString()}`;
+            betEl.innerText = `$${currentBet.toLocaleString()}`;
+            if (!document.getElementById('shop-modal').classList.contains('hidden')) renderShop();
+        }
 
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let gameState = 'READY';
-        let currentScore = 0;
-        let timeRemaining = 30.0;
-        let lastTime = 0;
-        let obstacleSpeedMultiplier = 8.0;
-        let particles = [];
-        let obstacles = [];
-        let items = [];
-        let currentWave = 1;
-
-        let screenFlashTimer = 0;
-        let bombTextTimer = 0;
-
-        const BASE_PLAYER_SPEED = 6.5;
-        const player = {
-            x: canvas.width / 2 - 18,
-            y: canvas.height - 50,
-            width: 36,
-            height: 24,
-            speed: BASE_PLAYER_SPEED
-        };
-
-        let activeBuffs = {
-            speedUpStacks: 0,
-            speedUpTimer: 0,
-            slowDownTimer: 0,
-            hasShield: false
-        };
-
-        const keysPressed = {};
-        let lastInputTime = 0;
-
-        function handleKeyDown(e) {
-            sound.init();
-            const now = performance.now();
-            if (e.repeat && now - lastInputTime < 30) return;
-            lastInputTime = now;
-
-            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keysPressed['left'] = true;
-            else if (e.code === 'ArrowRight' || e.code === 'KeyD') keysPressed['right'] = true;
-            else if (e.code === 'Space') {
-                e.preventDefault();
-                togglePause();
+        function calculateScore(hand) {
+            let score = 0;
+            let aces = 0;
+            for (let card of hand) {
+                if (card.hidden) continue;
+                if (['J', 'Q', 'K'].includes(card.value)) {
+                    score += 10;
+                } else if (card.value === 'A') {
+                    aces += 1;
+                    score += 11;
+                } else {
+                    score += parseInt(card.value);
+                }
             }
-        }
-
-        function handleKeyUp(e) {
-            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keysPressed['left'] = false;
-            else if (e.code === 'ArrowRight' || e.code === 'KeyD') keysPressed['right'] = false;
-        }
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-        window.addEventListener('blur', () => { if (gameState === 'PLAYING') pauseGame(); });
-
-        let spawnTimer = 0;
-        let itemSpawnTimer = 0;
-
-        function resetGameSession() {
-            currentScore = 0;
-            timeRemaining = 30.0;
-            currentWave = 1;
-            player.x = canvas.width / 2 - player.width / 2;
-            player.speed = BASE_PLAYER_SPEED;
-            activeBuffs = { speedUpStacks: 0, speedUpTimer: 0, slowDownTimer: 0, hasShield: false };
-            obstacles = [];
-            items = [];
-            particles = [];
-            spawnTimer = 0;
-            itemSpawnTimer = 0;
-            screenFlashTimer = 0;
-            bombTextTimer = 0;
-            updateHUD();
-        }
-
-        function startGame() {
-            sound.init();
-            resetGameSession();
-            gameState = 'PLAYING';
-            lastTime = performance.now();
-            hideOverlay();
-            updateHUD();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function pauseGame() {
-            if (gameState === 'PLAYING') {
-                gameState = 'PAUSED';
-                showOverlay("GAME PAUSED", "Space 키 또는 버튼을 눌러 재개하세요.");
-                document.getElementById('btn-start').innerText = "RESUME";
-                updateHUD();
+            while (score > 21 && aces > 0) {
+                score -= 10;
+                aces -= 1;
             }
+            return score;
         }
 
-        function resumeGame() {
-            if (gameState === 'PAUSED') {
-                gameState = 'PLAYING';
-                hideOverlay();
-                lastTime = performance.now();
-                updateHUD();
-                requestAnimationFrame(gameLoop);
+        function renderCardHTML(card) {
+            const animClass = card.isNew ? 'deal-animation' : '';
+            if (card.hidden) {
+                return `<div class="playing-card back ${animClass}"></div>`;
             }
+            const isRed = card.suit === '♥' || card.suit === '♦';
+            const colorClass = isRed ? 'red' : 'black';
+            return `
+                <div class="playing-card ${colorClass} ${animClass}">
+                    <div class="text-[10px] sm:text-xs font-bold leading-none">${card.value}<br>${card.suit}</div>
+                    <div class="text-center text-base sm:text-xl">${card.suit}</div>
+                    <div class="text-[10px] sm:text-xs font-bold leading-none text-right">${card.value}<br>${card.suit}</div>
+                </div>
+            `;
         }
 
-        function togglePause() {
-            if (gameState === 'PLAYING') pauseGame();
-            else if (gameState === 'PAUSED') resumeGame();
-        }
-
-        function triggerGameOver() {
-            gameState = 'GAMEOVER';
-            sound.playGameOver();
-            persistentData.playCount++;
-            saveStorageData(persistentData);
-            showOverlay("GAME OVER", `장애물과 충돌했습니다! 최종 점수: ${currentScore}`);
-            document.getElementById('btn-start').innerText = "RETRY";
-            updateHUD();
-        }
-
-        function triggerGameClear() {
-            gameState = 'CLEAR';
-            sound.playGameWin();
-            if (currentScore > persistentData.highScore) persistentData.highScore = currentScore;
-            persistentData.playCount++;
-            saveStorageData(persistentData);
-            showOverlay("MISSION CLEAR!", `30초 생존 성공! 최종 점수: ${currentScore}`);
-            document.getElementById('btn-start').innerText = "PLAY AGAIN";
-            updateHUD();
-        }
-
-        function gameLoop(timestamp) {
-            if (gameState !== 'PLAYING') return;
-
-            const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
-            lastTime = timestamp;
-
-            timeRemaining -= dt;
-            if (timeRemaining <= 0) {
-                timeRemaining = 0;
-                triggerGameClear();
+        function startGameRound() {
+            if (currentBet <= 0) {
+                statusEl.innerText = "칩을 선택하여 베팅해주세요!";
                 return;
             }
 
-            if (timeRemaining > 20) currentWave = 1;
-            else if (timeRemaining > 10) currentWave = 2;
-            else currentWave = 3;
+            inRound = true;
+            createDeck();
 
-            updateBuffs(dt);
-            updatePlayer();
-            updateObstacles(dt);
-            updateItems(dt);
-            if (!persistentData.reduceMotion) updateParticles(dt);
+            playerHand = [];
+            dealerHand = [];
+            npcHands.forEach(npc => {
+                npc.cards = [];
+                npc.bet = Math.min(Math.floor(Math.random() * 6 + 1) * 25, 300);
+                npc.status = '진행 중';
+            });
 
-            render();
-            requestAnimationFrame(gameLoop);
+            document.getElementById('player-status').innerText = '';
+            document.getElementById('player-count-control').classList.add('opacity-40', 'pointer-events-none');
+            btnDeal.disabled = true;
+
+            renderSeatsUI();
+
+            let delay = 100;
+            
+            npcHands.forEach((npc) => {
+                setTimeout(() => { dealCardTo(npc.cards); renderAllCards(); }, delay);
+                delay += 220;
+            });
+            setTimeout(() => { dealCardTo(playerHand); renderAllCards(); }, delay);
+            delay += 220;
+            setTimeout(() => { dealCardTo(dealerHand); renderAllCards(); }, delay);
+            delay += 220;
+
+            npcHands.forEach((npc) => {
+                setTimeout(() => { dealCardTo(npc.cards); renderAllCards(); }, delay);
+                delay += 220;
+            });
+            setTimeout(() => { dealCardTo(playerHand); renderAllCards(); }, delay);
+            delay += 220;
+            setTimeout(() => { 
+                dealCardTo(dealerHand, true); 
+                renderAllCards(); 
+                
+                btnHit.disabled = false;
+                btnStand.disabled = false;
+                statusEl.innerText = "HIT 또는 STAND를 선택하세요.";
+
+                if (calculateScore(playerHand) === 21) {
+                    document.getElementById('player-status').innerText = "BLACKJACK!";
+                    playerStand();
+                }
+            }, delay);
         }
 
-        function updateBuffs(dt) {
-            if (activeBuffs.speedUpTimer > 0) {
-                activeBuffs.speedUpTimer -= dt;
-                if (activeBuffs.speedUpTimer <= 0) activeBuffs.speedUpStacks = 0;
+        function dealCardTo(hand, hidden = false) {
+            if (deck.length > 0) {
+                hand.forEach(c => c.isNew = false);
+
+                const card = deck.pop();
+                if (hidden) card.hidden = true;
+                card.isNew = true;
+                hand.push(card);
+                playSound('card');
             }
-            if (activeBuffs.slowDownTimer > 0) activeBuffs.slowDownTimer -= dt;
-
-            let speedMult = 1.0;
-            if (activeBuffs.speedUpStacks > 0) speedMult += 0.4 * activeBuffs.speedUpStacks;
-            if (activeBuffs.slowDownTimer > 0) speedMult -= 0.4;
-            
-            player.speed = BASE_PLAYER_SPEED * speedMult;
-            updateBuffHUD();
         }
 
-        function updatePlayer() {
-            if (keysPressed['left']) player.x -= player.speed;
-            if (keysPressed['right']) player.x += player.speed;
+        function renderAllCards() {
+            const playerCardsEl = document.getElementById('player-cards');
+            if (playerCardsEl) {
+                playerCardsEl.innerHTML = playerHand.map(c => renderCardHTML(c)).join('');
+            }
+            dealerCardsEl.innerHTML = dealerHand.map(c => renderCardHTML(c)).join('');
 
-            if (player.x < 0) player.x = 0;
-            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            document.getElementById('player-score').innerText = calculateScore(playerHand);
+            
+            const dealerScore = calculateScore(dealerHand);
+            dealerScoreEl.innerText = dealerScore > 0 ? dealerScore : '?';
+            dealerScoreEl.classList.remove('hidden');
+
+            npcHands.forEach((npc, idx) => {
+                const cardsEl = document.getElementById(`npc-cards-${idx}`);
+                const scoreEl = document.getElementById(`npc-score-${idx}`);
+                const betEl = document.getElementById(`npc-bet-${idx}`);
+                const statusEl = document.getElementById(`npc-status-${idx}`);
+
+                if (cardsEl) cardsEl.innerHTML = npc.cards.map(c => renderCardHTML(c)).join('');
+                if (scoreEl) scoreEl.innerText = calculateScore(npc.cards);
+                if (betEl) betEl.innerText = `$${npc.bet}`;
+                if (statusEl) statusEl.innerText = npc.status;
+            });
+
+            playerHand.forEach(c => c.isNew = false);
+            dealerHand.forEach(c => c.isNew = false);
+            npcHands.forEach(npc => npc.cards.forEach(c => c.isNew = false));
         }
 
-        function updateObstacles(dt) {
-            spawnTimer += dt;
-            
-            const waveAccel = currentWave === 1 ? 1.0 : currentWave === 2 ? 1.3 : 1.6;
-            const spawnInterval = Math.max(0.18, (0.55 - (30 - timeRemaining) * 0.01) / waveAccel);
-            
-            if (spawnTimer >= spawnInterval) {
-                spawnTimer = 0;
-                const size = Math.floor(Math.random() * 20) + 24;
-                obstacles.push({
-                    x: Math.random() * (canvas.width - size),
-                    y: -size,
-                    width: size,
-                    height: size,
-                    speed: ((obstacleSpeedMultiplier * 65) + Math.random() * 60) * waveAccel
-                });
+        function playerHit() {
+            if (!inRound) return;
+            dealCardTo(playerHand);
+            renderAllCards();
+
+            if (calculateScore(playerHand) > 21) {
+                document.getElementById('player-status').innerText = "BUST";
+                playerStand();
+            }
+        }
+
+        function playerStand() {
+            if (!inRound) return;
+            btnHit.disabled = true;
+            btnStand.disabled = true;
+
+            processNPCTurns(() => {
+                processDealerTurn();
+            });
+        }
+
+        function processNPCTurns(callback) {
+            if (npcHands.length === 0) {
+                callback();
+                return;
             }
 
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                const obs = obstacles[i];
-                obs.y += obs.speed * dt;
+            statusEl.innerText = "NPC 플레이어들이 카드를 받는 중입니다...";
 
-                if (checkCollision(player, obs)) {
-                    if (activeBuffs.hasShield) {
-                        activeBuffs.hasShield = false;
-                        sound.playShieldBreak();
-                        createExplosion(obs.x + obs.width/2, obs.y + obs.height/2, '#22c55e');
-                        obstacles.splice(i, 1);
-                        continue;
+            let delay = 350;
+            npcHands.forEach((npc) => {
+                setTimeout(() => {
+                    while (calculateScore(npc.cards) < npc.info.risk) {
+                        dealCardTo(npc.cards);
                     }
+                    const score = calculateScore(npc.cards);
+                    npc.status = score > 21 ? "BUST" : "STAND";
+                    renderAllCards();
+                }, delay);
+                delay += 450;
+            });
 
-                    createExplosion(player.x + 18, player.y + 12, '#ff0055');
-                    triggerGameOver();
-                    return;
-                }
+            setTimeout(callback, delay + 100);
+        }
 
-                // 장애물 회피 성공 시 점수 +10점 획득[cite: 1]
-                if (obs.y > canvas.height) {
-                    obstacles.splice(i, 1);
-                    currentScore += 10;
-                    updateHUD();
+        function processDealerTurn() {
+            if (dealerHand.length > 1) {
+                dealerHand[1].hidden = false;
+            }
+            renderAllCards();
+            statusEl.innerText = "딜러의 차례입니다...";
+
+            const dealerInterval = setInterval(() => {
+                if (calculateScore(dealerHand) < 17) {
+                    dealCardTo(dealerHand);
+                    renderAllCards();
+                } else {
+                    clearInterval(dealerInterval);
+                    settleRound();
                 }
+            }, 600);
+        }
+
+        function forceSellItemsIfBroke() {
+            if (balance >= 10) return;
+            // Sell the highest-resale item first; each item returns less than its buyback price.
+            const ownedForSale = storyItems.filter(item => ownedItems[item.id]).sort((a, b) => b.resale - a.resale);
+            const sold = [];
+            for (const item of ownedForSale) {
+                if (balance >= 10) break;
+                ownedItems[item.id] = false;
+                balance += item.resale;
+                sold.push(`${item.name} ($${item.resale.toLocaleString()})`);
+            }
+            if (sold.length) {
+                statusEl.innerText = `파산 위기! 물건을 강제로 헐값에 처분했습니다: ${sold.join(', ')}. 현재 잔액 $${balance.toLocaleString()}`;
+                document.getElementById('shop-story').innerText = `전당포 주인이 당신이 되찾았던 물건을 헐값에 가져갔다. 처분 내역: ${sold.join(', ')}.`;
+                renderShop();
+                renderInventory();
             }
         }
 
-        function updateItems(dt) {
-            itemSpawnTimer += dt;
-            if (itemSpawnTimer >= 1.5) {
-                itemSpawnTimer = 0;
+        function settleRound() {
+            inRound = false;
+            document.getElementById('player-count-control').classList.remove('opacity-40', 'pointer-events-none');
 
-                const rand = Math.random();
-                let type = ITEM_TYPES.SCORE;
-                if (rand < 0.30) type = ITEM_TYPES.SCORE;         // 30% 점수
-                else if (rand < 0.65) type = ITEM_TYPES.SPEED_UP;  // 35% 부스터
-                else if (rand < 0.85) type = ITEM_TYPES.SLOW_DOWN; // 20% 슬로우
-                else if (rand < 0.95) type = ITEM_TYPES.SHIELD;    // 10% 방어막
-                else type = ITEM_TYPES.BOMB;                       // 5% 폭탄
+            const pScore = calculateScore(playerHand);
+            const dScore = calculateScore(dealerHand);
 
-                items.push({
-                    x: Math.random() * (canvas.width - 24),
-                    y: -24,
-                    width: 24,
-                    height: 24,
-                    speed: 140,
-                    type: type
-                });
-            }
+            let message = "";
 
-            for (let i = items.length - 1; i >= 0; i--) {
-                const item = items[i];
-                item.y += item.speed * dt;
-
-                if (checkCollision(player, item)) {
-                    applyItemEffect(item.type);
-                    createExplosion(item.x + 12, item.y + 12, item.type.color);
-                    items.splice(i, 1);
-                    updateHUD();
-                    continue;
-                }
-
-                if (item.y > canvas.height) items.splice(i, 1);
-            }
-        }
-
-        function applyItemEffect(type) {
-            // 점수 아이템은 50점 고정, 나머지 아이템은 10점 획득
-            if (type === ITEM_TYPES.SCORE) {
-                currentScore += 50;
-                sound.playItemCollect();
+            if (pScore > 21) {
+                message = "버스트로 패배하셨습니다.";
+                playSound('lose');
+            } else if (dScore > 21 || pScore > dScore) {
+                const winAmount = currentBet * 2;
+                balance += winAmount;
+                lifetimeProfit += currentBet;
+                message = `🎉 승리! $${winAmount.toLocaleString()} 획득!`;
+                playSound('win');
+            } else if (pScore === dScore) {
+                balance += currentBet;
+                message = "무승부 (Push) - 베팅금 환급";
+                playSound('chip');
             } else {
-                currentScore += 10;
-                if (type === ITEM_TYPES.SPEED_UP) {
-                    sound.playBuffSound();
-                    if (activeBuffs.speedUpStacks < 3) activeBuffs.speedUpStacks++;
-                    activeBuffs.speedUpTimer = 6.0;
-                } else if (type === ITEM_TYPES.SLOW_DOWN) {
-                    sound.playDebuffSound();
-                    activeBuffs.slowDownTimer = 5.0;
-                } else if (type === ITEM_TYPES.SHIELD) {
-                    sound.playBuffSound();
-                    activeBuffs.hasShield = true;
-                } else if (type === ITEM_TYPES.BOMB) {
-                    sound.playBombSound();
-                    screenFlashTimer = 12;
-                    bombTextTimer = 45;
-                    obstacles.forEach(obs => {
-                        createExplosion(obs.x + obs.width/2, obs.y + obs.height/2, '#f97316');
-                    });
-                    obstacles = [];
-                }
+                message = "딜러의 승리입니다.";
+                playSound('lose');
+            }
+
+            currentBet = 0;
+            updateUI();
+            statusEl.innerText = message;
+            btnDeal.disabled = false;
+
+            if (balance < 10) {
+                forceSellItemsIfBroke();
+                updateUI();
+                if (balance < 10) setTimeout(showBankruptModal, 800);
             }
         }
 
-        function createExplosion(x, y, color) {
-            if (persistentData.reduceMotion) return;
-            for (let i = 0; i < 14; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 240,
-                    vy: (Math.random() - 0.5) * 240,
-                    life: 0.35, maxLife: 0.35,
-                    color: color
-                });
-            }
+        
+        function restartGame() {
+            balance = 1000;
+            currentBet = 0;
+            inRound = false;
+            Object.keys(ownedItems).forEach(id => ownedItems[id] = false);
+            lifetimeProfit = 0;
+            activeNpcCount = 0; // Reset NPC count to default 0 (1:1 with dealer)
+            npcCountDisplayEl.innerText = `0명`;
+
+            playerHand = [];
+            dealerHand = [];
+            setupPlayerSeats();
+            renderAllCards();
+            updateUI();
+
+            document.getElementById('bankrupt-modal').classList.add('hidden');
+            document.getElementById('ending-modal').classList.add('hidden');
+            document.getElementById('rules-modal').classList.add('hidden');
+            document.getElementById('intro-modal').classList.remove('hidden');
+            statusEl.innerText = "새로운 이야기가 시작됩니다.";
+            playSound('win');
         }
 
-        function updateParticles(dt) {
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.x += p.vx * dt;
-                p.y += p.vy * dt;
-                p.life -= dt;
-                if (p.life <= 0) particles.splice(i, 1);
-            }
-        }
-
-        function checkCollision(r1, r2) {
-            return !(r1.x > r2.x + r2.width ||
-                     r1.x + r1.width < r2.x ||
-                     r1.y > r2.y + r2.height ||
-                     r1.y + r1.height < r2.y);
-        }
-
-        function render() {
-            ctx.fillStyle = '#0d0f18';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < canvas.width; x += 40) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-            }
-
-            ctx.fillStyle = '#ff0055';
-            ctx.shadowColor = '#ff0055';
-            ctx.shadowBlur = persistentData.reduceMotion ? 0 : 8;
-            obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.width, obs.height));
-
-            items.forEach(item => {
-                ctx.fillStyle = item.type.color;
-                ctx.shadowColor = item.type.shadow;
-                ctx.shadowBlur = persistentData.reduceMotion ? 0 : 10;
-                ctx.fillRect(item.x, item.y, item.width, item.height);
-
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#000000';
-                ctx.font = '10px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(item.type.label, item.x + item.width / 2, item.y + item.height / 2);
-            });
-
-            let playerColor = '#00f0ff';
-            if (activeBuffs.speedUpStacks > 0) playerColor = '#00bfff';
-            if (activeBuffs.slowDownTimer > 0) playerColor = '#a855f7';
-
-            ctx.fillStyle = playerColor;
-            ctx.shadowColor = playerColor;
-            ctx.shadowBlur = persistentData.reduceMotion ? 0 : 12;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-
-            if (activeBuffs.hasShield) {
-                ctx.strokeStyle = '#22c55e';
-                ctx.lineWidth = 3;
-                ctx.shadowColor = '#22c55e';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(player.x + player.width/2, player.y + player.height/2, 24, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-
-            ctx.shadowBlur = 0;
-            particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life / p.maxLife;
-                ctx.fillRect(p.x, p.y, 4, 4);
-            });
-            ctx.globalAlpha = 1.0;
-
-            if (screenFlashTimer > 0) {
-                screenFlashTimer--;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
-            if (bombTextTimer > 0) {
-                bombTextTimer--;
-                ctx.save();
-                ctx.fillStyle = '#f97316';
-                ctx.shadowColor = '#f97316';
-                ctx.shadowBlur = 15;
-                ctx.font = '14px "Press Start 2P", monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText("💥 BOMB CLEAR! 💥", canvas.width / 2, canvas.height / 2);
-                ctx.restore();
-            }
-        }
-
-        function updateHUD() {
-            document.getElementById('hud-score').innerText = currentScore;
-            document.getElementById('canvas-score').innerText = currentScore;
-            document.getElementById('hud-highscore').innerText = persistentData.highScore;
-            document.getElementById('canvas-timer').innerText = timeRemaining.toFixed(1);
-            document.getElementById('wave-badge').innerText = `WAVE ${currentWave}`;
-
-            const stateTextMap = {
-                'READY': '대기 중', 'PLAYING': '진행 중', 'PAUSED': '일시정지',
-                'GAMEOVER': '게임 오버', 'CLEAR': '미션 성공'
-            };
-            document.getElementById('hud-state').innerText = stateTextMap[gameState] || gameState;
-        }
-
-        function updateBuffHUD() {
-            const container = document.getElementById('buff-container');
-            container.innerHTML = '';
-
-            if (activeBuffs.speedUpStacks > 0) {
-                container.innerHTML += `<span class="bg-blue-600/90 px-2 py-0.5 rounded border border-blue-400 text-blue-200 font-bold">⚡ x${activeBuffs.speedUpStacks} (${Math.ceil(activeBuffs.speedUpTimer)}s)</span>`;
-            }
-            if (activeBuffs.slowDownTimer > 0) {
-                container.innerHTML += `<span class="bg-purple-600/90 px-2 py-0.5 rounded border border-purple-400 text-purple-200 font-bold">🧊 (${Math.ceil(activeBuffs.slowDownTimer)}s)</span>`;
-            }
-            if (activeBuffs.hasShield) {
-                container.innerHTML += `<span class="bg-green-600/90 px-2 py-0.5 rounded border border-green-400 text-green-200 font-bold">🛡️</span>`;
-            }
-        }
-
-        function showOverlay(title, desc) {
-            document.getElementById('overlay-title').innerText = title;
-            document.getElementById('overlay-desc').innerText = desc;
-            document.getElementById('game-overlay').classList.remove('hidden');
-        }
-
-        function hideOverlay() {
-            document.getElementById('game-overlay').classList.add('hidden');
-        }
-
-        document.getElementById('btn-start').addEventListener('click', () => {
-            if (gameState === 'PAUSED') resumeGame();
-            else startGame();
+        window.addEventListener('DOMContentLoaded', () => {
+            setupPlayerSeats();
         });
-
-        document.getElementById('difficulty-select').addEventListener('change', (e) => {
-            obstacleSpeedMultiplier = parseFloat(e.target.value);
-        });
-
-        document.getElementById('btn-audio-toggle').addEventListener('click', () => {
-            sound.muted = !sound.muted;
-            persistentData.muted = sound.muted;
-            saveStorageData(persistentData);
-            document.getElementById('audio-status-text').innerText = sound.muted ? "사운드: OFF" : "사운드: ON";
-            document.getElementById('audio-icon').innerText = sound.muted ? "🔇" : "🔊";
-        });
-
-        document.getElementById('btn-motion-toggle').addEventListener('click', () => {
-            persistentData.reduceMotion = !persistentData.reduceMotion;
-            saveStorageData(persistentData);
-            document.getElementById('motion-status-text').innerText = persistentData.reduceMotion ? "연출: 축소" : "연출: 일반";
-            document.getElementById('motion-icon').innerText = persistentData.reduceMotion ? "⚡" : "✨";
-        });
-
-        const btnLeft = document.getElementById('btn-touch-left');
-        const btnRight = document.getElementById('btn-touch-right');
-        const btnTouchPause = document.getElementById('btn-touch-pause');
-
-        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keysPressed['left'] = true; });
-        btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keysPressed['left'] = false; });
-        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); keysPressed['right'] = true; });
-        btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keysPressed['right'] = false; });
-        btnTouchPause.addEventListener('click', () => togglePause());
-
-        render();
-        updateHUD();
     </script>
 </body>
 </html>
