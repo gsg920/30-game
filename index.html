@@ -7,7 +7,6 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom Retro Font and Layout Utilities */
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap');
 
         .font-pixel {
@@ -33,7 +32,7 @@
             text-shadow: 0 0 5px rgba(255, 0, 127, 0.6);
         }
 
-        /* Scanline Overlay for 8-bit aesthetics */
+        /* Scanline Overlay */
         .scanlines {
             position: relative;
             overflow: hidden;
@@ -50,7 +49,6 @@
             opacity: 0.6;
         }
 
-        /* Prevent Canvas touch scroll issues on mobile */
         canvas {
             touch-action: none;
         }
@@ -68,13 +66,11 @@
             
             <!-- Quick Settings Bar -->
             <div class="flex flex-wrap items-center gap-2 text-xs">
-                <!-- Audio Mute Toggle -->
                 <button id="btn-audio-toggle" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center gap-1.5 transition">
                     <span id="audio-icon">🔊</span>
                     <span id="audio-status-text">사운드: ON</span>
                 </button>
 
-                <!-- Motion Reduction Toggle -->
                 <button id="btn-motion-toggle" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 flex items-center gap-1.5 transition">
                     <span id="motion-icon">✨</span>
                     <span id="motion-status-text">연출: 일반</span>
@@ -84,8 +80,9 @@
                 <div class="flex items-center bg-slate-800 rounded border border-slate-600 px-2 py-1">
                     <label for="difficulty-select" class="text-slate-400 mr-1.5 text-xs">속도:</label>
                     <select id="difficulty-select" class="bg-transparent text-cyan-400 font-bold focus:outline-none cursor-pointer">
-                        <option value="4" class="bg-slate-800 text-slate-100">보통 (속도 4)</option>
-                        <option value="6" class="bg-slate-800 text-slate-100">빠름 (속도 6)</option>
+                        <option value="4" class="bg-slate-800 text-slate-100">보통 (4배속)</option>
+                        <option value="6" class="bg-slate-800 text-slate-100">빠름 (6배속)</option>
+                        <option value="8" class="bg-slate-800 text-yellow-400 font-bold" selected>🔥 하이퍼 (8배속)</option>
                     </select>
                 </div>
             </div>
@@ -93,20 +90,18 @@
     </header>
 
     <!-- Main Container -->
-    <main class="w-full max-w-6xl mx-auto p-3 md:p-6 flex-grow flex flex-col items-center justify-center">
+    <main class="w-full max-w-4xl mx-auto p-3 md:p-6 flex-grow flex flex-col items-center justify-center">
 
         <!-- Info HUD / Rule Bar -->
         <div class="w-full bg-slate-900/80 rounded-xl p-4 border border-slate-700 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs md:text-sm">
-            <!-- Rules -->
             <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
                 <p class="font-bold text-neon-cyan mb-1">📜 게임 규칙 & 아이템 정보</p>
                 <p class="text-slate-300 leading-relaxed text-xs">
-                    장애물을 피하고 아이템을 획득하세요! 30초 생존시 미션 성공.<br>
-                    🟡점수(+50) | 🔵이동속도 증가 | 🟣이동속도 감소 | 🟢방어막(1회 무적) | 🟠폭탄(장애물 전멸)
+                    장애물 회피(+10점) 및 아이템 획득 시 점수 상승! 30초 생존 미션.<br>
+                    🟡점수(+50) | ⚡부스터(+10) | 🧊슬로우(+10) | 🛡️방어막(+10) | 💥폭탄(+10)
                 </p>
             </div>
 
-            <!-- Controls -->
             <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
                 <p class="font-bold text-neon-cyan mb-1">🎮 조작 방법</p>
                 <p class="text-slate-300 leading-relaxed">
@@ -115,7 +110,6 @@
                 </p>
             </div>
 
-            <!-- Current Stats -->
             <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
                 <div>
                     <p class="font-bold text-neon-cyan mb-1">📊 현재 상태</p>
@@ -129,45 +123,46 @@
         </div>
 
         <!-- Game Screen Wrap -->
-        <div class="relative w-full max-w-4xl bg-slate-950 rounded-xl border-2 border-slate-700 scanlines shadow-2xl overflow-hidden flex flex-col items-center">
+        <div class="relative w-full max-w-md bg-slate-950 rounded-xl border-2 border-slate-700 scanlines shadow-2xl overflow-hidden flex flex-col items-center">
             
             <!-- Canvas HUD Overlay -->
-            <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center pointer-events-none z-20 font-pixel text-xs md:text-sm">
-                <div class="bg-slate-900/80 px-3 py-1.5 rounded border border-cyan-500/40 text-cyan-300">
-                    TIME: <span id="canvas-timer">30.0</span>s
+            <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center pointer-events-none z-20 font-pixel text-xs">
+                <div class="bg-slate-900/80 px-2.5 py-1.5 rounded border border-cyan-500/40 text-cyan-300 flex items-center gap-2">
+                    <span>TIME: <span id="canvas-timer">30.0</span>s</span>
+                    <span id="wave-badge" class="text-pink-500 font-bold">WAVE 1</span>
                 </div>
-                <!-- Active Buff Gauge Display -->
-                <div id="buff-container" class="flex gap-2 text-xs"></div>
-                <div class="bg-slate-900/80 px-3 py-1.5 rounded border border-pink-500/40 text-pink-400">
+                
+                <div id="buff-container" class="flex gap-1.5 text-xs"></div>
+                <div class="bg-slate-900/80 px-2.5 py-1.5 rounded border border-pink-500/40 text-pink-400">
                     SCORE: <span id="canvas-score">0</span>
                 </div>
             </div>
 
             <!-- Game Canvas -->
-            <canvas id="gameCanvas" width="800" height="450" class="w-full h-auto block bg-slate-950"></canvas>
+            <canvas id="gameCanvas" width="480" height="640" class="w-full h-auto block bg-slate-950"></canvas>
 
             <!-- State Overlay -->
             <div id="game-overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
-                <h2 id="overlay-title" class="font-pixel text-xl md:text-3xl text-neon-cyan mb-3">NEON ESCAPE</h2>
-                <p id="overlay-desc" class="text-slate-300 text-sm md:text-base max-w-md mb-6 leading-relaxed">
-                    30초 동안 떨어지는 장애물을 피하며 끝까지 생존하세요! 다양한 아이템 버프를 활용할 수 있습니다.
+                <h2 id="overlay-title" class="font-pixel text-xl md:text-2xl text-neon-cyan mb-3">NEON ESCAPE</h2>
+                <p id="overlay-desc" class="text-slate-300 text-xs md:text-sm max-w-xs mb-6 leading-relaxed">
+                    30초 동안 떨어지는 장애물을 피하며 끝까지 생존하세요! 장애물 회피와 아이템 획득 시 점수가 올라갑니다.
                 </p>
                 <div class="flex flex-wrap justify-center gap-3">
-                    <button id="btn-start" class="px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-pixel text-sm transition transform active:scale-95 shadow-lg shadow-cyan-500/40">
+                    <button id="btn-start" class="px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-pixel text-xs md:text-sm transition transform active:scale-95 shadow-lg shadow-cyan-500/40">
                         GAME START
                     </button>
-                    <button id="btn-pause" class="hidden px-6 py-3 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold font-pixel text-sm transition">
+                    <button id="btn-pause" class="hidden px-6 py-3 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold font-pixel text-xs md:text-sm transition">
                         PAUSE
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Touch Controls for Mobile/Tablet -->
-        <div class="w-full max-w-4xl mt-3 flex justify-between items-center gap-4 md:hidden">
-            <button id="btn-touch-left" class="flex-1 py-4 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-white active:bg-cyan-600 text-lg">◀ LEFT</button>
-            <button id="btn-touch-pause" class="px-4 py-4 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-yellow-400 active:bg-yellow-600 text-xs">⏸ PAUSE</button>
-            <button id="btn-touch-right" class="flex-1 py-4 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-white active:bg-cyan-600 text-lg">RIGHT ▶</button>
+        <!-- Touch Controls -->
+        <div class="w-full max-w-md mt-3 flex justify-between items-center gap-3 md:hidden">
+            <button id="btn-touch-left" class="flex-1 py-3.5 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-white active:bg-cyan-600 text-base">◀ LEFT</button>
+            <button id="btn-touch-pause" class="px-3.5 py-3.5 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-yellow-400 active:bg-yellow-600 text-xs">⏸ PAUSE</button>
+            <button id="btn-touch-right" class="flex-1 py-3.5 bg-slate-800 rounded-lg border border-slate-600 font-pixel text-white active:bg-cyan-600 text-base">RIGHT ▶</button>
         </div>
 
     </main>
@@ -177,11 +172,9 @@
         Neon Escape 8-Bit Mini Game &copy; 2026.
     </footer>
 
-    <!-- Game Engine & Script Architecture -->
+    <!-- Game Engine -->
     <script>
-        // ==========================================
-        // 1. Web Audio API Synthesizer
-        // ==========================================
+        // Web Audio API
         class SoundFX {
             constructor() {
                 this.ctx = null;
@@ -230,8 +223,8 @@
             }
 
             playBombSound() {
-                this.playBeep(120, 'sawtooth', 0.3, 0.3);
-                setTimeout(() => this.playBeep(80, 'sawtooth', 0.4, 0.3), 100);
+                this.playBeep(120, 'square', 0.3, 0.3);
+                setTimeout(() => this.playBeep(60, 'sawtooth', 0.4, 0.3), 100);
             }
 
             playShieldBreak() {
@@ -256,25 +249,15 @@
 
         const sound = new SoundFX();
 
-        // ==========================================
-        // 2. LocalStorage Fault-Tolerance
-        // ==========================================
         const STORAGE_KEY = 'NEON_ESCAPE_SAVED_DATA_V1';
-        const DEFAULT_STORAGE = {
-            highScore: 0,
-            playCount: 0,
-            muted: false,
-            reduceMotion: false
-        };
+        const DEFAULT_STORAGE = { highScore: 0, playCount: 0, muted: false, reduceMotion: false };
 
         function loadStorageData() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
                 if (!raw) return { ...DEFAULT_STORAGE };
                 const parsed = JSON.parse(raw);
-                if (typeof parsed !== 'object' || parsed === null || typeof parsed.highScore !== 'number') {
-                    throw new Error("Corrupted schema");
-                }
+                if (typeof parsed !== 'object' || parsed === null || typeof parsed.highScore !== 'number') throw new Error();
                 return { ...DEFAULT_STORAGE, ...parsed };
             } catch (err) {
                 return { ...DEFAULT_STORAGE };
@@ -282,16 +265,11 @@
         }
 
         function saveStorageData(data) {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            } catch (e) {}
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
         }
 
         let persistentData = loadStorageData();
 
-        // ==========================================
-        // 3. Item Types Definitions
-        // ==========================================
         const ITEM_TYPES = {
             SCORE: { color: '#ffd700', label: '+50', shadow: '#ffd700' },
             SPEED_UP: { color: '#00bfff', label: '⚡', shadow: '#00bfff' },
@@ -300,9 +278,6 @@
             BOMB: { color: '#f97316', label: '💥', shadow: '#f97316' }
         };
 
-        // ==========================================
-        // 4. Game Engine & State Manager
-        // ==========================================
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -310,28 +285,31 @@
         let currentScore = 0;
         let timeRemaining = 30.0;
         let lastTime = 0;
-        let obstacleSpeedMultiplier = 4.0;
+        let obstacleSpeedMultiplier = 8.0;
         let particles = [];
         let obstacles = [];
         let items = [];
+        let currentWave = 1;
 
-        // Player & Active Buff States
-        const BASE_PLAYER_SPEED = 7;
+        let screenFlashTimer = 0;
+        let bombTextTimer = 0;
+
+        const BASE_PLAYER_SPEED = 6.5;
         const player = {
-            x: canvas.width / 2 - 15,
-            y: canvas.height - 45,
-            width: 30,
-            height: 30,
+            x: canvas.width / 2 - 18,
+            y: canvas.height - 50,
+            width: 36,
+            height: 24,
             speed: BASE_PLAYER_SPEED
         };
 
         let activeBuffs = {
+            speedUpStacks: 0,
             speedUpTimer: 0,
             slowDownTimer: 0,
             hasShield: false
         };
 
-        // Key Throttle Controls
         const keysPressed = {};
         let lastInputTime = 0;
 
@@ -364,14 +342,17 @@
         function resetGameSession() {
             currentScore = 0;
             timeRemaining = 30.0;
-            player.x = canvas.width / 2 - 15;
+            currentWave = 1;
+            player.x = canvas.width / 2 - player.width / 2;
             player.speed = BASE_PLAYER_SPEED;
-            activeBuffs = { speedUpTimer: 0, slowDownTimer: 0, hasShield: false };
+            activeBuffs = { speedUpStacks: 0, speedUpTimer: 0, slowDownTimer: 0, hasShield: false };
             obstacles = [];
             items = [];
             particles = [];
             spawnTimer = 0;
             itemSpawnTimer = 0;
+            screenFlashTimer = 0;
+            bombTextTimer = 0;
             updateHUD();
         }
 
@@ -430,9 +411,6 @@
             updateHUD();
         }
 
-        // ==========================================
-        // 5. Main Game Loop Logic
-        // ==========================================
         function gameLoop(timestamp) {
             if (gameState !== 'PLAYING') return;
 
@@ -446,6 +424,10 @@
                 return;
             }
 
+            if (timeRemaining > 20) currentWave = 1;
+            else if (timeRemaining > 10) currentWave = 2;
+            else currentWave = 3;
+
             updateBuffs(dt);
             updatePlayer();
             updateObstacles(dt);
@@ -457,15 +439,15 @@
         }
 
         function updateBuffs(dt) {
-            // Speed Boost Timer Update
-            if (activeBuffs.speedUpTimer > 0) activeBuffs.speedUpTimer -= dt;
-            // Slow Debuff Timer Update
+            if (activeBuffs.speedUpTimer > 0) {
+                activeBuffs.speedUpTimer -= dt;
+                if (activeBuffs.speedUpTimer <= 0) activeBuffs.speedUpStacks = 0;
+            }
             if (activeBuffs.slowDownTimer > 0) activeBuffs.slowDownTimer -= dt;
 
-            // Calculate Speed Multiplier
             let speedMult = 1.0;
-            if (activeBuffs.speedUpTimer > 0) speedMult += 0.6; // +60% Speed
-            if (activeBuffs.slowDownTimer > 0) speedMult -= 0.4; // -40% Speed
+            if (activeBuffs.speedUpStacks > 0) speedMult += 0.4 * activeBuffs.speedUpStacks;
+            if (activeBuffs.slowDownTimer > 0) speedMult -= 0.4;
             
             player.speed = BASE_PLAYER_SPEED * speedMult;
             updateBuffHUD();
@@ -481,17 +463,19 @@
 
         function updateObstacles(dt) {
             spawnTimer += dt;
-            const spawnInterval = Math.max(0.25, 0.6 - (30 - timeRemaining) * 0.01);
+            
+            const waveAccel = currentWave === 1 ? 1.0 : currentWave === 2 ? 1.3 : 1.6;
+            const spawnInterval = Math.max(0.18, (0.55 - (30 - timeRemaining) * 0.01) / waveAccel);
             
             if (spawnTimer >= spawnInterval) {
                 spawnTimer = 0;
-                const size = Math.floor(Math.random() * 20) + 20;
+                const size = Math.floor(Math.random() * 20) + 24;
                 obstacles.push({
                     x: Math.random() * (canvas.width - size),
                     y: -size,
                     width: size,
                     height: size,
-                    speed: (obstacleSpeedMultiplier * 60) + Math.random() * 50
+                    speed: ((obstacleSpeedMultiplier * 65) + Math.random() * 60) * waveAccel
                 });
             }
 
@@ -500,7 +484,6 @@
                 obs.y += obs.speed * dt;
 
                 if (checkCollision(player, obs)) {
-                    // Shield active check
                     if (activeBuffs.hasShield) {
                         activeBuffs.hasShield = false;
                         sound.playShieldBreak();
@@ -509,11 +492,12 @@
                         continue;
                     }
 
-                    createExplosion(player.x + 15, player.y + 15, '#ff0055');
+                    createExplosion(player.x + 18, player.y + 12, '#ff0055');
                     triggerGameOver();
                     return;
                 }
 
+                // 장애물 회피 성공 시 점수 +10점 획득[cite: 1]
                 if (obs.y > canvas.height) {
                     obstacles.splice(i, 1);
                     currentScore += 10;
@@ -524,24 +508,23 @@
 
         function updateItems(dt) {
             itemSpawnTimer += dt;
-            if (itemSpawnTimer >= 1.8) { // Item spawn rate
+            if (itemSpawnTimer >= 1.5) {
                 itemSpawnTimer = 0;
 
-                // Random weighted item selection
                 const rand = Math.random();
                 let type = ITEM_TYPES.SCORE;
-                if (rand < 0.30) type = ITEM_TYPES.SCORE;
-                else if (rand < 0.50) type = ITEM_TYPES.SPEED_UP;
-                else if (rand < 0.70) type = ITEM_TYPES.SLOW_DOWN;
-                else if (rand < 0.85) type = ITEM_TYPES.SHIELD;
-                else type = ITEM_TYPES.BOMB;
+                if (rand < 0.30) type = ITEM_TYPES.SCORE;         // 30% 점수
+                else if (rand < 0.65) type = ITEM_TYPES.SPEED_UP;  // 35% 부스터
+                else if (rand < 0.85) type = ITEM_TYPES.SLOW_DOWN; // 20% 슬로우
+                else if (rand < 0.95) type = ITEM_TYPES.SHIELD;    // 10% 방어막
+                else type = ITEM_TYPES.BOMB;                       // 5% 폭탄
 
                 items.push({
-                    x: Math.random() * (canvas.width - 22),
-                    y: -22,
-                    width: 22,
-                    height: 22,
-                    speed: 130,
+                    x: Math.random() * (canvas.width - 24),
+                    y: -24,
+                    width: 24,
+                    height: 24,
+                    speed: 140,
                     type: type
                 });
             }
@@ -552,7 +535,7 @@
 
                 if (checkCollision(player, item)) {
                     applyItemEffect(item.type);
-                    createExplosion(item.x + 11, item.y + 11, item.type.color);
+                    createExplosion(item.x + 12, item.y + 12, item.type.color);
                     items.splice(i, 1);
                     updateHUD();
                     continue;
@@ -563,39 +546,42 @@
         }
 
         function applyItemEffect(type) {
+            // 점수 아이템은 50점 고정, 나머지 아이템은 10점 획득
             if (type === ITEM_TYPES.SCORE) {
-                sound.playItemCollect();
                 currentScore += 50;
-            } else if (type === ITEM_TYPES.SPEED_UP) {
-                sound.playBuffSound();
-                activeBuffs.speedUpTimer = 6.0; // 6 sec boost
-            } else if (type === ITEM_TYPES.SLOW_DOWN) {
-                sound.playDebuffSound();
-                activeBuffs.slowDownTimer = 5.0; // 5 sec slow
-            } else if (type === ITEM_TYPES.SHIELD) {
-                sound.playBuffSound();
-                activeBuffs.hasShield = true;
-            } else if (type === ITEM_TYPES.BOMB) {
-                sound.playBombSound();
-                // Clear all obstacles & reward score
-                obstacles.forEach(obs => {
-                    createExplosion(obs.x + obs.width/2, obs.y + obs.height/2, '#f97316');
-                    currentScore += 10;
-                });
-                obstacles = [];
+                sound.playItemCollect();
+            } else {
+                currentScore += 10;
+                if (type === ITEM_TYPES.SPEED_UP) {
+                    sound.playBuffSound();
+                    if (activeBuffs.speedUpStacks < 3) activeBuffs.speedUpStacks++;
+                    activeBuffs.speedUpTimer = 6.0;
+                } else if (type === ITEM_TYPES.SLOW_DOWN) {
+                    sound.playDebuffSound();
+                    activeBuffs.slowDownTimer = 5.0;
+                } else if (type === ITEM_TYPES.SHIELD) {
+                    sound.playBuffSound();
+                    activeBuffs.hasShield = true;
+                } else if (type === ITEM_TYPES.BOMB) {
+                    sound.playBombSound();
+                    screenFlashTimer = 12;
+                    bombTextTimer = 45;
+                    obstacles.forEach(obs => {
+                        createExplosion(obs.x + obs.width/2, obs.y + obs.height/2, '#f97316');
+                    });
+                    obstacles = [];
+                }
             }
         }
 
         function createExplosion(x, y, color) {
             if (persistentData.reduceMotion) return;
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 14; i++) {
                 particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 200,
-                    vy: (Math.random() - 0.5) * 200,
-                    life: 0.3,
-                    maxLife: 0.3,
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 240,
+                    vy: (Math.random() - 0.5) * 240,
+                    life: 0.35, maxLife: 0.35,
                     color: color
                 });
             }
@@ -618,38 +604,27 @@
                      r1.y + r1.height < r2.y);
         }
 
-        // ==========================================
-        // 6. Rendering Routine
-        // ==========================================
         function render() {
-            // Background
             ctx.fillStyle = '#0d0f18';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Grid background lines
             ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 40) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
             }
 
-            // Draw Obstacles (Pink/Red)
             ctx.fillStyle = '#ff0055';
             ctx.shadowColor = '#ff0055';
             ctx.shadowBlur = persistentData.reduceMotion ? 0 : 8;
             obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.width, obs.height));
 
-            // Draw Items with Icons
             items.forEach(item => {
                 ctx.fillStyle = item.type.color;
                 ctx.shadowColor = item.type.shadow;
                 ctx.shadowBlur = persistentData.reduceMotion ? 0 : 10;
                 ctx.fillRect(item.x, item.y, item.width, item.height);
 
-                // Draw 8-bit label icon
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = '#000000';
                 ctx.font = '10px sans-serif';
@@ -658,9 +633,8 @@
                 ctx.fillText(item.type.label, item.x + item.width / 2, item.y + item.height / 2);
             });
 
-            // Draw Player with Buff Color Glow
-            let playerColor = '#00f0ff'; // Default Neon Cyan
-            if (activeBuffs.speedUpTimer > 0) playerColor = '#00bfff';
+            let playerColor = '#00f0ff';
+            if (activeBuffs.speedUpStacks > 0) playerColor = '#00bfff';
             if (activeBuffs.slowDownTimer > 0) playerColor = '#a855f7';
 
             ctx.fillStyle = playerColor;
@@ -668,18 +642,16 @@
             ctx.shadowBlur = persistentData.reduceMotion ? 0 : 12;
             ctx.fillRect(player.x, player.y, player.width, player.height);
 
-            // Draw Shield Ring if active
             if (activeBuffs.hasShield) {
                 ctx.strokeStyle = '#22c55e';
                 ctx.lineWidth = 3;
                 ctx.shadowColor = '#22c55e';
                 ctx.shadowBlur = 10;
                 ctx.beginPath();
-                ctx.arc(player.x + 15, player.y + 15, 22, 0, Math.PI * 2);
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, 24, 0, Math.PI * 2);
                 ctx.stroke();
             }
 
-            // Draw Particles
             ctx.shadowBlur = 0;
             particles.forEach(p => {
                 ctx.fillStyle = p.color;
@@ -687,23 +659,36 @@
                 ctx.fillRect(p.x, p.y, 4, 4);
             });
             ctx.globalAlpha = 1.0;
+
+            if (screenFlashTimer > 0) {
+                screenFlashTimer--;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            if (bombTextTimer > 0) {
+                bombTextTimer--;
+                ctx.save();
+                ctx.fillStyle = '#f97316';
+                ctx.shadowColor = '#f97316';
+                ctx.shadowBlur = 15;
+                ctx.font = '14px "Press Start 2P", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText("💥 BOMB CLEAR! 💥", canvas.width / 2, canvas.height / 2);
+                ctx.restore();
+            }
         }
 
-        // ==========================================
-        // 7. UI, HUD & Buff Gauge Display
-        // ==========================================
         function updateHUD() {
             document.getElementById('hud-score').innerText = currentScore;
             document.getElementById('canvas-score').innerText = currentScore;
             document.getElementById('hud-highscore').innerText = persistentData.highScore;
             document.getElementById('canvas-timer').innerText = timeRemaining.toFixed(1);
+            document.getElementById('wave-badge').innerText = `WAVE ${currentWave}`;
 
             const stateTextMap = {
-                'READY': '대기 중',
-                'PLAYING': '진행 중',
-                'PAUSED': '일시정지',
-                'GAMEOVER': '게임 오버',
-                'CLEAR': '미션 성공'
+                'READY': '대기 중', 'PLAYING': '진행 중', 'PAUSED': '일시정지',
+                'GAMEOVER': '게임 오버', 'CLEAR': '미션 성공'
             };
             document.getElementById('hud-state').innerText = stateTextMap[gameState] || gameState;
         }
@@ -712,14 +697,14 @@
             const container = document.getElementById('buff-container');
             container.innerHTML = '';
 
-            if (activeBuffs.speedUpTimer > 0) {
-                container.innerHTML += `<span class="bg-blue-600/80 px-2 py-0.5 rounded border border-blue-400 text-blue-200">⚡ SPEED ${activeBuffs.speedUpTimer.toFixed(1)}s</span>`;
+            if (activeBuffs.speedUpStacks > 0) {
+                container.innerHTML += `<span class="bg-blue-600/90 px-2 py-0.5 rounded border border-blue-400 text-blue-200 font-bold">⚡ x${activeBuffs.speedUpStacks} (${Math.ceil(activeBuffs.speedUpTimer)}s)</span>`;
             }
             if (activeBuffs.slowDownTimer > 0) {
-                container.innerHTML += `<span class="bg-purple-600/80 px-2 py-0.5 rounded border border-purple-400 text-purple-200">🧊 SLOW ${activeBuffs.slowDownTimer.toFixed(1)}s</span>`;
+                container.innerHTML += `<span class="bg-purple-600/90 px-2 py-0.5 rounded border border-purple-400 text-purple-200 font-bold">🧊 (${Math.ceil(activeBuffs.slowDownTimer)}s)</span>`;
             }
             if (activeBuffs.hasShield) {
-                container.innerHTML += `<span class="bg-green-600/80 px-2 py-0.5 rounded border border-green-400 text-green-200">🛡️ SHIELD</span>`;
+                container.innerHTML += `<span class="bg-green-600/90 px-2 py-0.5 rounded border border-green-400 text-green-200 font-bold">🛡️</span>`;
             }
         }
 
@@ -733,9 +718,6 @@
             document.getElementById('game-overlay').classList.add('hidden');
         }
 
-        // ==========================================
-        // 8. Event Listeners
-        // ==========================================
         document.getElementById('btn-start').addEventListener('click', () => {
             if (gameState === 'PAUSED') resumeGame();
             else startGame();
@@ -760,7 +742,6 @@
             document.getElementById('motion-icon').innerText = persistentData.reduceMotion ? "⚡" : "✨";
         });
 
-        // Mobile Controls
         const btnLeft = document.getElementById('btn-touch-left');
         const btnRight = document.getElementById('btn-touch-right');
         const btnTouchPause = document.getElementById('btn-touch-pause');
@@ -771,7 +752,6 @@
         btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keysPressed['right'] = false; });
         btnTouchPause.addEventListener('click', () => togglePause());
 
-        // Initial Setup Execution
         render();
         updateHUD();
     </script>
