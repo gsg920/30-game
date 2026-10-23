@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Velvet Casino - Blackjack</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364);
+            user-select: none;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Felt Table Background */
+        .casino-table {
+            background: radial-gradient(ellipse at center, #115732 0%, #08381e 70%, #032110 100%);
+            border: 12px solid #3d2314;
+            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8), 0 20px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Playing Card Styles */
+        .card {
+            width: 85px;
+            height: 122px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease, top 0.3s ease, left 0.3s ease;
+            font-weight: bold;
+        }
+
+        @media (min-width: 640px) {
+            .card {
+                width: 105px;
+                height: 150px;
+                padding: 8px;
+                border-radius: 10px;
+            }
+        }
+
+        .card.red {
+            color: #e53e3e;
+        }
+
+        .card.black {
+            color: #1a202c;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #800000 25%, #b30000 25%, #b30000 50%, #800000 50%, #800000 75%, #b30000 75%, #b30000 100%);
+            background-size: 20px 20px;
+            border: 3px solid #ffffff;
+            border-radius: 8px;
+        }
+
+        /* Card Animation Slide In */
+        @keyframes dealCard {
+            0% {
+                opacity: 0;
+                transform: translateY(-200px) scale(0.5) rotate(15deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .deal-animation {
+            animation: dealCard 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Casino Chip Styling & Tooltip Container */
+        .chip-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Hover Tooltip Popup */
+        .chip-wrapper .chip-tooltip {
+            visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #f6e05e;
+            text-align: center;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid rgba(246, 224, 94, 0.4);
+            position: absolute;
+            z-index: 30;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .chip-wrapper .chip-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -4px;
+            border-width: 4px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+        }
+
+        .chip-wrapper:hover .chip-tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(-2px);
+        }
+
+        .chip {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 0 0 4px dashed rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 640px) {
+            .chip {
+                width: 64px;
+                height: 64px;
+                font-size: 15px;
+            }
+        }
+
+        .chip:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.5), inset 0 0 0 4px dashed rgba(255,255,255,0.9);
+        }
+
+        .chip:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .chip-10 { background: radial-gradient(circle, #3182ce 60%, #2b6cb0 100%); border: 3px solid #63b3ed; }
+        .chip-25 { background: radial-gradient(circle, #38a169 60%, #2f855a 100%); border: 3px solid #68d391; }
+        .chip-50 { background: radial-gradient(circle, #dd6b20 60%, #c05621 100%); border: 3px solid #fbd38d; }
+        .chip-100 { background: radial-gradient(circle, #e53e3e 60%, #c53030 100%); border: 3px solid #feb2b2; }
+        .chip-500 { background: radial-gradient(circle, #805ad5 60%, #6b46c1 100%); border: 3px solid #d6bcfa; }
+        .chip-1000 { background: radial-gradient(circle, #d69e2e 60%, #b7791f 100%); border: 3px solid #fef08a; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #08381e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 3px;
+        }
+
+        /* Gold Gradient Text */
+        .gold-text {
+            background: linear-gradient(135deg, #ffe57f 0%, #d4af37 50%, #aa7c11 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes doorSlam {
+            0% { transform: scale(1.5); opacity: 0; }
+            50% { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes sadFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .animate-door-slam {
+            animation: doorSlam 0.5s ease-out forwards;
+        }
+
+        .animate-sad-float {
+            animation: sadFloat 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white flex flex-col justify-between p-2 sm:p-4">
+
+    <!-- Header / Navbar -->
+    <header class="w-full max-w-5xl mx-auto flex justify-between items-center px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-yellow-600/30 shadow-lg mb-2">
+        <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-crown text-yellow-400 text-xl sm:text-2xl"></i>
+            <h1 class="cinzel-font text-lg sm:text-2xl font-bold gold-text tracking-wider">ROYAL VELVET</h1>
+        </div>
+        
+        <!-- Audio & Rule Controls -->
+        <div class="flex items-center space-x-3">
+            <button id="soundToggleBtn" class="p-2 rounded-full bg-gray-800/80 hover:bg-gray-700 text-yellow-400 border border-yellow-500/30 transition">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-sm sm:text-base"></i>
+            </button>
+            <button id="rulesBtn" class="px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-300 border border-yellow-500/40 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> 규칙 보기
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Casino Table -->
+    <main class="w-full max-w-5xl mx-auto flex-1 flex flex-col justify-between casino-table rounded-3xl p-4 sm:p-6 relative overflow-hidden my-auto">
+        
+        <!-- Table Branding Overlay -->
+        <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center opacity-10">
+            <i class="fa-solid fa-clover text-8xl sm:text-9xl text-white mb-2"></i>
+            <span class="cinzel-font text-2xl sm:text-4xl font-black text-white tracking-widest">BLACKJACK PAYS 3 TO 2</span>
+            <span class="text-xs sm:text-sm text-white font-semibold mt-1">Dealer must draw to 16 and stand on all 17s</span>
+        </div>
+
+        <!-- Dealer Area -->
+        <div class="relative z-10 flex flex-col items-center mb-4">
+            <div class="flex items-center space-x-2 mb-2">
+                <span class="text-xs sm:text-sm font-semibold text-gray-300 tracking-wider uppercase">Dealer Hand</span>
+                <span id="dealerScore" class="bg-black/60 px-2.5 py-0.5 rounded-full text-xs font-bold text-yellow-400 border border-yellow-500/30 hidden">0</span>
+            </div>
+            <!-- Dealer Cards Container -->
+            <div id="dealerCards" class="flex justify-center -space-x-8 sm:-space-x-10 min-h-[122px] sm:min-h-[150px] items-center">
+                <!-- Cards injected dynamically -->
+            </div>
+        </div>
+
+        <!-- Center Status / Announcement Area -->
+        <div class="relative z-10 my-2 text-center min-h-[50px] flex items-center justify-center">
+            <div id="gameMessage" class="cinzel-font text-base sm:text-2xl font-bold px-6 py-2 rounded-xl bg-black/60 border border-yellow-500/40 text-yellow-300 shadow-2xl backdrop-blur-sm transition-all duration-300 transform">
+                칩을 선택하고 베팅해 주세요
+            </div>
+        </div>
+
+        <!-- Player Area -->
+        <div class="relative z-10 flex flex-col items-center mt-2">
+            <!-- Player Cards Container -->
+            <div id="playerCards" class="flex justify-center -space-x-8 sm:-space-x-10 min-h-[122px] sm:min-h-[150px] items-center">
+                <!-- Cards injected dynamically -->
+            </div>
+            <div class="flex items-center space-x-2 mt-2">
+                <span class="text-xs sm:text-sm font-semibold text-gray-300 tracking-wider uppercase">Player Hand</span>
+                <span id="playerScore" class="bg-black/60 px-2.5 py-0.5 rounded-full text-xs font-bold text-yellow-400 border border-yellow-500/30 hidden">0</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Control Panel & Betting Dock -->
+    <footer class="w-full max-w-5xl mx-auto mt-3 bg-black/70 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-yellow-600/30 shadow-2xl">
+        
+        <!-- Status Bar: Balance & Current Bet -->
+        <div class="flex justify-around items-center mb-3 pb-2 border-b border-gray-700/60">
+            <div class="text-center">
+                <div class="text-[10px] sm:text-xs text-gray-400 font-semibold uppercase">보유 칩 (Balance)</div>
+                <div id="balanceDisplay" class="text-lg sm:text-2xl font-bold gold-text">$1,000</div>
+            </div>
+            
+            <div class="text-center relative">
+                <div class="text-[10px] sm:text-xs text-gray-400 font-semibold uppercase">현재 베팅 (Current Bet)</div>
+                <div id="betDisplay" class="text-lg sm:text-2xl font-bold text-white">$0</div>
+            </div>
+
+            <div class="text-center">
+                <button id="resetBalanceBtn" class="text-[10px] sm:text-xs text-gray-400 hover:text-red-300 underline font-semibold transition">
+                    잔액 초기화
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons (Hit, Stand, Double) -->
+        <div id="actionControls" class="flex justify-center gap-2 sm:gap-4 mb-3 hidden">
+            <button id="hitBtn" class="flex-1 max-w-[120px] py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 active:scale-95 text-white font-bold rounded-xl shadow-lg border border-blue-400/30 transition text-xs sm:text-sm">
+                <i class="fa-solid fa-hand-pointer mr-1"></i> 히트 (Hit)
+            </button>
+            <button id="standBtn" class="flex-1 max-w-[120px] py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 active:scale-95 text-white font-bold rounded-xl shadow-lg border border-red-400/30 transition text-xs sm:text-sm">
+                <i class="fa-solid fa-hand mr-1"></i> 스탠드 (Stand)
+            </button>
+            <button id="doubleBtn" class="flex-1 max-w-[120px] py-2.5 sm:py-3 bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-500 hover:to-amber-700 active:scale-95 text-white font-bold rounded-xl shadow-lg border border-amber-400/30 transition text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-angles-up mr-1"></i> 더블 (Double)
+            </button>
+        </div>
+
+        <!-- Betting Controls (Chips & Deal Button) -->
+        <div id="bettingControls" class="flex flex-col sm:flex-row items-center justify-between gap-3">
+            
+            <!-- Chips Rack with Tooltips -->
+            <div class="flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto py-1">
+                <div class="chip-wrapper">
+                    <span class="chip-tooltip">+$10 베팅</span>
+                    <button class="chip chip-10" data-value="10">$10</button>
+                </div>
+                <div class="chip-wrapper">
+                    <span class="chip-tooltip">+$25 베팅</span>
+                    <button class="chip chip-25" data-value="25">$25</button>
+                </div>
+                <div class="chip-wrapper">
+                    <span class="chip-tooltip">+$50 베팅</span>
+                    <button class="chip chip-50" data-value="50">$50</button>
+                </div>
+                <div class="chip-wrapper">
+                    <span class="chip-tooltip">+$100 베팅</span>
+                    <button class="chip chip-100" data-value="100">$100</button>
+                </div>
+                <div class="chip-wrapper">
+                    <span class="chip-tooltip">+$500 고액 베팅</span>
+                    <button class="chip chip-500" data-value="500">$500</button>
+                </div>
+                <div class="chip-wrapper">
+                    <span class="chip-tooltip">+$1,000 VIP 베팅</span>
+                    <button class="chip chip-1000" data-value="1000">$1K</button>
+                </div>
+            </div>
+
+            <!-- Bet Action Buttons -->
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button id="clearBetBtn" class="px-3 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold rounded-xl text-xs sm:text-sm transition active:scale-95">
+                    Clear
+                </button>
+                <button id="dealBtn" class="flex-1 sm:flex-initial px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 active:scale-95 text-black font-extrabold rounded-xl shadow-lg border border-yellow-300 transition text-sm sm:text-base">
+                    딜 (DEAL)
+                </button>
+            </div>
+        </div>
+
+        <!-- Next Round Button -->
+        <div id="nextRoundControls" class="flex justify-center hidden">
+            <button id="rebetBtn" class="px-6 py-2.5 mr-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-xl shadow-lg transition text-xs sm:text-sm">
+                동일 베팅 재경쟁
+            </button>
+            <button id="newRoundBtn" class="px-8 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-extrabold rounded-xl shadow-lg border border-green-300 transition text-xs sm:text-sm">
+                새 라운드 시작
+            </button>
+        </div>
+
+    </footer>
+
+    <!-- Rules Modal (Welcome / Manual) -->
+    <div id="rulesModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-gray-900 border-2 border-yellow-500/50 rounded-2xl p-6 max-w-lg w-full shadow-2xl text-gray-200 relative overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-dice-d6 text-yellow-400 text-2xl"></i>
+                    <h3 class="cinzel-font text-xl font-bold gold-text">블랙잭 게임 규칙 안내</h3>
+                </div>
+                <button id="closeRulesBtn" class="text-gray-400 hover:text-white text-2xl transition">&times;</button>
+            </div>
+            
+            <!-- Modal Body Rules Content -->
+            <div class="space-y-3.5 text-xs sm:text-sm text-gray-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-1">
+                <div class="p-3 bg-yellow-950/30 border border-yellow-600/30 rounded-xl">
+                    <p class="font-bold text-yellow-300 mb-1"><i class="fa-solid fa-trophy mr-1"></i> 게임의 승리 목표</p>
+                    <p class="text-gray-300">카드의 합이 <strong class="text-white">21을 초과하지 않고</strong>, 딜러의 카드 합보다 높은 점수를 만들면 승리합니다.</p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="font-bold text-yellow-400"><i class="fa-solid fa-layer-group mr-1"></i> 카드 점수 계산 법</p>
+                    <ul class="list-disc list-inside space-y-1 pl-1 text-gray-300">
+                        <li><strong class="text-white">2 ~ 10:</strong> 표기된 숫자 그대로 계산</li>
+                        <li><strong class="text-white">J, Q, K:</strong> 모두 <span class="text-yellow-400 font-semibold">10점</span>으로 계산</li>
+                        <li><strong class="text-white">Ace (A):</strong> 상황에 따라 유리하게 <span class="text-yellow-400 font-semibold">1점 또는 11점</span>으로 자동 계산</li>
+                    </ul>
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="font-bold text-yellow-400"><i class="fa-solid fa-gamepad mr-1"></i> 주요 액션 버튼 설명</p>
+                    <ul class="space-y-1.5 text-gray-300">
+                        <li><span class="bg-blue-600/40 text-blue-300 px-2 py-0.5 rounded text-xs font-bold border border-blue-500/40">히트 (Hit)</span> 카드를 1장 더 받아옵니다.</li>
+                        <li><span class="bg-red-600/40 text-red-300 px-2 py-0.5 rounded text-xs font-bold border border-red-500/40">스탠드 (Stand)</span> 카드를 더 받지 않고 현재 점수로 딜러와 대결합니다.</li>
+                        <li><span class="bg-amber-600/40 text-amber-300 px-2 py-0.5 rounded text-xs font-bold border border-amber-500/40">더블 (Double)</span> 베팅금을 2배로 올리고, 카드를 딱 1장만 더 받습니다.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Modal Footer / Start Button -->
+            <button id="startGameBtn" class="w-full mt-5 py-3 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 hover:from-yellow-400 hover:to-amber-500 font-extrabold text-black text-base rounded-xl shadow-lg border border-yellow-300 transition active:scale-95">
+                게임 시작하기
+            </button>
+        </div>
+    </div>
+
+    <!-- Bankrupt / Kicked Out Overlay Scene -->
+    <div id="bankruptModal" class="fixed inset-0 bg-black/90 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
+        <div class="text-center max-w-md w-full p-6 bg-gradient-to-b from-gray-900 via-black to-gray-950 border-2 border-red-800/80 rounded-3xl shadow-2xl relative overflow-hidden animate-door-slam">
+            
+            <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#e53e3e_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+            <div class="relative z-10">
+                <div class="w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-3 animate-sad-float relative">
+                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-[0_10px_15px_rgba(239,68,68,0.3)]">
+                        <ellipse cx="100" cy="180" rx="80" ry="12" fill="#1a202c" />
+                        <path d="M 30 170 Q 35 155 45 175" stroke="#718096" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 60 130 L 140 130 L 150 180 L 50 180 Z" fill="#4a5568" />
+                        <polygon points="75,145 90,145 85,160 70,160" fill="#718096" />
+                        <polygon points="115,150 130,150 125,165 110,165" fill="#2d3748" />
+                        <path d="M 45 145 C 30 145 25 160 35 165 C 45 170 50 155 45 145 Z" fill="#cbd5e0" stroke="#a0aec0" stroke-width="2"/>
+                        <path d="M 155 145 C 170 145 175 160 165 165 C 155 170 150 155 155 145 Z" fill="#cbd5e0" stroke="#a0aec0" stroke-width="2"/>
+                        <circle cx="100" cy="95" r="32" fill="#e2e8f0" />
+                        <path d="M 85 88 L 93 96 M 93 88 L 85 96" stroke="#4a5568" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M 107 88 L 115 96 M 115 88 L 107 96" stroke="#4a5568" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M 88 98 Q 85 108 83 112 Q 88 112 88 108 Z" fill="#63b3ed"/>
+                        <path d="M 88 115 Q 100 102 112 115" stroke="#e53e3e" stroke-width="4" stroke-linecap="round" fill="none"/>
+                        <path d="M 62 88 C 65 60 135 60 138 88 Z" fill="#2d3748" />
+                        <rect x="55" y="84" width="90" height="8" rx="4" fill="#1a202c" />
+                    </svg>
+                </div>
+
+                <h2 class="cinzel-font text-2xl sm:text-3xl font-black text-red-500 tracking-wide mb-2">
+                    파산하셨습니다!
+                </h2>
+                
+                <p class="text-sm sm:text-base text-gray-300 mb-1 leading-relaxed">
+                    주머니에 남은 돈이 없어 카지노 가드들에게 쫓겨났습니다...
+                </p>
+                <p class="text-xs text-gray-500 italic mb-6">
+                    "돈 없으면 나가서 바람이나 쐬고 오시오!"
+                </p>
+
+                <button id="restartGameBtn" class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-base sm:text-lg rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.4)] border border-green-300 transition duration-200 transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-xl text-yellow-300"></i>
+                    <span>초기 지원금 받기 ($1,000 재시작)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playChipSound() {
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playCardSound() {
+                if (this.muted) return;
+                this.init();
+                const bufferSize = this.ctx.sampleRate * 0.05;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1000;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start();
+            }
+
+            playWinSound() {
+                if (this.muted) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + i * 0.1 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + i * 0.1);
+                    osc.stop(this.ctx.currentTime + i * 0.1 + 0.25);
+                });
+            }
+
+            playLoseSound() {
+                if (this.muted) return;
+                this.init();
+                const notes = [300, 260, 220];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + i * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + i * 0.12 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + i * 0.12);
+                    osc.stop(this.ctx.currentTime + i * 0.12 + 0.2);
+                });
+            }
+
+            playKickoutSound() {
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.3);
+            }
+        }
+
+        const soundFX = new SoundEffects();
+
+        const MIN_BET = 10;
+        let balance = 1000;
+        let currentBet = 0;
+        let lastBet = 0;
+        let deck = [];
+        let playerHand = [];
+        let dealerHand = [];
+        let gameState = 'BETTING';
+
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const betDisplay = document.getElementById('betDisplay');
+        const gameMessage = document.getElementById('gameMessage');
+        const playerCardsEl = document.getElementById('playerCards');
+        const dealerCardsEl = document.getElementById('dealerCards');
+        const playerScoreEl = document.getElementById('playerScore');
+        const dealerScoreEl = document.getElementById('dealerScore');
+
+        const bettingControls = document.getElementById('bettingControls');
+        const actionControls = document.getElementById('actionControls');
+        const nextRoundControls = document.getElementById('nextRoundControls');
+
+        const hitBtn = document.getElementById('hitBtn');
+        const standBtn = document.getElementById('standBtn');
+        const doubleBtn = document.getElementById('doubleBtn');
+        const dealBtn = document.getElementById('dealBtn');
+        const clearBetBtn = document.getElementById('clearBetBtn');
+        const rebetBtn = document.getElementById('rebetBtn');
+        const newRoundBtn = document.getElementById('newRoundBtn');
+        const resetBalanceBtn = document.getElementById('resetBalanceBtn');
+
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const soundIcon = document.getElementById('soundIcon');
+        const rulesBtn = document.getElementById('rulesBtn');
+        const rulesModal = document.getElementById('rulesModal');
+        const closeRulesBtn = document.getElementById('closeRulesBtn');
+        const startGameBtn = document.getElementById('startGameBtn');
+
+        const bankruptModal = document.getElementById('bankruptModal');
+        const restartGameBtn = document.getElementById('restartGameBtn');
+
+        function createDeck() {
+            const multiDeck = [];
+            for (let d = 0; d < 6; d++) {
+                for (let suit of suits) {
+                    for (let value of values) {
+                        multiDeck.push({ suit, value });
+                    }
+                }
+            }
+            return shuffle(multiDeck);
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getCardValue(card) {
+            if (['J', 'Q', 'K'].includes(card.value)) return 10;
+            if (card.value === 'A') return 11;
+            return parseInt(card.value);
+        }
+
+        function calculateHand(hand) {
+            let score = 0;
+            let aces = 0;
+
+            for (let card of hand) {
+                if (card.value === 'A') {
+                    aces += 1;
+                    score += 11;
+                } else {
+                    score += getCardValue(card);
+                }
+            }
+
+            while (score > 21 && aces > 0) {
+                score -= 10;
+                aces -= 1;
+            }
+
+            return score;
+        }
+
+        function updateDisplays() {
+            balanceDisplay.textContent = `$${balance.toLocaleString()}`;
+            betDisplay.textContent = `$${currentBet.toLocaleString()}`;
+        }
+
+        function renderCard(card, isHidden = false) {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card deal-animation';
+
+            if (isHidden) {
+                cardEl.classList.add('card-back');
+                cardEl.id = 'hiddenCard';
+            } else {
+                const isRed = card.suit === '♥' || card.suit === '♦';
+                cardEl.classList.add(isRed ? 'red' : 'black');
+
+                cardEl.innerHTML = `
+                    <div class="flex justify-between items-start leading-none">
+                        <span class="text-sm sm:text-base">${card.value}</span>
+                        <span class="text-xs sm:text-sm">${card.suit}</span>
+                    </div>
+                    <div class="text-center text-xl sm:text-3xl my-auto">${card.suit}</div>
+                    <div class="flex justify-between items-end leading-none rotate-180">
+                        <span class="text-sm sm:text-base">${card.value}</span>
+                        <span class="text-xs sm:text-sm">${card.suit}</span>
+                    </div>
+                `;
+            }
+            return cardEl;
+        }
+
+        function setMessage(msg, colorClass = "text-yellow-300") {
+            gameMessage.textContent = msg;
+            gameMessage.className = `cinzel-font text-base sm:text-2xl font-bold px-6 py-2 rounded-xl bg-black/60 border border-yellow-500/40 shadow-2xl backdrop-blur-sm transition-all duration-300 ${colorClass}`;
+        }
+
+        function setControlsState(state) {
+            gameState = state;
+            if (state === 'BETTING') {
+                bettingControls.classList.remove('hidden');
+                actionControls.classList.add('hidden');
+                nextRoundControls.classList.add('hidden');
+            } else if (state === 'PLAYER_TURN') {
+                bettingControls.classList.add('hidden');
+                actionControls.classList.remove('hidden');
+                nextRoundControls.classList.add('hidden');
+                doubleBtn.disabled = playerHand.length !== 2 || balance < currentBet;
+            } else if (state === 'ROUND_OVER') {
+                bettingControls.classList.add('hidden');
+                actionControls.classList.add('hidden');
+                nextRoundControls.classList.remove('hidden');
+                rebetBtn.style.display = (balance >= lastBet && lastBet > 0) ? 'block' : 'none';
+            }
+        }
+
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                if (gameState !== 'BETTING') return;
+                const value = parseInt(chip.getAttribute('data-value'));
+                if (balance >= value) {
+                    balance -= value;
+                    currentBet += value;
+                    soundFX.playChipSound();
+                    updateDisplays();
+                } else {
+                    setMessage("잔액이 부족합니다!", "text-red-400");
+                }
+            });
+        });
+
+        clearBetBtn.addEventListener('click', () => {
+            if (gameState !== 'BETTING') return;
+            balance += currentBet;
+            currentBet = 0;
+            soundFX.playChipSound();
+            updateDisplays();
+        });
+
+        resetBalanceBtn.addEventListener('click', () => {
+            if (gameState !== 'BETTING' && gameState !== 'ROUND_OVER') return;
+            triggerBankruptScene();
+        });
+
+        dealBtn.addEventListener('click', () => {
+            if (currentBet === 0) {
+                setMessage("베팅 칩을 먼저 선택해 주세요!", "text-red-400");
+                return;
+            }
+
+            if (deck.length < 30) {
+                deck = createDeck();
+            }
+
+            lastBet = currentBet;
+            playerHand = [];
+            dealerHand = [];
+            playerCardsEl.innerHTML = '';
+            dealerCardsEl.innerHTML = '';
+            playerScoreEl.classList.remove('hidden');
+            dealerScoreEl.classList.remove('hidden');
+
+            setControlsState('PLAYER_TURN');
+            setMessage("게임 진행 중...", "text-yellow-300");
+
+            dealCardToPlayer();
+            setTimeout(() => dealCardToDealer(false), 250);
+            setTimeout(() => dealCardToPlayer(), 500);
+            setTimeout(() => dealCardToDealer(true), 750);
+
+            setTimeout(() => {
+                checkInitialBlackjack();
+            }, 1000);
+        });
+
+        function dealCardToPlayer() {
+            const card = deck.pop();
+            playerHand.push(card);
+            const cardEl = renderCard(card);
+            playerCardsEl.appendChild(cardEl);
+            soundFX.playCardSound();
+            playerScoreEl.textContent = calculateHand(playerHand);
+        }
+
+        function dealCardToDealer(isHidden = false) {
+            const card = deck.pop();
+            dealerHand.push(card);
+            const cardEl = renderCard(card, isHidden);
+            dealerCardsEl.appendChild(cardEl);
+            soundFX.playCardSound();
+            
+            if (!isHidden) {
+                dealerScoreEl.textContent = getCardValue(card);
+            }
+        }
+
+        function checkInitialBlackjack() {
+            const pScore = calculateHand(playerHand);
+            const dScore = calculateHand(dealerHand);
+
+            if (pScore === 21 && dScore === 21) {
+                revealHiddenDealerCard();
+                endRound("둘 다 블랙잭! 비겼습니다 (Push).", 1);
+            } else if (pScore === 21) {
+                revealHiddenDealerCard();
+                endRound("★ BLACKJACK! ★ 1.5배 승리!", 2.5);
+            } else if (dScore === 21) {
+                revealHiddenDealerCard();
+                endRound("딜러가 블랙잭입니다. 패배!", 0);
+            }
+        }
+
+        hitBtn.addEventListener('click', () => {
+            if (gameState !== 'PLAYER_TURN') return;
+            dealCardToPlayer();
+            const score = calculateHand(playerHand);
+            
+            if (score > 21) {
+                setMessage("버스트 (Bust)! 21 초과 패배!", "text-red-400");
+                endRound("버스트 (Bust)! 패배하셨습니다.", 0);
+            } else if (score === 21) {
+                dealerPlay();
+            } else {
+                doubleBtn.disabled = true;
+            }
+        });
+
+        standBtn.addEventListener('click', () => {
+            if (gameState !== 'PLAYER_TURN') return;
+            dealerPlay();
+        });
+
+        doubleBtn.addEventListener('click', () => {
+            if (gameState !== 'PLAYER_TURN') return;
+            balance -= currentBet;
+            currentBet *= 2;
+            updateDisplays();
+
+            dealCardToPlayer();
+            const score = calculateHand(playerHand);
+
+            if (score > 21) {
+                endRound("버스트 (Bust)! 더블다운 실패!", 0);
+            } else {
+                dealerPlay();
+            }
+        });
+
+        function revealHiddenDealerCard() {
+            const hiddenCard = document.getElementById('hiddenCard');
+            if (hiddenCard) {
+                const actualCard = dealerHand[1];
+                const isRed = actualCard.suit === '♥' || actualCard.suit === '♦';
+                hiddenCard.className = `card deal-animation ${isRed ? 'red' : 'black'}`;
+                hiddenCard.id = '';
+                hiddenCard.innerHTML = `
+                    <div class="flex justify-between items-start leading-none">
+                        <span class="text-sm sm:text-base">${actualCard.value}</span>
+                        <span class="text-xs sm:text-sm">${actualCard.suit}</span>
+                    </div>
+                    <div class="text-center text-xl sm:text-3xl my-auto">${actualCard.suit}</div>
+                    <div class="flex justify-between items-end leading-none rotate-180">
+                        <span class="text-sm sm:text-base">${actualCard.value}</span>
+                        <span class="text-xs sm:text-sm">${actualCard.suit}</span>
+                    </div>
+                `;
+            }
+            dealerScoreEl.textContent = calculateHand(dealerHand);
+        }
+
+        function dealerPlay() {
+            setControlsState('DEALER_TURN');
+            revealHiddenDealerCard();
+
+            let dScore = calculateHand(dealerHand);
+
+            const dealerInterval = setInterval(() => {
+                if (dScore < 17) {
+                    dealCardToDealer(false);
+                    dScore = calculateHand(dealerHand);
+                    dealerScoreEl.textContent = dScore;
+                } else {
+                    clearInterval(dealerInterval);
+                    evaluateWinner();
+                }
+            }, 600);
+        }
+
+        function evaluateWinner() {
+            const pScore = calculateHand(playerHand);
+            const dScore = calculateHand(dealerHand);
+
+            if (dScore > 21) {
+                endRound("딜러 버스트! 승리하셨습니다! 🎉", 2);
+            } else if (pScore > dScore) {
+                endRound("축하합니다! 승리하셨습니다! 🎉", 2);
+            } else if (pScore < dScore) {
+                endRound("딜러 승리. 패배하셨습니다.", 0);
+            } else {
+                endRound("무승부 (Push)! 베팅금이 반환됩니다.", 1);
+            }
+        }
+
+        function endRound(message, multiplier) {
+            const payout = Math.floor(currentBet * multiplier);
+            balance += payout;
+            currentBet = 0;
+            updateDisplays();
+
+            if (multiplier > 1) {
+                setMessage(message, "text-green-400 font-bold");
+                soundFX.playWinSound();
+            } else if (multiplier === 1) {
+                setMessage(message, "text-yellow-300");
+            } else {
+                setMessage(message, "text-red-400");
+                soundFX.playLoseSound();
+            }
+
+            setControlsState('ROUND_OVER');
+
+            if (balance < MIN_BET) {
+                setTimeout(() => {
+                    triggerBankruptScene();
+                }, 1200);
+            }
+        }
+
+        function triggerBankruptScene() {
+            soundFX.playKickoutSound();
+            bankruptModal.classList.remove('hidden');
+        }
+
+        restartGameBtn.addEventListener('click', () => {
+            balance = 1000;
+            currentBet = 0;
+            lastBet = 0;
+            bankruptModal.classList.add('hidden');
+            resetTable();
+            updateDisplays();
+            setMessage("새로운 마음으로 배팅해 주세요!");
+            soundFX.playWinSound();
+        });
+
+        newRoundBtn.addEventListener('click', () => {
+            resetTable();
+        });
+
+        rebetBtn.addEventListener('click', () => {
+            if (balance >= lastBet) {
+                resetTable();
+                balance -= lastBet;
+                currentBet = lastBet;
+                updateDisplays();
+                dealBtn.click();
+            }
+        });
+
+        function resetTable() {
+            playerCardsEl.innerHTML = '';
+            dealerCardsEl.innerHTML = '';
+            playerScoreEl.classList.add('hidden');
+            dealerScoreEl.classList.add('hidden');
+            setMessage("칩을 선택하고 베팅해 주세요");
+            setControlsState('BETTING');
+        }
+
+        soundToggleBtn.addEventListener('click', () => {
+            soundFX.muted = !soundFX.muted;
+            soundIcon.className = soundFX.muted ? "fa-solid fa-volume-xmark text-red-400 text-sm sm:text-base" : "fa-solid fa-volume-high text-sm sm:text-base";
+        });
+
+        rulesBtn.addEventListener('click', () => rulesModal.classList.remove('hidden'));
+        closeRulesBtn.addEventListener('click', () => rulesModal.classList.add('hidden'));
+        startGameBtn.addEventListener('click', () => {
+            soundFX.init();
+            rulesModal.classList.add('hidden');
+        });
+
+        deck = createDeck();
+        updateDisplays();
+    </script>
+</body>
+</html>
