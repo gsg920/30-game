@@ -33,10 +33,6 @@
             text-shadow: 0 0 5px rgba(255, 0, 127, 0.6);
         }
 
-        .bg-neon-cyan {
-            background-color: #00f0ff;
-        }
-
         /* Scanline Overlay for 8-bit aesthetics */
         .scanlines {
             position: relative;
@@ -96,32 +92,33 @@
         </div>
     </header>
 
-    <!-- Main Container (Guaranteed No Scrollbar Overflow at 1366x768 & 1920x1080) -->
+    <!-- Main Container -->
     <main class="w-full max-w-6xl mx-auto p-3 md:p-6 flex-grow flex flex-col items-center justify-center">
 
         <!-- Info HUD / Rule Bar -->
         <div class="w-full bg-slate-900/80 rounded-xl p-4 border border-slate-700 mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs md:text-sm">
-            <!-- Rules T02-C03 -->
+            <!-- Rules -->
             <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <p class="font-bold text-neon-cyan mb-1">📜 게임 규칙 (Rule)</p>
-                <p class="text-slate-300 leading-relaxed">
-                    위에서 떨어지는 <span class="text-pink-400 font-bold">빨간 장애물</span>을 피하고 <span class="text-yellow-300 font-bold">노란 아이템</span>을 획득하세요. 30초 동안 생존하면 성공!
+                <p class="font-bold text-neon-cyan mb-1">📜 게임 규칙 & 아이템 정보</p>
+                <p class="text-slate-300 leading-relaxed text-xs">
+                    장애물을 피하고 아이템을 획득하세요! 30초 생존시 미션 성공.<br>
+                    🟡점수(+50) | 🔵이동속도 증가 | 🟣이동속도 감소 | 🟢방어막(1회 무적) | 🟠폭탄(장애물 전멸)
                 </p>
             </div>
 
-            <!-- Controls T02-C04 -->
+            <!-- Controls -->
             <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <p class="font-bold text-neon-cyan mb-1">🎮 조작 방법 (Controls)</p>
+                <p class="font-bold text-neon-cyan mb-1">🎮 조작 방법</p>
                 <p class="text-slate-300 leading-relaxed">
                     <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">→</kbd> 또는 <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">A</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">D</kbd>: 이동<br>
                     <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 font-mono">Space</kbd>: 일시정지 / 재개
                 </p>
             </div>
 
-            <!-- Current Stats T02-C05 -->
+            <!-- Current Stats -->
             <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
                 <div>
-                    <p class="font-bold text-neon-cyan mb-1">📊 현재 상태 (State)</p>
+                    <p class="font-bold text-neon-cyan mb-1">📊 현재 상태</p>
                     <p class="text-slate-300">상태: <span id="hud-state" class="font-pixel text-yellow-400">대기 중</span></p>
                 </div>
                 <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-800">
@@ -139,6 +136,8 @@
                 <div class="bg-slate-900/80 px-3 py-1.5 rounded border border-cyan-500/40 text-cyan-300">
                     TIME: <span id="canvas-timer">30.0</span>s
                 </div>
+                <!-- Active Buff Gauge Display -->
+                <div id="buff-container" class="flex gap-2 text-xs"></div>
                 <div class="bg-slate-900/80 px-3 py-1.5 rounded border border-pink-500/40 text-pink-400">
                     SCORE: <span id="canvas-score">0</span>
                 </div>
@@ -147,11 +146,11 @@
             <!-- Game Canvas -->
             <canvas id="gameCanvas" width="800" height="450" class="w-full h-auto block bg-slate-950"></canvas>
 
-            <!-- State Overlay (Start / Pause / Game Over / Clear) -->
+            <!-- State Overlay -->
             <div id="game-overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
                 <h2 id="overlay-title" class="font-pixel text-xl md:text-3xl text-neon-cyan mb-3">NEON ESCAPE</h2>
                 <p id="overlay-desc" class="text-slate-300 text-sm md:text-base max-w-md mb-6 leading-relaxed">
-                    30초 동안 장애물을 피하며 끝까지 생존하세요!
+                    30초 동안 떨어지는 장애물을 피하며 끝까지 생존하세요! 다양한 아이템 버프를 활용할 수 있습니다.
                 </p>
                 <div class="flex flex-wrap justify-center gap-3">
                     <button id="btn-start" class="px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-pixel text-sm transition transform active:scale-95 shadow-lg shadow-cyan-500/40">
@@ -175,18 +174,13 @@
 
     <!-- Footer -->
     <footer class="w-full border-t border-slate-800 py-3 text-center text-xs text-slate-500">
-        Neon Escape 8-Bit Mini Game &copy; 2026. Built strictly for Assignment Criteria.
+        Neon Escape 8-Bit Mini Game &copy; 2026.
     </footer>
 
-    <!-- Embedded JavaScript Game Architecture -->
+    <!-- Game Engine & Script Architecture -->
     <script>
-        /**
-         * Neon Cyber Dodge 8-Bit Game Logic
-         * Fully self-contained single-file architecture.
-         */
-
         // ==========================================
-        // 1. Web Audio API Synthesizer (Card 5)
+        // 1. Web Audio API Synthesizer
         // ==========================================
         class SoundFX {
             constructor() {
@@ -216,18 +210,33 @@
                     gain.connect(this.ctx.destination);
                     osc.start();
                     osc.stop(this.ctx.currentTime + duration);
-                } catch (e) {
-                    // Fail gracefully
-                }
+                } catch (e) {}
             }
 
             playItemCollect() {
-                this.playBeep(587.33, 'square', 0.08, 0.15); // D5
-                setTimeout(() => this.playBeep(880, 'square', 0.12, 0.15), 80); // A5
+                this.playBeep(587.33, 'square', 0.08, 0.15);
+                setTimeout(() => this.playBeep(880, 'square', 0.12, 0.15), 80);
             }
 
-            playHitSound() {
-                this.playBeep(150, 'sawtooth', 0.25, 0.2);
+            playBuffSound() {
+                this.playBeep(440, 'triangle', 0.1, 0.15);
+                setTimeout(() => this.playBeep(659.25, 'triangle', 0.1, 0.15), 60);
+                setTimeout(() => this.playBeep(880, 'triangle', 0.15, 0.2), 120);
+            }
+
+            playDebuffSound() {
+                this.playBeep(300, 'sawtooth', 0.15, 0.15);
+                setTimeout(() => this.playBeep(180, 'sawtooth', 0.2, 0.2), 100);
+            }
+
+            playBombSound() {
+                this.playBeep(120, 'sawtooth', 0.3, 0.3);
+                setTimeout(() => this.playBeep(80, 'sawtooth', 0.4, 0.3), 100);
+            }
+
+            playShieldBreak() {
+                this.playBeep(523.25, 'square', 0.1, 0.2);
+                setTimeout(() => this.playBeep(261.63, 'square', 0.2, 0.2), 80);
             }
 
             playGameOver() {
@@ -248,10 +257,9 @@
         const sound = new SoundFX();
 
         // ==========================================
-        // 2. LocalStorage Fault-Tolerance Manager (Card 4 - T02-C22~C25)
+        // 2. LocalStorage Fault-Tolerance
         // ==========================================
         const STORAGE_KEY = 'NEON_ESCAPE_SAVED_DATA_V1';
-
         const DEFAULT_STORAGE = {
             highScore: 0,
             playCount: 0,
@@ -262,17 +270,13 @@
         function loadStorageData() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) {
-                    return { ...DEFAULT_STORAGE };
-                }
+                if (!raw) return { ...DEFAULT_STORAGE };
                 const parsed = JSON.parse(raw);
-                // Schema validation check (T02-C25)
                 if (typeof parsed !== 'object' || parsed === null || typeof parsed.highScore !== 'number') {
-                    throw new Error("Corrupted schema detected");
+                    throw new Error("Corrupted schema");
                 }
                 return { ...DEFAULT_STORAGE, ...parsed };
             } catch (err) {
-                console.warn("[Storage Recovery] Corrupted data handled gracefully:", err);
                 return { ...DEFAULT_STORAGE };
             }
         }
@@ -280,87 +284,80 @@
         function saveStorageData(data) {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            } catch (e) {
-                console.error("Storage write error", e);
-            }
+            } catch (e) {}
         }
 
         let persistentData = loadStorageData();
 
         // ==========================================
-        // 3. Game Engine & Logic
+        // 3. Item Types Definitions
+        // ==========================================
+        const ITEM_TYPES = {
+            SCORE: { color: '#ffd700', label: '+50', shadow: '#ffd700' },
+            SPEED_UP: { color: '#00bfff', label: '⚡', shadow: '#00bfff' },
+            SLOW_DOWN: { color: '#a855f7', label: '🧊', shadow: '#a855f7' },
+            SHIELD: { color: '#22c55e', label: '🛡️', shadow: '#22c55e' },
+            BOMB: { color: '#f97316', label: '💥', shadow: '#f97316' }
+        };
+
+        // ==========================================
+        // 4. Game Engine & State Manager
         // ==========================================
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // State variables (T02-C05)
-        let gameState = 'READY'; // READY, PLAYING, PAUSED, GAMEOVER, CLEAR
+        let gameState = 'READY';
         let currentScore = 0;
         let timeRemaining = 30.0;
         let lastTime = 0;
-        let obstacleSpeedMultiplier = 4.0; // Difficulty setting (Card 3)
+        let obstacleSpeedMultiplier = 4.0;
         let particles = [];
         let obstacles = [];
         let items = [];
 
-        // Player state
+        // Player & Active Buff States
+        const BASE_PLAYER_SPEED = 7;
         const player = {
             x: canvas.width / 2 - 15,
             y: canvas.height - 45,
             width: 30,
             height: 30,
-            speed: 7,
-            dx: 0
+            speed: BASE_PLAYER_SPEED
         };
 
-        // Key Input Throttling / Debouncing (T02-C12)
+        let activeBuffs = {
+            speedUpTimer: 0,
+            slowDownTimer: 0,
+            hasShield: false
+        };
+
+        // Key Throttle Controls
         const keysPressed = {};
         let lastInputTime = 0;
 
         function handleKeyDown(e) {
-            sound.init(); // Initialize audio context on first user key down
+            sound.init();
             const now = performance.now();
-            
-            // Prevent duplicate event storm processing (T02-C12)
-            if (e.repeat && now - lastInputTime < 30) {
-                return;
-            }
+            if (e.repeat && now - lastInputTime < 30) return;
             lastInputTime = now;
 
-            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-                keysPressed['left'] = true;
-            } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-                keysPressed['right'] = true;
-            } else if (e.code === 'Space') {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keysPressed['left'] = true;
+            else if (e.code === 'ArrowRight' || e.code === 'KeyD') keysPressed['right'] = true;
+            else if (e.code === 'Space') {
                 e.preventDefault();
                 togglePause();
             }
         }
 
         function handleKeyUp(e) {
-            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-                keysPressed['left'] = false;
-            } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-                keysPressed['right'] = false;
-            }
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keysPressed['left'] = false;
+            else if (e.code === 'ArrowRight' || e.code === 'KeyD') keysPressed['right'] = false;
         }
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
+        window.addEventListener('blur', () => { if (gameState === 'PLAYING') pauseGame(); });
 
-        // Window Focus & Blur Handling (T02-C14)
-        window.addEventListener('blur', () => {
-            if (gameState === 'PLAYING') {
-                pauseGame();
-            }
-        });
-
-        // Window Resize robustness check (T02-C13)
-        window.addEventListener('resize', () => {
-            // Layout automatically resizes safely with CSS aspect ratio
-        });
-
-        // Spawning logic
         let spawnTimer = 0;
         let itemSpawnTimer = 0;
 
@@ -368,7 +365,8 @@
             currentScore = 0;
             timeRemaining = 30.0;
             player.x = canvas.width / 2 - 15;
-            player.dx = 0;
+            player.speed = BASE_PLAYER_SPEED;
+            activeBuffs = { speedUpTimer: 0, slowDownTimer: 0, hasShield: false };
             obstacles = [];
             items = [];
             particles = [];
@@ -407,11 +405,8 @@
         }
 
         function togglePause() {
-            if (gameState === 'PLAYING') {
-                pauseGame();
-            } else if (gameState === 'PAUSED') {
-                resumeGame();
-            }
+            if (gameState === 'PLAYING') pauseGame();
+            else if (gameState === 'PAUSED') resumeGame();
         }
 
         function triggerGameOver() {
@@ -427,9 +422,7 @@
         function triggerGameClear() {
             gameState = 'CLEAR';
             sound.playGameWin();
-            if (currentScore > persistentData.highScore) {
-                persistentData.highScore = currentScore;
-            }
+            if (currentScore > persistentData.highScore) persistentData.highScore = currentScore;
             persistentData.playCount++;
             saveStorageData(persistentData);
             showOverlay("MISSION CLEAR!", `30초 생존 성공! 최종 점수: ${currentScore}`);
@@ -437,14 +430,15 @@
             updateHUD();
         }
 
-        // Main Loop (T02-C06, C15, C16, C17)
+        // ==========================================
+        // 5. Main Game Loop Logic
+        // ==========================================
         function gameLoop(timestamp) {
             if (gameState !== 'PLAYING') return;
 
-            const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // Clamp delta time
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
             lastTime = timestamp;
 
-            // Timer update
             timeRemaining -= dt;
             if (timeRemaining <= 0) {
                 timeRemaining = 0;
@@ -452,33 +446,37 @@
                 return;
             }
 
-            // Update entities
+            updateBuffs(dt);
             updatePlayer();
             updateObstacles(dt);
             updateItems(dt);
-            if (!persistentData.reduceMotion) {
-                updateParticles(dt);
-            }
+            if (!persistentData.reduceMotion) updateParticles(dt);
 
-            // Render
             render();
-
             requestAnimationFrame(gameLoop);
         }
 
-        function updatePlayer() {
-            if (keysPressed['left']) {
-                player.x -= player.speed;
-            }
-            if (keysPressed['right']) {
-                player.x += player.speed;
-            }
+        function updateBuffs(dt) {
+            // Speed Boost Timer Update
+            if (activeBuffs.speedUpTimer > 0) activeBuffs.speedUpTimer -= dt;
+            // Slow Debuff Timer Update
+            if (activeBuffs.slowDownTimer > 0) activeBuffs.slowDownTimer -= dt;
 
-            // Screen boundary check
+            // Calculate Speed Multiplier
+            let speedMult = 1.0;
+            if (activeBuffs.speedUpTimer > 0) speedMult += 0.6; // +60% Speed
+            if (activeBuffs.slowDownTimer > 0) speedMult -= 0.4; // -40% Speed
+            
+            player.speed = BASE_PLAYER_SPEED * speedMult;
+            updateBuffHUD();
+        }
+
+        function updatePlayer() {
+            if (keysPressed['left']) player.x -= player.speed;
+            if (keysPressed['right']) player.x += player.speed;
+
             if (player.x < 0) player.x = 0;
-            if (player.x + player.width > canvas.width) {
-                player.x = canvas.width - player.width;
-            }
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
         }
 
         function updateObstacles(dt) {
@@ -501,14 +499,21 @@
                 const obs = obstacles[i];
                 obs.y += obs.speed * dt;
 
-                // Collision detection with player
                 if (checkCollision(player, obs)) {
+                    // Shield active check
+                    if (activeBuffs.hasShield) {
+                        activeBuffs.hasShield = false;
+                        sound.playShieldBreak();
+                        createExplosion(obs.x + obs.width/2, obs.y + obs.height/2, '#22c55e');
+                        obstacles.splice(i, 1);
+                        continue;
+                    }
+
                     createExplosion(player.x + 15, player.y + 15, '#ff0055');
                     triggerGameOver();
                     return;
                 }
 
-                // Remove offscreen
                 if (obs.y > canvas.height) {
                     obstacles.splice(i, 1);
                     currentScore += 10;
@@ -519,14 +524,25 @@
 
         function updateItems(dt) {
             itemSpawnTimer += dt;
-            if (itemSpawnTimer >= 2.5) {
+            if (itemSpawnTimer >= 1.8) { // Item spawn rate
                 itemSpawnTimer = 0;
+
+                // Random weighted item selection
+                const rand = Math.random();
+                let type = ITEM_TYPES.SCORE;
+                if (rand < 0.30) type = ITEM_TYPES.SCORE;
+                else if (rand < 0.50) type = ITEM_TYPES.SPEED_UP;
+                else if (rand < 0.70) type = ITEM_TYPES.SLOW_DOWN;
+                else if (rand < 0.85) type = ITEM_TYPES.SHIELD;
+                else type = ITEM_TYPES.BOMB;
+
                 items.push({
-                    x: Math.random() * (canvas.width - 20),
-                    y: -20,
-                    width: 20,
-                    height: 20,
-                    speed: 120
+                    x: Math.random() * (canvas.width - 22),
+                    y: -22,
+                    width: 22,
+                    height: 22,
+                    speed: 130,
+                    type: type
                 });
             }
 
@@ -535,22 +551,43 @@
                 item.y += item.speed * dt;
 
                 if (checkCollision(player, item)) {
-                    sound.playItemCollect();
-                    createExplosion(item.x + 10, item.y + 10, '#ffd700');
-                    currentScore += 50;
+                    applyItemEffect(item.type);
+                    createExplosion(item.x + 11, item.y + 11, item.type.color);
                     items.splice(i, 1);
                     updateHUD();
                     continue;
                 }
 
-                if (item.y > canvas.height) {
-                    items.splice(i, 1);
-                }
+                if (item.y > canvas.height) items.splice(i, 1);
+            }
+        }
+
+        function applyItemEffect(type) {
+            if (type === ITEM_TYPES.SCORE) {
+                sound.playItemCollect();
+                currentScore += 50;
+            } else if (type === ITEM_TYPES.SPEED_UP) {
+                sound.playBuffSound();
+                activeBuffs.speedUpTimer = 6.0; // 6 sec boost
+            } else if (type === ITEM_TYPES.SLOW_DOWN) {
+                sound.playDebuffSound();
+                activeBuffs.slowDownTimer = 5.0; // 5 sec slow
+            } else if (type === ITEM_TYPES.SHIELD) {
+                sound.playBuffSound();
+                activeBuffs.hasShield = true;
+            } else if (type === ITEM_TYPES.BOMB) {
+                sound.playBombSound();
+                // Clear all obstacles & reward score
+                obstacles.forEach(obs => {
+                    createExplosion(obs.x + obs.width/2, obs.y + obs.height/2, '#f97316');
+                    currentScore += 10;
+                });
+                obstacles = [];
             }
         }
 
         function createExplosion(x, y, color) {
-            if (persistentData.reduceMotion) return; // Motion reduction check (Card 5 - T02-C27)
+            if (persistentData.reduceMotion) return;
             for (let i = 0; i < 12; i++) {
                 particles.push({
                     x: x,
@@ -581,13 +618,15 @@
                      r1.y + r1.height < r2.y);
         }
 
-        // Canvas Rendering Routine
+        // ==========================================
+        // 6. Rendering Routine
+        // ==========================================
         function render() {
-            // Clear background
+            // Background
             ctx.fillStyle = '#0d0f18';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw grid line effects
+            // Grid background lines
             ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 40) {
@@ -597,27 +636,48 @@
                 ctx.stroke();
             }
 
-            // Draw Player (Neon Cyan Square)
-            ctx.fillStyle = '#00f0ff';
-            ctx.shadowColor = '#00f0ff';
-            ctx.shadowBlur = persistentData.reduceMotion ? 0 : 12;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-
-            // Draw Obstacles (Pink/Red Falling Squares)
+            // Draw Obstacles (Pink/Red)
             ctx.fillStyle = '#ff0055';
             ctx.shadowColor = '#ff0055';
             ctx.shadowBlur = persistentData.reduceMotion ? 0 : 8;
-            obstacles.forEach(obs => {
-                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.width, obs.height));
+
+            // Draw Items with Icons
+            items.forEach(item => {
+                ctx.fillStyle = item.type.color;
+                ctx.shadowColor = item.type.shadow;
+                ctx.shadowBlur = persistentData.reduceMotion ? 0 : 10;
+                ctx.fillRect(item.x, item.y, item.width, item.height);
+
+                // Draw 8-bit label icon
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#000000';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(item.type.label, item.x + item.width / 2, item.y + item.height / 2);
             });
 
-            // Draw Items (Gold Squares)
-            ctx.fillStyle = '#ffd700';
-            ctx.shadowColor = '#ffd700';
-            ctx.shadowBlur = persistentData.reduceMotion ? 0 : 10;
-            items.forEach(item => {
-                ctx.fillRect(item.x, item.y, item.width, item.height);
-            });
+            // Draw Player with Buff Color Glow
+            let playerColor = '#00f0ff'; // Default Neon Cyan
+            if (activeBuffs.speedUpTimer > 0) playerColor = '#00bfff';
+            if (activeBuffs.slowDownTimer > 0) playerColor = '#a855f7';
+
+            ctx.fillStyle = playerColor;
+            ctx.shadowColor = playerColor;
+            ctx.shadowBlur = persistentData.reduceMotion ? 0 : 12;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw Shield Ring if active
+            if (activeBuffs.hasShield) {
+                ctx.strokeStyle = '#22c55e';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#22c55e';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(player.x + 15, player.y + 15, 22, 0, Math.PI * 2);
+                ctx.stroke();
+            }
 
             // Draw Particles
             ctx.shadowBlur = 0;
@@ -630,7 +690,7 @@
         }
 
         // ==========================================
-        // 4. UI & HUD Managers
+        // 7. UI, HUD & Buff Gauge Display
         // ==========================================
         function updateHUD() {
             document.getElementById('hud-score').innerText = currentScore;
@@ -648,6 +708,21 @@
             document.getElementById('hud-state').innerText = stateTextMap[gameState] || gameState;
         }
 
+        function updateBuffHUD() {
+            const container = document.getElementById('buff-container');
+            container.innerHTML = '';
+
+            if (activeBuffs.speedUpTimer > 0) {
+                container.innerHTML += `<span class="bg-blue-600/80 px-2 py-0.5 rounded border border-blue-400 text-blue-200">⚡ SPEED ${activeBuffs.speedUpTimer.toFixed(1)}s</span>`;
+            }
+            if (activeBuffs.slowDownTimer > 0) {
+                container.innerHTML += `<span class="bg-purple-600/80 px-2 py-0.5 rounded border border-purple-400 text-purple-200">🧊 SLOW ${activeBuffs.slowDownTimer.toFixed(1)}s</span>`;
+            }
+            if (activeBuffs.hasShield) {
+                container.innerHTML += `<span class="bg-green-600/80 px-2 py-0.5 rounded border border-green-400 text-green-200">🛡️ SHIELD</span>`;
+            }
+        }
+
         function showOverlay(title, desc) {
             document.getElementById('overlay-title').innerText = title;
             document.getElementById('overlay-desc').innerText = desc;
@@ -659,21 +734,17 @@
         }
 
         // ==========================================
-        // 5. DOM Event Listeners & Setup
+        // 8. Event Listeners
         // ==========================================
         document.getElementById('btn-start').addEventListener('click', () => {
-            if (gameState === 'PAUSED') {
-                resumeGame();
-            } else {
-                startGame();
-            }
+            if (gameState === 'PAUSED') resumeGame();
+            else startGame();
         });
 
         document.getElementById('difficulty-select').addEventListener('change', (e) => {
             obstacleSpeedMultiplier = parseFloat(e.target.value);
         });
 
-        // Sound Toggle
         document.getElementById('btn-audio-toggle').addEventListener('click', () => {
             sound.muted = !sound.muted;
             persistentData.muted = sound.muted;
@@ -682,7 +753,6 @@
             document.getElementById('audio-icon').innerText = sound.muted ? "🔇" : "🔊";
         });
 
-        // Motion Reduction Toggle
         document.getElementById('btn-motion-toggle').addEventListener('click', () => {
             persistentData.reduceMotion = !persistentData.reduceMotion;
             saveStorageData(persistentData);
@@ -690,7 +760,7 @@
             document.getElementById('motion-icon').innerText = persistentData.reduceMotion ? "⚡" : "✨";
         });
 
-        // Mobile Touch Control Bindings
+        // Mobile Controls
         const btnLeft = document.getElementById('btn-touch-left');
         const btnRight = document.getElementById('btn-touch-right');
         const btnTouchPause = document.getElementById('btn-touch-pause');
@@ -701,7 +771,7 @@
         btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keysPressed['right'] = false; });
         btnTouchPause.addEventListener('click', () => togglePause());
 
-        // Initial Execution Render
+        // Initial Setup Execution
         render();
         updateHUD();
     </script>
