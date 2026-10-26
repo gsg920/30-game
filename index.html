@@ -95,6 +95,39 @@
             animation: dealCard 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
+        /* Texas Hold'em community-card flip */
+        .th-community-card {
+            width: 64px;
+            height: 92px;
+            flex-shrink: 0;
+            perspective: 900px;
+            position: relative;
+        }
+        .th-card-flip-inner {
+            position: absolute;
+            inset: 0;
+            transform-style: preserve-3d;
+            transition: transform 0.62s cubic-bezier(0.2, 0.72, 0.25, 1);
+        }
+        .th-community-card.revealed .th-card-flip-inner { transform: rotateY(180deg); }
+        .th-card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+        }
+        .th-card-face .playing-card { width: 100%; height: 100%; box-sizing: border-box; }
+        .th-card-face-front { transform: rotateY(180deg); }
+        .th-community-card.revealing { animation: thCardPop 0.25s ease-out; }
+        @keyframes thCardPop {
+            0% { transform: translateY(-8px) scale(0.96); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        @media (min-width: 640px) {
+            .th-community-card { width: 78px; height: 112px; }
+        }
+
         /* Chips Styling & Hover Tooltips */
         .chip-wrapper {
             position: relative;
@@ -1274,12 +1307,16 @@
         let thNpcCount = 3;
         let thBet = 0;
         let thPot = 0;
+        let thCurrentBet = 0; // 이번 스트리트에서 맞춰야 하는 베팅액
+        let thPlayerStreetBet = 0;
+        let thPlayerTotalContribution = 0;
         let thInRound = false;
         let thStage = 0; // 0: Preflop, 1: Flop, 2: Turn, 3: River, 4: Showdown
         let thDeck = [];
         let thCommunityCards = [];
         let thPlayerHand = [];
         let thNpcHands = [];
+        let thRevealInProgress = false;
 
         function changeThNpcCount(delta) {
             if (thInRound) return;
@@ -1295,7 +1332,7 @@
         function setupThPlayerSeats() {
             thNpcHands = [];
             for (let i = 0; i < thNpcCount; i++) {
-                thNpcHands.push({ info: npcPool[i], cards: [], bet: 0, folded: false, status: '대기 중' });
+                thNpcHands.push({ info: npcPool[i], cards: [], bet: 0, streetBet: 0, folded: false, status: '대기 중' });
             }
             renderThSeatsUI();
         }
@@ -1340,15 +1377,20 @@
             }
 
             thInRound = true;
+            thRevealInProgress = false;
             thStage = 0;
             thDeck = createDeck();
             thCommunityCards = [];
             thPlayerHand = [];
             thPot = thBet;
+            thCurrentBet = 0;
+            thPlayerStreetBet = 0;
+            thPlayerTotalContribution = thBet;
 
             thNpcHands.forEach(npc => {
                 npc.cards = [];
-                npc.bet = thBet;
+                npc.bet = thBet; // 시작 베팅(앤티)
+                npc.streetBet = 0;
                 npc.folded = false;
                 npc.status = '참여 중';
                 thPot += thBet;
@@ -1370,6 +1412,7 @@
             setTimeout(() => {
                 dealThCardTo(thPlayerHand);
                 renderThBoard();
+                prepareThBettingRound();
                 enableThActionButtons();
                 document.getElementById('th-status').innerText = "프리플랍: 액션을 선택하세요.";
             }, delay + 100);
@@ -1386,10 +1429,52 @@
             }
         }
 
+        function renderThCommunityCardHTML(card) {
+            const isRed = card.suit === '♥' || card.suit === '♦';
+            const colorClass = isRed ? 'red' : 'black';
+            const front = `<div class="playing-card ${colorClass}">
+                <div class="text-[10px] sm:text-xs font-bold leading-none">${card.value}<br>${card.suit}</div>
+                <div class="text-center text-base sm:text-lg">${card.suit}</div>
+                <div class="text-[10px] sm:text-xs font-bold leading-none text-right">${card.value}<br>${card.suit}</div>
+            </div>`;
+            const revealClass = card.revealed ? ' revealed' : '';
+            const popClass = card.justRevealed ? ' revealing' : '';
+            return `<div class="th-community-card${revealClass}${popClass}" aria-label="${card.revealed ? `${card.value}${card.suit}` : '뒤집힌 커뮤니티 카드'}">
+                <div class="th-card-flip-inner">
+                    <div class="th-card-face th-card-face-back"><div class="playing-card back"></div></div>
+                    <div class="th-card-face th-card-face-front">${front}</div>
+                </div>
+            </div>`;
+        }
+
+        function revealThCommunityCards(indices, done) {
+            thRevealInProgress = true;
+            disableThActionButtons();
+            let i = 0;
+            const revealNext = () => {
+                if (i >= indices.length) {
+                    thCommunityCards.forEach(c => c.justRevealed = false);
+                    thRevealInProgress = false;
+                    renderThBoard();
+                    if (typeof done === 'function') done();
+                    return;
+                }
+                const card = thCommunityCards[indices[i++]];
+                if (card) {
+                    card.revealed = true;
+                    card.justRevealed = true;
+                    playSound('card');
+                    renderThBoard();
+                }
+                setTimeout(revealNext, 420);
+            };
+            setTimeout(revealNext, 180);
+        }
+
         function renderThBoard() {
             const pEl = document.getElementById('th-player-cards');
             if (pEl) pEl.innerHTML = thPlayerHand.map(c => renderCardHTML(c)).join('');
-            document.getElementById('th-community-cards').innerHTML = thCommunityCards.map(c => renderCardHTML(c)).join('');
+            document.getElementById('th-community-cards').innerHTML = thCommunityCards.map(c => renderThCommunityCardHTML(c)).join('');
 
             thNpcHands.forEach((npc, idx) => {
                 const cEl = document.getElementById(`th-npc-cards-${idx}`);
@@ -1401,7 +1486,8 @@
             });
 
             if (thPlayerHand.length === 2) {
-                const evalRes = evaluate7CardHand([...thPlayerHand, ...thCommunityCards]);
+                const visibleCommunityCards = thCommunityCards.filter(c => c.revealed);
+                const evalRes = evaluate7CardHand([...thPlayerHand, ...visibleCommunityCards]);
                 document.getElementById('th-player-hand-rank').innerText = evalRes.rankName;
             }
 
@@ -1411,10 +1497,13 @@
         }
 
         function enableThActionButtons() {
+            const toCall = Math.max(0, thCurrentBet - thPlayerStreetBet);
             document.getElementById('th-btn-fold').disabled = false;
-            document.getElementById('th-btn-check').disabled = false;
-            document.getElementById('th-btn-call').disabled = false;
-            document.getElementById('th-btn-raise').disabled = false;
+            document.getElementById('th-btn-check').disabled = toCall > 0;
+            document.getElementById('th-btn-call').disabled = toCall <= 0 || balance < toCall;
+            document.getElementById('th-btn-raise').disabled = balance < toCall + 50;
+            document.getElementById('th-btn-call').innerText = toCall > 0 ? `CALL $${toCall}` : 'CALL';
+            document.getElementById('th-btn-raise').innerText = `RAISE +$50`;
         }
 
         function disableThActionButtons() {
@@ -1424,135 +1513,252 @@
             document.getElementById('th-btn-raise').disabled = true;
         }
 
+        // 스트리트마다 NPC가 체크하거나 $50 베팅하는 간단한 자동 액션
+        function prepareThBettingRound() {
+            thCurrentBet = 0;
+            thPlayerStreetBet = 0;
+            thNpcHands.forEach(npc => {
+                npc.streetBet = 0;
+                if (npc.folded) return;
+                if (Math.random() < 0.35) {
+                    npc.streetBet = 50;
+                    npc.bet += 50;
+                    thPot += 50;
+                    thCurrentBet = 50;
+                    npc.status = '베팅 $50';
+                } else {
+                    npc.status = '체크';
+                }
+            });
+            document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
+            renderThBoard();
+        }
+
         function thPlayerAction(action) {
-            if (!thInRound) return;
-            disableThActionButtons();
+            if (!thInRound || thRevealInProgress) return;
+            const toCall = Math.max(0, thCurrentBet - thPlayerStreetBet);
 
             if (action === 'fold') {
-                document.getElementById('th-status').innerText = "폴드 하셨습니다.";
+                disableThActionButtons();
                 settleThShowdown(true);
                 return;
-            } else if (action === 'raise') {
-                const raiseAmt = 50;
-                if (balance >= raiseAmt) {
-                    balance -= raiseAmt;
-                    thPot += raiseAmt;
-                    document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
-                    updateGlobalBalanceUI();
-                    playSound('chip');
-                }
+            }
+            if (action === 'check' && toCall > 0) {
+                document.getElementById('th-status').innerText = `콜 금액 $${toCall}이 필요합니다. 체크할 수 없습니다.`;
+                return;
+            }
+            if (action === 'call' && toCall <= 0) {
+                document.getElementById('th-status').innerText = '상대 베팅이 없습니다. 체크를 선택하세요.';
+                return;
             }
 
-            // Advance Game Stage
+            let playerContribution = 0;
+            if (action === 'call') {
+                playerContribution = toCall;
+                thPlayerStreetBet += toCall;
+            } else if (action === 'raise') {
+                playerContribution = toCall + 50;
+                thPlayerStreetBet += playerContribution;
+                thCurrentBet = thPlayerStreetBet;
+                // 간단한 NPC AI: 레이즈에 일부 NPC는 폴드, 나머지는 콜
+                thNpcHands.forEach(npc => {
+                    if (npc.folded) return;
+                    if (Math.random() < 0.2) {
+                        npc.folded = true;
+                        npc.status = '폴드';
+                        return;
+                    }
+                    const extra = Math.max(0, thCurrentBet - npc.streetBet);
+                    npc.streetBet += extra;
+                    npc.bet += extra;
+                    thPot += extra;
+                    npc.status = '콜';
+                });
+            }
+
+            if (playerContribution > balance) {
+                document.getElementById('th-status').innerText = '잔액이 부족합니다.';
+                enableThActionButtons();
+                return;
+            }
+            if (playerContribution > 0) {
+                balance -= playerContribution;
+                thPlayerTotalContribution += playerContribution;
+                thPot += playerContribution;
+                updateGlobalBalanceUI();
+                playSound('chip');
+            }
+            document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
+            renderThBoard();
+            disableThActionButtons();
+
+            if (thNpcHands.every(npc => npc.folded)) {
+                thInRound = false;
+                balance += thPot;
+                document.getElementById('th-status').innerText = `🎉 모든 상대가 폴드했습니다. 팟 $${thPot.toLocaleString()} 획득!`;
+                playSound('win');
+                finishThRound();
+                return;
+            }
+
+            // 플레이어 액션 후 커뮤니티 카드를 단계별로 공개한다.
             thStage++;
             if (thStage === 1) {
-                // Flop (3 Cards)
-                dealThCardTo(thCommunityCards); dealThCardTo(thCommunityCards); dealThCardTo(thCommunityCards);
+                // 보드에 5장을 먼저 뒷면으로 깔고, 플랍 3장만 순서대로 공개
+                for (let i = 0; i < 5; i++) {
+                    const card = thDeck.pop();
+                    if (!card) break;
+                    card.revealed = false;
+                    card.justRevealed = false;
+                    thCommunityCards.push(card);
+                }
                 renderThBoard();
-                document.getElementById('th-status').innerText = "플랍(Flop): 액션을 선택하세요.";
-                enableThActionButtons();
+                document.getElementById('th-status').innerText = '플랍(Flop): 커뮤니티 카드 3장을 공개합니다…';
+                revealThCommunityCards([0, 1, 2], () => {
+                    prepareThBettingRound();
+                    document.getElementById('th-status').innerText = '플랍(Flop): 액션을 선택하세요.';
+                    enableThActionButtons();
+                });
             } else if (thStage === 2) {
-                // Turn (1 Card)
-                dealThCardTo(thCommunityCards);
-                renderThBoard();
-                document.getElementById('th-status').innerText = "턴(Turn): 액션을 선택하세요.";
-                enableThActionButtons();
+                document.getElementById('th-status').innerText = '턴(Turn): 네 번째 카드를 공개합니다…';
+                revealThCommunityCards([3], () => {
+                    prepareThBettingRound();
+                    document.getElementById('th-status').innerText = '턴(Turn): 액션을 선택하세요.';
+                    enableThActionButtons();
+                });
             } else if (thStage === 3) {
-                // River (1 Card)
-                dealThCardTo(thCommunityCards);
-                renderThBoard();
-                document.getElementById('th-status').innerText = "리버(River): 마지막 액션!";
-                enableThActionButtons();
+                document.getElementById('th-status').innerText = '리버(River): 마지막 카드를 공개합니다…';
+                revealThCommunityCards([4], () => {
+                    prepareThBettingRound();
+                    document.getElementById('th-status').innerText = '리버(River): 마지막 액션!';
+                    enableThActionButtons();
+                });
             } else {
-                // Showdown
                 settleThShowdown(false);
             }
         }
 
+        function finishThRound() {
+            thRevealInProgress = false;
+            thBet = 0;
+            thCurrentBet = 0;
+            thPlayerStreetBet = 0;
+            thPlayerTotalContribution = 0;
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
+            document.getElementById('th-btn-deal').disabled = false;
+            document.getElementById('th-npc-control').classList.remove('opacity-40', 'pointer-events-none');
+            disableThActionButtons();
+            checkBankruptOrEnding();
+        }
+
         function settleThShowdown(playerFolded) {
             thInRound = false;
+            thRevealInProgress = false;
+            // 정상 쇼다운에서는 보드가 모두 공개되어야 한다. 폴드 시에는 숨겨진 카드를 유지한다.
+            if (!playerFolded) thCommunityCards.forEach(c => c.revealed = true);
             document.getElementById('th-npc-control').classList.remove('opacity-40', 'pointer-events-none');
             disableThActionButtons();
 
-            // Reveal NPC Cards
             thNpcHands.forEach(npc => npc.cards.forEach(c => c.hidden = false));
             renderThBoard();
 
             if (playerFolded) {
                 playSound('lose');
-                document.getElementById('th-status').innerText = "폴드로 이번 판을 포기하셨습니다.";
+                document.getElementById('th-status').innerText = '폴드로 이번 판을 포기했습니다. 베팅한 금액은 팟에 남습니다.';
             } else {
                 const playerEval = evaluate7CardHand([...thPlayerHand, ...thCommunityCards]);
                 let bestScore = playerEval.score;
-                let winnerName = 'YOU (나)';
-                let isPlayerWin = true;
+                let winners = [{ name: 'YOU (나)', player: true, eval: playerEval }];
 
                 thNpcHands.forEach(npc => {
+                    if (npc.folded) return;
                     const evalRes = evaluate7CardHand([...npc.cards, ...thCommunityCards]);
                     if (evalRes.score > bestScore) {
                         bestScore = evalRes.score;
-                        winnerName = npc.info.name;
-                        isPlayerWin = false;
+                        winners = [{ name: npc.info.name, player: false, eval: evalRes }];
+                    } else if (evalRes.score === bestScore) {
+                        winners.push({ name: npc.info.name, player: false, eval: evalRes });
                     }
                 });
 
-                if (isPlayerWin) {
-                    balance += thPot;
-                    lifetimeProfit += thPot;
-                    document.getElementById('th-status').innerText = `🎉 승리! [${playerEval.rankName}] (팟 $${thPot.toLocaleString()} 획득)`;
+                const playerWins = winners.some(w => w.player);
+                if (playerWins) {
+                    const share = Math.floor(thPot / winners.length);
+                    balance += share;
+                    // 팟은 이미 플레이어의 베팅금을 포함하므로 실제 순이익은 수령액에서 본인 총 기여금을 뺀 값
+                    lifetimeProfit += share - thPlayerTotalContribution;
+                    document.getElementById('th-status').innerText = winners.length > 1
+                        ? `🤝 무승부! ${winners.map(w => w.name).join(', ')}가 팟을 나눕니다. $${share.toLocaleString()} 획득`
+                        : `🎉 승리! [${playerEval.rankName}] 팟 $${share.toLocaleString()} 획득`;
                     playSound('win');
                 } else {
-                    document.getElementById('th-status').innerText = `${winnerName} 승리! (팟 $${thPot.toLocaleString()})`;
+                    document.getElementById('th-status').innerText = `${winners.map(w => w.name).join(', ')} 승리! 내 족보: ${playerEval.rankName}`;
                     playSound('lose');
                 }
             }
-
-            thBet = 0;
-            updateGlobalBalanceUI();
-            updateGameBetsUI();
-            document.getElementById('th-btn-deal').disabled = false;
-            checkBankruptOrEnding();
+            finishThRound();
         }
 
-        /* 7-Card Poker Evaluator */
+        /* 7장 중 최선의 5장을 골라 텍사스 홀덤 족보와 킥커까지 비교 */
         function evaluate7CardHand(cards) {
-            if (cards.length < 5) return { score: 0, rankName: 'High Card' };
             const vMap = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13, 'A':14 };
-            const parsed = cards.map(c => ({ val: vMap[c.value], suit: c.suit }));
-            parsed.sort((a,b) => b.val - a.val);
+            const parsed = cards.map(c => ({ val: vMap[c.value], suit: c.suit })).filter(c => c.val);
+            if (parsed.length < 5) return { score: 0, rankName: '카드 부족' };
 
-            // Counts
-            const counts = {};
-            parsed.forEach(c => counts[c.val] = (counts[c.val] || 0) + 1);
+            let best = null;
+            const rankNames = [
+                '하이카드 (High Card)', '원페어 (One Pair)', '투페어 (Two Pair)',
+                '트리플 (Three of a Kind)', '스트레이트 (Straight)', '플러시 (Flush)',
+                '풀하우스 (Full House)', '포카드 (Four of a Kind)',
+                '스트레이트 플러시 (Straight Flush)'
+            ];
+            function encode(category, kickers) {
+                // 각 킥커를 15진수로 묶어 족보 등급과 킥커를 사전식으로 비교
+                let score = category;
+                for (let i = 0; i < 5; i++) score = score * 15 + (kickers[i] || 0);
+                return score;
+            }
+            function evaluateFive(hand) {
+                const vals = hand.map(c => c.val).sort((a,b) => b-a);
+                const counts = {};
+                vals.forEach(v => counts[v] = (counts[v] || 0) + 1);
+                const groups = Object.entries(counts).map(([v,n]) => ({val:Number(v), count:n}))
+                    .sort((a,b) => b.count-a.count || b.val-a.val);
+                const flush = hand.every(c => c.suit === hand[0].suit);
+                const unique = [...new Set(vals)].sort((a,b) => b-a);
+                let straightHigh = 0;
+                if (unique.length === 5) {
+                    if (unique[0] - unique[4] === 4) straightHigh = unique[0];
+                    else if (unique.join(',') === '14,5,4,3,2') straightHigh = 5;
+                }
+                if (flush && straightHigh) return { category:8, kickers:[straightHigh], rankName:rankNames[8] };
+                if (groups[0].count === 4) return { category:7, kickers:[groups[0].val, ...groups.slice(1).map(g=>g.val)], rankName:rankNames[7] };
+                if (groups[0].count === 3 && groups[1].count === 2) return { category:6, kickers:[groups[0].val, groups[1].val], rankName:rankNames[6] };
+                if (flush) return { category:5, kickers:vals, rankName:rankNames[5] };
+                if (straightHigh) return { category:4, kickers:[straightHigh], rankName:rankNames[4] };
+                if (groups[0].count === 3) return { category:3, kickers:[groups[0].val, ...groups.slice(1).map(g=>g.val).sort((a,b)=>b-a)], rankName:rankNames[3] };
+                if (groups[0].count === 2 && groups[1].count === 2) {
+                    const pairVals = groups.filter(g=>g.count===2).map(g=>g.val).sort((a,b)=>b-a);
+                    return { category:2, kickers:[...pairVals, ...groups.filter(g=>g.count===1).map(g=>g.val)], rankName:rankNames[2] };
+                }
+                if (groups[0].count === 2) return { category:1, kickers:[groups[0].val, ...groups.filter(g=>g.count===1).map(g=>g.val).sort((a,b)=>b-a)], rankName:rankNames[1] };
+                return { category:0, kickers:vals, rankName:rankNames[0] };
+            }
 
-            const pairs = [];
-            let trips = 0, quads = 0;
-            Object.keys(counts).forEach(v => {
-                const count = counts[v];
-                const val = parseInt(v);
-                if (count === 4) quads = val;
-                else if (count === 3) trips = val;
-                else if (count === 2) pairs.push(val);
-            });
-            pairs.sort((a,b) => b - a);
-
-            // Flush Check
-            const sCounts = {};
-            let flushSuit = null;
-            parsed.forEach(c => {
-                sCounts[c.suit] = (sCounts[c.suit] || 0) + 1;
-                if (sCounts[c.suit] >= 5) flushSuit = c.suit;
-            });
-
-            if (quads) return { score: 800 + quads, rankName: '포카드 (Four of a Kind)' };
-            if (trips && pairs.length > 0) return { score: 700 + trips, rankName: '풀하우스 (Full House)' };
-            if (flushSuit) return { score: 600, rankName: '플러시 (Flush)' };
-            if (trips) return { score: 400 + trips, rankName: '삼표 (Three of a Kind)' };
-            if (pairs.length >= 2) return { score: 300 + pairs[0], rankName: '투페어 (Two Pair)' };
-            if (pairs.length === 1) return { score: 200 + pairs[0], rankName: '원페어 (One Pair)' };
-
-            return { score: 100 + parsed[0].val, rankName: `하이카드 (${cards[0]?.value || ''})` };
+            // 조합 5장씩 평가 (최대 21개 조합)
+            for (let a=0; a<parsed.length-4; a++)
+            for (let b=a+1; b<parsed.length-3; b++)
+            for (let c=b+1; c<parsed.length-2; c++)
+            for (let d=c+1; d<parsed.length-1; d++)
+            for (let e=d+1; e<parsed.length; e++) {
+                const result = evaluateFive([parsed[a], parsed[b], parsed[c], parsed[d], parsed[e]]);
+                result.score = encode(result.category, result.kickers);
+                if (!best || result.score > best.score) best = result;
+            }
+            return { score: best.score, rankName: best.rankName, category: best.category, kickers: best.kickers };
         }
+
     </script>
 
 
