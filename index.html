@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>럭셔리 카지노 블랙잭 - NPC 초기화 수정</title>
+    <title>로얄 카지노 - 통합 허브 (블랙잭 / 룰렛 / 텍사스 홀덤)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -27,27 +27,34 @@
             background: radial-gradient(circle at center, #115e3b 0%, #064e3b 50%, #022c22 100%);
             box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
             border: 14px solid #3d2314;
-            border-radius: 180px 180px 50px 50px;
+            border-radius: 140px 140px 40px 40px;
+        }
+
+        .poker-table {
+            background: radial-gradient(circle at center, #1e3a8a 0%, #172554 50%, #0f172a 100%);
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+            border: 14px solid #3d2314;
+            border-radius: 140px 140px 40px 40px;
         }
 
         @media (max-width: 1024px) {
-            .casino-table {
-                border-radius: 40px;
+            .casino-table, .poker-table {
+                border-radius: 30px;
                 border-width: 8px;
             }
         }
 
         /* Card Visuals Base */
         .playing-card {
-            width: 68px;
-            height: 98px;
+            width: 64px;
+            height: 92px;
             border-radius: 8px;
             background-color: #ffffff;
             box-shadow: -2px 5px 12px rgba(0, 0, 0, 0.35);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 6px;
+            padding: 5px;
             font-weight: 800;
             position: relative;
             flex-shrink: 0;
@@ -56,10 +63,10 @@
 
         @media (min-width: 640px) {
             .playing-card {
-                width: 84px;
-                height: 120px;
+                width: 78px;
+                height: 112px;
                 border-radius: 10px;
-                padding: 8px;
+                padding: 7px;
             }
         }
 
@@ -72,7 +79,7 @@
         .playing-card.red { color: #dc2626; }
         .playing-card.black { color: #111827; }
 
-        /* Comfort Eye - Smooth Card Animation Slide In */
+        /* Card Animation Slide In */
         @keyframes dealCard {
             0% {
                 opacity: 0;
@@ -122,14 +129,14 @@
         }
 
         .chip {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             box-shadow: 0 6px 0 rgba(0,0,0,0.4), inset 0 0 0 5px dashed rgba(255,255,255,0.6);
             transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -153,7 +160,6 @@
         .chip-500 { background: radial-gradient(circle, #8b5cf6, #5b21b6); color: white; border: 3px solid #c4b5fd; }
         .chip-1000 { background: radial-gradient(circle, #f59e0b, #78350f); color: white; border: 3px solid #fde047; }
 
-        /* All-In Button */
         .btn-allin {
             background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
             border: 2px solid #fca5a5;
@@ -161,9 +167,7 @@
         }
 
         /* Modal Backdrop */
-        .modal-backdrop {
-            backdrop-filter: blur(8px);
-        }
+        .modal-backdrop { backdrop-filter: blur(8px); }
 
         /* Bankruptcy Animation Effects */
         @keyframes doorSlam {
@@ -172,254 +176,351 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .door-slam-anim {
-            animation: doorSlam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+        .door-slam-anim { animation: doorSlam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
         @keyframes beggarFloat {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-6px); }
         }
 
-        .beggar-float {
-            animation: beggarFloat 3s ease-in-out infinite;
-        }
+        .beggar-float { animation: beggarFloat 3s ease-in-out infinite; }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4">
+<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 bg-slate-950">
 
-    <!-- Top Header -->
-    <header class="max-w-7xl w-full mx-auto flex flex-wrap justify-between items-center py-2.5 px-4 bg-slate-900/90 backdrop-blur rounded-2xl border border-slate-800 shadow-lg mb-2 gap-3">
-        <div class="flex items-center space-x-3">
+    <!-- Global Top Header -->
+    <header class="max-w-7xl w-full mx-auto flex flex-wrap justify-between items-center py-2.5 px-4 bg-slate-900/95 backdrop-blur rounded-2xl border border-slate-800 shadow-xl mb-2 gap-3 z-40">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('lobby')">
             <i class="fa-solid fa-crown text-amber-400 text-2xl"></i>
             <h1 class="text-xl sm:text-2xl font-black tracking-wider text-amber-400 serif">ROYAL CASINO</h1>
         </div>
 
-        <!-- NPC Player Count Adjuster (Min: 0, Max: 4) -->
-        <div id="player-count-control" class="flex items-center bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 space-x-3">
-            <span class="text-xs font-bold text-slate-400">NPC 인원:</span>
-            <div class="flex items-center space-x-2">
-                <button onclick="changeNpcCount(-1)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded-lg flex items-center justify-center transition border border-slate-700 active:scale-95">
-                    -
-                </button>
-                <span id="npc-count-display" class="font-black text-amber-300 text-sm min-w-[36px] text-center">0명</span>
-                <button onclick="changeNpcCount(1)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded-lg flex items-center justify-center transition border border-slate-700 active:scale-95">
-                    +
-                </button>
-            </div>
-        </div>
-
-        <div class="flex items-center space-x-3 sm:space-x-4">
-            <div class="flex items-center gap-1.5 flex-wrap">
-                <button onclick="openShopModal()" class="text-xs sm:text-sm text-amber-300 hover:text-amber-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30">
-                    <i class="fa-solid fa-store"></i><span>상점</span>
-                </button>
-                <button onclick="openInventoryModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-                    <i class="fa-solid fa-box-open"></i><span>소지품</span>
-                </button>
-                <button onclick="leaveCasino()" class="text-xs sm:text-sm text-rose-300 hover:text-rose-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-rose-500/30">
-                    <i class="fa-solid fa-door-open"></i><span>카지노 나가기</span>
-                </button>
-                <button onclick="openRulesModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-                    <i class="fa-solid fa-circle-question"></i><span>규칙</span>
-                </button>
-            </div>
-            <div class="bg-slate-950 px-4 py-1.5 rounded-xl border border-amber-500/40 flex items-center space-x-2">
+        <!-- Global Balance & Main Actions -->
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <button id="btn-return-lobby" onclick="switchView('lobby')" class="text-xs sm:text-sm text-slate-200 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 font-bold hidden">
+                <i class="fa-solid fa-house"></i><span>메인 로비</span>
+            </button>
+            <button onclick="openShopModal()" class="text-xs sm:text-sm text-amber-300 hover:text-amber-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30 font-bold">
+                <i class="fa-solid fa-store"></i><span>전당포</span>
+            </button>
+            <button onclick="openInventoryModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-box-open"></i><span>소지품</span>
+            </button>
+            <button onclick="leaveCasino()" class="text-xs sm:text-sm text-rose-300 hover:text-rose-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-rose-500/30 font-bold">
+                <i class="fa-solid fa-door-open"></i><span>카지노 떠나기</span>
+            </button>
+            
+            <div class="bg-slate-950 px-4 py-1.5 rounded-xl border border-amber-500/40 flex items-center space-x-2 shadow-inner">
                 <i class="fa-solid fa-coins text-amber-400 text-sm"></i>
-                <span class="text-xs text-slate-400">잔액:</span>
-                <span id="user-balance" class="font-extrabold text-amber-400 text-base sm:text-lg">$1,000</span>
+                <span class="text-xs text-slate-400 hidden sm:inline">잔액:</span>
+                <span id="global-balance" class="font-extrabold text-amber-400 text-base sm:text-lg">$1,000</span>
             </div>
         </div>
     </header>
 
-    <!-- Story Context -->
-    <section class="max-w-7xl w-full mx-auto mb-2 px-4 py-3 rounded-xl border border-slate-800 bg-slate-900/70 text-xs sm:text-sm text-slate-300 leading-relaxed">
+    <!-- Global Story Banner -->
+    <section id="story-banner" class="max-w-7xl w-full mx-auto mb-2 px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 text-xs sm:text-sm text-slate-300 leading-relaxed">
         <i class="fa-solid fa-scroll text-amber-400 mr-2"></i>
-        <span class="font-bold text-amber-300">당신의 이야기</span> — 도박으로 가진 것을 모두 잃고 옷과 스마트폰, 지갑, 자동차까지 전당포에 넘겼다. 지금 남은 돈은 단돈 <strong class="text-amber-300">$1,000</strong>. 블랙잭으로 돈을 모아 물건을 되찾고, 원하는 모습으로 카지노를 떠나라.
-        <span class="text-slate-500 ml-1">상점에서 물건을 되찾을 수 있다.</span>
+        <span class="font-bold text-amber-300">당신의 스토리</span> — 도박으로 모든 것을 잃고 남은 돈은 단돈 <strong class="text-amber-300">$1,000</strong>. 원하시는 도박을 선택해 승리하여 물건을 되찾으세요!
     </section>
 
-    <!-- Main Casino Floor -->
-    <main class="max-w-7xl w-full mx-auto flex-1 flex flex-col justify-between my-1">
-        <div class="casino-table flex-1 flex flex-col justify-between p-4 sm:p-6 relative min-h-[500px]">
-            
+    <!-- ==================== VIEW 1: MAIN LOBBY ==================== -->
+    <main id="view-lobby" class="max-w-7xl w-full mx-auto flex-1 flex flex-col justify-center items-center my-4">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl sm:text-4xl font-black text-white tracking-wide mb-2">카지노 메인 로비</h2>
+            <p class="text-slate-400 text-sm sm:text-base">원하시는 라운지를 선택하여 승부수를 던지세요.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full px-4">
+            <!-- Game Card 1: Blackjack -->
+            <div class="bg-slate-900/90 border border-slate-800 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('blackjack')">
+                <div>
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-950/80 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-3xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-spade"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-400 transition">블랙잭 (Blackjack)</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                        딜러 및 NPC들과 21점에 가장 가까운 카드를 만드는 전통 럭셔리 카지노 카드 게임.
+                    </p>
+                </div>
+                <button class="w-full bg-slate-800 group-hover:bg-amber-500 group-hover:text-slate-950 text-amber-300 font-bold py-3 rounded-xl border border-slate-700 group-hover:border-amber-400 transition">
+                    테이블 입장 <i class="fa-solid fa-right-to-bracket ml-1"></i>
+                </button>
+            </div>
+
+            <!-- Game Card 2: European Roulette -->
+            <div class="bg-slate-900/90 border border-slate-800 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('roulette')">
+                <div>
+                    <div class="w-16 h-16 rounded-2xl bg-rose-950/80 border border-rose-500/30 flex items-center justify-center text-rose-400 text-3xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-arrows-spin"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-400 transition">유러피안 룰렛 (Roulette)</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                        37개의 숫자가 적힌 휠에 공을 굴려 숫자, 색상, 구간에 칩을 베팅하고 배당금을 획득하세요.
+                    </p>
+                </div>
+                <button class="w-full bg-slate-800 group-hover:bg-amber-500 group-hover:text-slate-950 text-amber-300 font-bold py-3 rounded-xl border border-slate-700 group-hover:border-amber-400 transition">
+                    테이블 입장 <i class="fa-solid fa-right-to-bracket ml-1"></i>
+                </button>
+            </div>
+
+            <!-- Game Card 3: Texas Hold'em -->
+            <div class="bg-slate-900/90 border border-slate-800 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('holdem')">
+                <div>
+                    <div class="w-16 h-16 rounded-2xl bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 text-3xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-suit-heart"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-400 transition">텍사스 홀덤 (Hold'em)</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                        2장의 핸드 카드와 5장의 커뮤니티 카드로 최상의 족보를 완성하여 팟(Pot)을 차지하세요.
+                    </p>
+                </div>
+                <button class="w-full bg-slate-800 group-hover:bg-amber-500 group-hover:text-slate-950 text-amber-300 font-bold py-3 rounded-xl border border-slate-700 group-hover:border-amber-400 transition">
+                    테이블 입장 <i class="fa-solid fa-right-to-bracket ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- ==================== VIEW 2: BLACKJACK ==================== -->
+    <div id="view-blackjack" class="max-w-7xl w-full mx-auto flex-1 flex-col justify-between my-1 hidden">
+        <div class="casino-table flex-1 flex flex-col justify-between p-4 sm:p-6 relative min-h-[460px]">
+            <!-- Sub Header Controls inside Table -->
+            <div class="flex justify-between items-center w-full mb-2">
+                <div class="bg-black/60 px-3 py-1 rounded-xl border border-white/10 text-xs font-bold text-slate-300">
+                    <i class="fa-solid fa-spade text-amber-400 mr-1"></i> BLACKJACK
+                </div>
+                <div id="bj-npc-control" class="flex items-center bg-slate-950/80 px-3 py-1 rounded-xl border border-slate-800 space-x-2">
+                    <span class="text-xs font-bold text-slate-400">NPC:</span>
+                    <button onclick="changeBjNpcCount(-1)" class="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center">-</button>
+                    <span id="bj-npc-display" class="font-black text-amber-300 text-xs min-w-[28px] text-center">0명</span>
+                    <button onclick="changeBjNpcCount(1)" class="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center">+</button>
+                </div>
+            </div>
+
             <!-- Dealer Zone -->
-            <div class="flex flex-col items-center justify-start text-center mb-3">
+            <div class="flex flex-col items-center justify-start text-center mb-2">
                 <div class="flex items-center space-x-2 mb-1">
                     <span class="bg-amber-500/20 text-amber-300 text-xs px-2.5 py-0.5 rounded-full border border-amber-500/30 font-bold">DEALER</span>
-                    <span id="dealer-score" class="bg-black/70 text-white font-bold text-xs px-2 py-0.5 rounded-md min-w-[28px] hidden">-</span>
+                    <span id="bj-dealer-score" class="bg-black/70 text-white font-bold text-xs px-2 py-0.5 rounded-md min-w-[28px] hidden">-</span>
                 </div>
-                <div id="dealer-cards" class="flex justify-center -space-x-4 sm:-space-x-6 min-h-[100px] sm:min-h-[122px] items-center px-2">
-                    <!-- Dealer cards -->
+                <div id="bj-dealer-cards" class="flex justify-center -space-x-4 sm:-space-x-6 min-h-[96px] sm:min-h-[114px] items-center px-2"></div>
+            </div>
+
+            <!-- Status Message -->
+            <div class="text-center my-2">
+                <div id="bj-status" class="inline-block px-5 py-1.5 rounded-full bg-black/65 backdrop-blur border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold shadow-xl">
+                    베팅금을 선택하고 DEAL을 누르세요.
+                </div>
+            </div>
+
+            <!-- Player Seats -->
+            <div id="bj-players-container" class="flex justify-center items-end gap-2 sm:gap-4 mt-2 w-full px-2"></div>
+        </div>
+
+        <!-- Blackjack Footer Deck -->
+        <footer class="mt-2 bg-slate-900/95 backdrop-blur p-3 rounded-2xl border border-slate-800 shadow-2xl">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
+                    <div class="chip-wrapper"><div class="chip chip-10" onclick="addBet('bj', 10)">$10</div><div class="chip-tooltip">+$10</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-25" onclick="addBet('bj', 25)">$25</div><div class="chip-tooltip">+$25</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-50" onclick="addBet('bj', 50)">$50</div><div class="chip-tooltip">+$50</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-100" onclick="addBet('bj', 100)">$100</div><div class="chip-tooltip">+$100</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-500" onclick="addBet('bj', 500)">$500</div><div class="chip-tooltip">+$500</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-1000" onclick="addBet('bj', 1000)">$1K</div><div class="chip-tooltip">+$1,000</div></div>
+                    <button onclick="allInBet('bj')" class="btn-allin text-white font-black px-3.5 py-2 rounded-full text-xs flex items-center gap-1 transition transform active:scale-95"><i class="fa-solid fa-fire text-amber-300"></i>ALL IN</button>
+                    <button onclick="resetBet('bj')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">초기화</button>
+                </div>
+
+                <div class="flex items-center justify-between w-full lg:w-auto gap-3">
+                    <div class="bg-slate-950 px-4 py-2 rounded-xl border border-amber-500/30 text-center min-w-[110px]">
+                        <div class="text-[10px] text-slate-400 font-bold">베팅금액</div>
+                        <div id="bj-current-bet" class="text-base font-black text-amber-400">$0</div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-1 lg:flex-none">
+                        <button id="bj-btn-deal" onclick="startBjRound()" class="flex-1 lg:flex-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg transition active:scale-95 disabled:opacity-40">DEAL</button>
+                        <button id="bj-btn-hit" onclick="bjPlayerHit()" disabled class="flex-1 lg:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">HIT</button>
+                        <button id="bj-btn-stand" onclick="bjPlayerStand()" disabled class="flex-1 lg:flex-none bg-rose-600 hover:bg-rose-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">STAND</button>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- ==================== VIEW 3: EUROPEAN ROULETTE ==================== -->
+    <div id="view-roulette" class="max-w-7xl w-full mx-auto flex-1 flex-col justify-between my-1 hidden">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 flex flex-col lg:flex-row items-center justify-around gap-6 min-h-[460px] shadow-2xl relative overflow-hidden">
+            
+            <!-- Wheel Section -->
+            <div class="flex flex-col items-center relative">
+                <div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[16px] border-t-amber-400 mb-1 z-20 filter drop-shadow"></div>
+                <div class="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] rounded-full border-4 border-amber-600/60 shadow-2xl">
+                    <canvas id="roulette-wheel" width="320" height="320" class="w-full h-full rounded-full"></canvas>
+                </div>
+                <div id="roulette-result-display" class="mt-3 px-4 py-1.5 rounded-full bg-slate-950 border border-amber-500/40 font-black text-amber-300 text-sm">
+                    결과 대기 중
+                </div>
+            </div>
+
+            <!-- Betting Grid Section -->
+            <div class="flex flex-col items-center max-w-xl w-full">
+                <div class="text-xs font-bold text-slate-400 mb-2 flex justify-between w-full px-1">
+                    <span>베팅 보드 (클릭하여 칩 배치)</span>
+                    <span id="roulette-status" class="text-amber-300">원하는 번호나 구역에 베팅하세요</span>
+                </div>
+
+                <!-- Numbers Grid -->
+                <div class="grid grid-cols-13 gap-1 w-full bg-slate-950 p-2 rounded-2xl border border-slate-800 text-center text-xs font-bold select-none shadow-inner">
+                    <!-- Zero -->
+                    <div onclick="placeRouletteBet('0')" class="col-span-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded py-4 flex items-center justify-center cursor-pointer transition relative">
+                        0
+                        <span id="r-bet-0" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center shadow"></span>
+                    </div>
+
+                    <!-- 1-36 Numbers Container -->
+                    <div class="col-span-12 grid grid-cols-12 gap-1" id="roulette-numbers-grid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Outside Bets -->
+                <div class="grid grid-cols-6 gap-1.5 w-full mt-2 text-xs font-bold">
+                    <button onclick="placeRouletteBet('1-18')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">1 to 18 <span id="r-bet-1-18" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('EVEN')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">EVEN <span id="r-bet-EVEN" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('RED')" class="bg-red-800 hover:bg-red-700 text-white py-2 rounded-xl border border-red-600/50 relative">RED <span id="r-bet-RED" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('BLACK')" class="bg-slate-950 hover:bg-slate-900 text-white py-2 rounded-xl border border-slate-700 relative">BLACK <span id="r-bet-BLACK" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('ODD')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">ODD <span id="r-bet-ODD" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('19-36')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">19 to 36 <span id="r-bet-19-36" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1.5 w-full mt-1.5 text-xs font-bold">
+                    <button onclick="placeRouletteBet('1st12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">1st 12 (1-12) <span id="r-bet-1st12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('2nd12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">2nd 12 (13-24) <span id="r-bet-2nd12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('3rd12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">3rd 12 (25-36) <span id="r-bet-3rd12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roulette Footer Deck -->
+        <footer class="mt-2 bg-slate-900/95 backdrop-blur p-3 rounded-2xl border border-slate-800 shadow-2xl">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
+                    <span class="text-xs font-bold text-slate-400 mr-1">선택 칩:</span>
+                    <div class="chip-wrapper"><div class="chip chip-10" onclick="selectRouletteChip(10)">$10</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-25" onclick="selectRouletteChip(25)">$25</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-50" onclick="selectRouletteChip(50)">$50</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-100" onclick="selectRouletteChip(100)">$100</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-500" onclick="selectRouletteChip(500)">$500</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-1000" onclick="selectRouletteChip(1000)">$1K</div></div>
+                    <button onclick="clearRouletteBets()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">초기화</button>
+                </div>
+
+                <div class="flex items-center justify-between w-full lg:w-auto gap-3">
+                    <div class="bg-slate-950 px-4 py-2 rounded-xl border border-amber-500/30 text-center min-w-[110px]">
+                        <div class="text-[10px] text-slate-400 font-bold">총 베팅금</div>
+                        <div id="r-total-bet" class="text-base font-black text-amber-400">$0</div>
+                    </div>
+                    <button id="btn-spin-roulette" onclick="spinRoulette()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-8 py-3 rounded-xl text-sm shadow-lg transition active:scale-95">
+                        <i class="fa-solid fa-arrows-spin mr-1.5"></i> SPIN WHEEL
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- ==================== VIEW 4: TEXAS HOLD'EM ==================== -->
+    <div id="view-holdem" class="max-w-7xl w-full mx-auto flex-1 flex-col justify-between my-1 hidden">
+        <div class="poker-table flex-1 flex flex-col justify-between p-4 sm:p-6 relative min-h-[460px]">
+            <!-- Header inside table -->
+            <div class="flex justify-between items-center w-full mb-1">
+                <div class="bg-black/60 px-3 py-1 rounded-xl border border-white/10 text-xs font-bold text-slate-300">
+                    <i class="fa-solid fa-suit-heart text-amber-400 mr-1"></i> TEXAS HOLD'EM
+                </div>
+                <div id="th-npc-control" class="flex items-center bg-slate-950/80 px-3 py-1 rounded-xl border border-slate-800 space-x-2">
+                    <span class="text-xs font-bold text-slate-400">NPC:</span>
+                    <button onclick="changeThNpcCount(-1)" class="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center">-</button>
+                    <span id="th-npc-display" class="font-black text-amber-300 text-xs min-w-[28px] text-center">3명</span>
+                    <button onclick="changeThNpcCount(1)" class="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center">+</button>
+                </div>
+            </div>
+
+            <!-- Community Cards & Pot -->
+            <div class="flex flex-col items-center justify-center my-2">
+                <div class="bg-black/70 px-4 py-1 rounded-full border border-amber-500/30 text-xs font-black text-amber-300 mb-2 shadow">
+                    POT: <span id="th-pot-amount" class="text-amber-400">$0</span>
+                </div>
+                <!-- 5 Community Cards Container -->
+                <div id="th-community-cards" class="flex justify-center gap-1.5 sm:gap-2 min-h-[96px] sm:min-h-[114px] items-center">
+                    <!-- Community cards rendered here -->
                 </div>
             </div>
 
             <!-- Table Center Status Message -->
-            <div class="text-center my-2">
-                <div id="game-status" class="inline-block px-5 py-2 rounded-full bg-black/65 backdrop-blur border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold shadow-xl">
-                    NPC 인원(+/-)을 선택하고 베팅 후 DEAL을 누르세요.
+            <div class="text-center my-1">
+                <div id="th-status" class="inline-block px-5 py-1 rounded-full bg-black/65 backdrop-blur border border-amber-500/30 text-amber-300 text-xs font-bold shadow-xl">
+                    베팅금을 정하고 DEAL을 눌러 텍사스 홀덤을 시작하세요.
                 </div>
             </div>
 
-            <!-- Dynamic Players Seats Row -->
-            <div id="players-container" class="flex justify-center items-end gap-2 sm:gap-4 mt-2 w-full px-2">
-                <!-- Dynamic Player Seats (NPCs + You) Render Here -->
-            </div>
-
+            <!-- Player Seats -->
+            <div id="th-players-container" class="flex justify-center items-end gap-2 sm:gap-4 mt-1 w-full px-2"></div>
         </div>
-    </main>
 
-    <!-- Bottom Controls & Chips Deck -->
-    <footer class="max-w-7xl w-full mx-auto mt-2 bg-slate-900/90 backdrop-blur p-3 sm:p-4 rounded-2xl border border-slate-800 shadow-2xl">
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
-            
-            <!-- Chips Panel & All-In -->
-            <div id="chips-panel" class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full lg:w-auto">
-                <div class="chip-wrapper">
-                    <div class="chip chip-10" onclick="addBet(10)">$10</div>
-                    <div class="chip-tooltip">+$10 추가</div>
-                </div>
-                <div class="chip-wrapper">
-                    <div class="chip chip-25" onclick="addBet(25)">$25</div>
-                    <div class="chip-tooltip">+$25 추가</div>
-                </div>
-                <div class="chip-wrapper">
-                    <div class="chip chip-50" onclick="addBet(50)">$50</div>
-                    <div class="chip-tooltip">+$50 추가</div>
-                </div>
-                <div class="chip-wrapper">
-                    <div class="chip chip-100" onclick="addBet(100)">$100</div>
-                    <div class="chip-tooltip">+$100 추가</div>
-                </div>
-                <div class="chip-wrapper">
-                    <div class="chip chip-500" onclick="addBet(500)">$500</div>
-                    <div class="chip-tooltip">+$500 고액 베팅</div>
-                </div>
-                <div class="chip-wrapper">
-                    <div class="chip chip-1000" onclick="addBet(1000)">$1K</div>
-                    <div class="chip-tooltip">+$1,000 최고액 베팅</div>
+        <!-- Texas Holdem Action Deck -->
+        <footer class="mt-2 bg-slate-900/95 backdrop-blur p-3 rounded-2xl border border-slate-800 shadow-2xl">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
+                    <span class="text-xs font-bold text-slate-400 mr-1">시작 베팅액:</span>
+                    <div class="chip-wrapper"><div class="chip chip-10" onclick="addBet('th', 10)">$10</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-25" onclick="addBet('th', 25)">$25</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-50" onclick="addBet('th', 50)">$50</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-100" onclick="addBet('th', 100)">$100</div></div>
+                    <button onclick="resetBet('th')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">초기화</button>
                 </div>
 
-                <!-- ALL IN -->
-                <button onclick="allInBet()" class="btn-allin text-white font-black px-3.5 py-2 rounded-full text-xs sm:text-sm flex items-center gap-1.5 transform active:scale-95 transition">
-                    <i class="fa-solid fa-fire text-amber-300"></i>
-                    <span>ALL IN</span>
-                </button>
-
-                <button onclick="resetBet()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">
-                    초기화
-                </button>
-            </div>
-
-            <!-- Bet Status & Action Buttons -->
-            <div class="flex items-center justify-between w-full lg:w-auto gap-3">
-                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-amber-500/30 text-center min-w-[120px]">
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">내 베팅액</div>
-                    <div id="current-bet" class="text-lg font-black text-amber-400">$0</div>
-                </div>
-
-                <div class="flex items-center gap-2 flex-1 lg:flex-none">
-                    <button id="btn-deal" onclick="startGameRound()" class="flex-1 lg:flex-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none">
-                        <i class="fa-solid fa-play mr-1"></i> DEAL
-                    </button>
-                    
-                    <button id="btn-hit" onclick="playerHit()" disabled class="flex-1 lg:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-3 rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none">
-                        HIT
-                    </button>
-
-                    <button id="btn-stand" onclick="playerStand()" disabled class="flex-1 lg:flex-none bg-rose-600 hover:bg-rose-500 text-white font-bold px-5 py-3 rounded-xl text-sm sm:text-base shadow-lg transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none">
-                        STAND
-                    </button>
+                <div class="flex items-center justify-between w-full lg:w-auto gap-2">
+                    <div class="bg-slate-950 px-3 py-2 rounded-xl border border-amber-500/30 text-center min-w-[95px]">
+                        <div class="text-[10px] text-slate-400 font-bold">내 베팅액</div>
+                        <div id="th-current-bet" class="text-sm font-black text-amber-400">$0</div>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-1 lg:flex-none">
+                        <button id="th-btn-deal" onclick="startThRound()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow transition">DEAL</button>
+                        <button id="th-btn-fold" onclick="thPlayerAction('fold')" disabled class="bg-rose-700 hover:bg-rose-600 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">FOLD</button>
+                        <button id="th-btn-check" onclick="thPlayerAction('check')" disabled class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CHECK</button>
+                        <button id="th-btn-call" onclick="thPlayerAction('call')" disabled class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CALL</button>
+                        <button id="th-btn-raise" onclick="thPlayerAction('raise')" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">RAISE</button>
+                    </div>
                 </div>
             </div>
+        </footer>
+    </div>
 
-        </div>
-    </footer>
 
-    <!-- MODAL: Story Introduction (shown before rules) -->
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- MODAL: Story Introduction -->
     <div id="intro-modal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 modal-backdrop bg-black/90">
         <div class="bg-slate-950 border-2 border-amber-500/50 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl text-center">
             <div class="text-amber-400 text-5xl mb-4"><i class="fa-solid fa-cloud-moon"></i></div>
             <p class="text-xs tracking-[0.3em] text-amber-300 font-bold mb-2">ROYAL CASINO : THE LAST CHANCE</p>
             <h2 class="text-2xl sm:text-3xl font-black text-white mb-4">빈털터리의 마지막 승부</h2>
             <div class="text-sm sm:text-base text-slate-300 leading-relaxed text-left bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3">
-                <p>당신은 한때 평범한 삶을 살았지만, 도박으로 모든 돈을 잃고 말았다. 입고 있던 옷과 지갑, 스마트폰, 자동차마저 전당포에 맡겼다.</p>
+                <p>당신은 한때 평범한 삶을 살았지만, 도박으로 모든 돈을 잃고 말았다. 입고 있던 옷과 지갑, 스마트폰, 자동차마저 전당포에 넘겼다.</p>
                 <p>지금 당신에게 남은 것은 카지노 입장료처럼 쥐여진 <strong class="text-amber-300">단돈 $1,000</strong>뿐이다. 전당포 주인은 물건을 되찾으려면 더 비싼 값을 치르라고 한다.</p>
-                <p>블랙잭으로 돈을 불려 물건을 하나씩 되찾아라. 하지만 욕심을 부리다 다시 빈털터리가 된다면, 되찾은 물건마저 헐값에 강제로 팔릴 것이다.</p>
-                <p class="text-amber-200 font-bold">돈을 챙겨 떠날 것인가, 모든 것을 걸고 카지노의 왕이 될 것인가?</p>
+                <p>카지노의 다양한 게임(블랙잭, 룰렛, 텍사스 홀덤)에서 돈을 불려 물건을 하나씩 되찾아라. 하지만 욕심을 부리다 다시 빈털터리가 된다면, 되찾은 물건마저 헐값에 강제로 팔릴 것이다.</p>
             </div>
-            <button onclick="continueToRules()" class="w-full mt-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">이야기 확인 · 규칙 보기 <i class="fa-solid fa-arrow-right ml-1"></i></button>
-        </div>
-    </div>
-
-    <!-- MODAL 1: Rules Modal -->
-    <div id="rules-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/70">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-slate-200">
-            <button onclick="closeRulesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
-                <i class="fa-solid fa-xmark"></i>
+            <button onclick="closeIntroModal()" class="w-full mt-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">
+                카지노 입장하기 <i class="fa-solid fa-arrow-right ml-1"></i>
             </button>
-            
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="p-3 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
-                    <i class="fa-solid fa-spade text-2xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-white serif">블랙잭 게임 규칙</h2>
-                    <p class="text-xs text-slate-400">NPC 플레이어 수를 직접 설정할 수 있습니다.</p>
-                </div>
-            </div>
-
-            <div class="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
-                <div class="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
-                    <strong class="text-amber-400">1. 게임 목표:</strong><br>
-                    카드의 합이 <span class="text-amber-300 font-bold">21</span>에 가장 가깝게 만드는 플레이어가 승리합니다. 21을 초과하면 BUST로 즉시 패배합니다.
-                </div>
-                <div class="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
-                    <strong class="text-amber-400">2. 카드 점수:</strong><br>
-                    • 2 ~ 10: 숫자 그대로<br>
-                    • J, Q, K: 모두 <span class="text-white font-bold">10점</span><br>
-                    • A (Ace): 유리함에 따라 <span class="text-white font-bold">1점 또는 11점</span>으로 자동 계산
-                </div>
-                <div class="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
-                    <strong class="text-amber-400">3. 파산 주의:</strong><br>
-                    잔액이 최소 베팅액보다 부족해지면 거지가 되어 카지노 밖으로 쫓겨나게 됩니다!
-                </div>
-            </div>
-
-            <button onclick="closeRulesModal()" class="w-full mt-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">
-                게임 시작하기
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL 2: Bankrupt Ending -->
-    <div id="bankrupt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/90 hidden">
-        <div class="bg-slate-950 border-2 border-red-600 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center relative overflow-hidden door-slam-anim">
-            <div class="absolute -right-12 -top-12 w-40 h-40 bg-red-600/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="w-32 h-32 mx-auto mb-2 beggar-float relative">
-                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-[0_10px_15px_rgba(239,68,68,0.4)]">
-                    <ellipse cx="100" cy="180" rx="70" ry="10" fill="#0f172a" />
-                    <path d="M 60 130 L 140 130 L 150 180 L 50 180 Z" fill="#334155" />
-                    <circle cx="100" cy="95" r="32" fill="#cbd5e1" />
-                    <path d="M 85 88 L 93 94 M 93 88 L 85 94 M 107 88 L 115 94 M 115 88 L 107 94" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/>
-                    <path d="M 88 112 Q 100 102 112 112" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                    <path d="M 62 88 C 65 55 135 55 138 88 Z" fill="#1e293b" />
-                    <rect x="55" y="84" width="90" height="7" rx="3.5" fill="#0f172a" />
-                </svg>
-            </div>
-            <h2 class="text-2xl font-black text-red-500 tracking-wide mb-2">빈털터리의 최후</h2>
-            <p class="text-sm text-slate-400 mb-4">마지막 칩까지 잃었습니다.</p>
-            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl mb-5 text-left text-sm text-slate-300 leading-relaxed">
-                카지노의 경비원들이 당신을 카지노 밖으로 끌어냈습니다. 주머니에는 한 푼도 없고, 되찾았던 물건마저 전당포에 넘어갔습니다. 이제 당신에게 남은 것은 후회뿐입니다.
-            </div>
-            <div class="space-y-3">
-                <button onclick="restartGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-3.5 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-rotate-right"></i><span>처음부터 다시 시작</span>
-                </button>
-                <button onclick="finishBankruptGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl border border-slate-700 transition">
-                    카지노를 떠난다
-                </button>
-            </div>
         </div>
     </div>
 
@@ -427,13 +528,18 @@
     <div id="shop-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/80">
         <div class="bg-slate-950 border border-amber-500/40 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-start gap-3 mb-2">
-                <div><h2 class="text-xl sm:text-2xl font-black text-amber-400 serif"><i class="fa-solid fa-store mr-2"></i>전당포 상점</h2>
-                <p class="text-xs sm:text-sm text-slate-400 mt-1">맡겨둔 물건을 되찾아라. 되찾은 물건은 파산 직전에 강제로 팔릴 수 있다.</p></div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-black text-amber-400 serif"><i class="fa-solid fa-store mr-2"></i>전당포 상점</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">맡겨둔 물건을 되찾아라. 되찾은 물건은 파산 직전에 강제로 팔릴 수 있다.</p>
+                </div>
                 <button onclick="closeShopModal()" class="text-slate-400 hover:text-white text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="shop-story" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-300 mb-4">전당포 주인이 물건 목록을 내민다. “돈만 가져오면 돌려주지.”</div>
             <div id="shop-items" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-            <div class="flex justify-between items-center mt-5 gap-3"><span id="shop-message" class="text-xs text-slate-400"></span><button onclick="closeShopModal()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-2.5 rounded-xl border border-slate-700">카지노로 돌아가기</button></div>
+            <div class="flex justify-between items-center mt-5 gap-3">
+                <span id="shop-message" class="text-xs text-slate-400"></span>
+                <button onclick="closeShopModal()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-2.5 rounded-xl border border-slate-700">카지노로 돌아가기</button>
+            </div>
         </div>
     </div>
 
@@ -442,111 +548,98 @@
         <div class="bg-slate-950 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl">
             <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-black text-amber-400"><i class="fa-solid fa-box-open mr-2"></i>소지품</h2><button onclick="closeInventoryModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button></div>
             <div id="inventory-items" class="space-y-2"></div>
-            <p class="text-xs text-slate-500 mt-4">옷을 되찾아야 카지노를 정상적으로 떠날 수 있다. 잔액이 $10 미만이 되면 보유 물건이 매입가보다 낮은 가격에 강제 처분된다.</p>
+            <p class="text-xs text-slate-500 mt-4">옷을 되찾아야 카지노를 정상적으로 떠날 수 있습니다.</p>
             <button onclick="closeInventoryModal()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl">닫기</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Bankrupt Ending -->
+    <div id="bankrupt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/90 hidden">
+        <div class="bg-slate-950 border-2 border-red-600 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center relative overflow-hidden door-slam-anim">
+            <div class="w-32 h-32 mx-auto mb-2 beggar-float relative">
+                <svg viewBox="0 0 200 200" fill="none" class="w-full h-full drop-shadow-[0_10px_15px_rgba(239,68,68,0.4)]">
+                    <ellipse cx="100" cy="180" rx="70" ry="10" fill="#0f172a" />
+                    <path d="M 60 130 L 140 130 L 150 180 L 50 180 Z" fill="#334155" />
+                    <circle cx="100" cy="95" r="32" fill="#cbd5e1" />
+                    <path d="M 85 88 L 93 94 M 93 88 L 85 94 M 107 88 L 115 94 M 115 88 L 107 94" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M 88 112 Q 100 102 112 112" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-black text-red-500 mb-2">빈털터리의 최후</h2>
+            <p class="text-sm text-slate-400 mb-4">마지막 칩까지 모두 잃었습니다.</p>
+            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl mb-5 text-left text-sm text-slate-300 leading-relaxed">
+                경비원들이 당신을 카지노 밖으로 끌어냈습니다. 되찾았던 물건마저 헐값에 매각되었습니다.
+            </div>
+            <div class="space-y-3">
+                <button onclick="restartGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 text-slate-950 font-black py-3.5 rounded-xl shadow-lg transition">처음부터 다시 시작</button>
+            </div>
         </div>
     </div>
 
     <!-- MODAL: Story Ending -->
     <div id="ending-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 modal-backdrop bg-black/90">
         <div class="bg-slate-950 border-2 border-amber-500/60 rounded-3xl max-w-lg w-full p-6 shadow-2xl text-center">
-            <div id="ending-art" class="w-full h-44 sm:h-52 mb-4 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center"></div>
-            <div id="ending-icon" class="text-3xl text-amber-400 mb-2"><i class="fa-solid fa-person-walking"></i></div>
-            <h2 id="ending-title" class="text-2xl font-black text-amber-400 mb-3">카지노를 떠나다</h2>
-            <p id="ending-text" class="text-sm sm:text-base text-slate-300 leading-relaxed"></p>
+            <div id="ending-art" class="w-full h-44 mb-4 rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center"></div>
+            <div id="ending-icon" class="text-3xl text-amber-400 mb-2"></div>
+            <h2 id="ending-title" class="text-2xl font-black text-amber-400 mb-3"></h2>
+            <p id="ending-text" class="text-sm text-slate-300 leading-relaxed"></p>
             <div id="ending-stats" class="mt-4 text-xs text-slate-500"></div>
-            <button onclick="restartGame()" class="w-full mt-6 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition">처음으로 돌아가기 <i class="fa-solid fa-rotate-right ml-1"></i></button>
+            <button onclick="restartGame()" class="w-full mt-6 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition">처음으로 돌아가기</button>
         </div>
     </div>
 
-    <!-- Audio Effects -->
+
+    <!-- ==================== AUDIO SYNTHESIZER ==================== -->
     <script>
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
         function playSound(type) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-
             const now = audioCtx.currentTime;
 
             if (type === 'chip') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                osc.start(now);
-                osc.stop(now + 0.08);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+                gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now); osc.stop(now + 0.08);
             } else if (type === 'card') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(280, now);
-                osc.frequency.linearRampToValueAtTime(140, now + 0.06);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
-                osc.start(now);
-                osc.stop(now + 0.06);
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(280, now); osc.frequency.linearRampToValueAtTime(140, now + 0.06);
+                gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+                osc.start(now); osc.stop(now + 0.06);
             } else if (type === 'win') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.setValueAtTime(659.25, now + 0.1);
-                osc.frequency.setValueAtTime(783.99, now + 0.2);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                osc.start(now);
-                osc.stop(now + 0.4);
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
             } else if (type === 'lose') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.linearRampToValueAtTime(100, now + 0.3);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'spin') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(120, now + 0.04);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.04);
+                osc.start(now); osc.stop(now + 0.04);
             } else if (type === 'kickout') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
-                gain.gain.setValueAtTime(0.4, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+                gain.gain.setValueAtTime(0.4, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now); osc.stop(now + 0.35);
             } else if (type === 'allin') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
-                osc.start(now);
-                osc.stop(now + 0.22);
+                osc.type = 'square'; osc.frequency.setValueAtTime(220, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
+                gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+                osc.start(now); osc.stop(now + 0.22);
             }
         }
     </script>
 
-    <!-- Main Game Logic -->
+
+    <!-- ==================== CORE GLOBAL LOGIC & LOBBY SYSTEM ==================== -->
     <script>
-        const npcPool = [
-            { name: '김철수', color: 'text-blue-400', risk: 16 },
-            { name: '이지은', color: 'text-purple-400', risk: 17 },
-            { name: '박민수', color: 'text-emerald-400', risk: 15 },
-            { name: '제시카', color: 'text-pink-400', risk: 17 }
-        ];
-
-        let activeNpcCount = 0; // Default 0 (1:1 with dealer)
+        // Global Game State
         let balance = 1000;
-        let currentBet = 0;
-        let deck = [];
-        let inRound = false;
+        let lifetimeProfit = 0;
+        let currentView = 'lobby';
 
-        let dealerHand = [];
-        let playerHand = [];
-        let npcHands = [];
-
-        // Story inventory: items begin pawned; prices include a steep buyback fee.
         const storyItems = [
             { id: 'clothes', name: '멀쩡한 옷 한 벌', icon: 'fa-shirt', price: 2000, resale: 700, desc: '카지노를 떠나기 위한 최소한의 품위.' },
             { id: 'wallet', name: '가죽 지갑', icon: 'fa-wallet', price: 8000, resale: 3000, desc: '현금과 신분증을 넣을 수 있다.' },
@@ -554,40 +647,49 @@
             { id: 'car', name: '자동차 열쇠와 차량', icon: 'fa-car', price: 50000, resale: 20000, desc: '직접 운전해서 집으로 돌아간다.' }
         ];
         const ownedItems = { clothes: false, wallet: false, phone: false, car: false };
-        let lifetimeProfit = 0;
 
         const suits = ['♠', '♥', '♦', '♣'];
         const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
-        const balanceEl = document.getElementById('user-balance');
-        const betEl = document.getElementById('current-bet');
-        const statusEl = document.getElementById('game-status');
-        const playersContainerEl = document.getElementById('players-container');
-        const npcCountDisplayEl = document.getElementById('npc-count-display');
-        const dealerCardsEl = document.getElementById('dealer-cards');
-        const dealerScoreEl = document.getElementById('dealer-score');
-
-        const btnDeal = document.getElementById('btn-deal');
-        const btnHit = document.getElementById('btn-hit');
-        const btnStand = document.getElementById('btn-stand');
-
-        function continueToRules() {
-            document.getElementById('intro-modal').classList.add('hidden');
-            openRulesModal();
+        function updateGlobalBalanceUI() {
+            document.getElementById('global-balance').innerText = `$${balance.toLocaleString()}`;
+            if (!document.getElementById('shop-modal').classList.contains('hidden')) renderShop();
         }
-        function openRulesModal() { document.getElementById('rules-modal').classList.remove('hidden'); }
-        function closeRulesModal() { document.getElementById('rules-modal').classList.add('hidden'); }
-        function openShopModal() {
-            renderShop();
-            document.getElementById('shop-modal').classList.remove('hidden');
+
+        function switchView(viewName) {
+            // Check in-round block
+            if (bjInRound || rInSpin || thInRound) {
+                alert("현재 라운드가 진행 중입니다! 끝난 후 이동 가능합니다.");
+                return;
+            }
+
+            currentView = viewName;
+            ['lobby', 'blackjack', 'roulette', 'holdem'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) {
+                    if (v === viewName) {
+                        el.classList.remove('hidden');
+                        el.classList.add('flex');
+                    } else {
+                        el.classList.add('hidden');
+                        el.classList.remove('flex');
+                    }
+                }
+            });
+
+            const returnBtn = document.getElementById('btn-return-lobby');
+            if (viewName === 'lobby') returnBtn.classList.add('hidden');
+            else returnBtn.classList.remove('hidden');
+
+            if (viewName === 'roulette') drawRouletteWheel();
         }
+
+        function closeIntroModal() { document.getElementById('intro-modal').classList.add('hidden'); }
+        function openShopModal() { renderShop(); document.getElementById('shop-modal').classList.remove('hidden'); }
         function closeShopModal() { document.getElementById('shop-modal').classList.add('hidden'); }
-        function openInventoryModal() {
-            renderInventory();
-            document.getElementById('inventory-modal').classList.remove('hidden');
-        }
+        function openInventoryModal() { renderInventory(); document.getElementById('inventory-modal').classList.remove('hidden'); }
         function closeInventoryModal() { document.getElementById('inventory-modal').classList.add('hidden'); }
-        function closeEndingModal() { document.getElementById('ending-modal').classList.add('hidden'); }
+
         function renderShop() {
             const container = document.getElementById('shop-items');
             container.innerHTML = storyItems.map(item => {
@@ -601,398 +703,26 @@
             }).join('');
             document.getElementById('shop-message').innerText = `보유 자금: $${balance.toLocaleString()}`;
         }
+
         function buyStoryItem(id) {
             const item = storyItems.find(entry => entry.id === id);
             if (!item || ownedItems[id]) return;
-            if (balance < item.price) {
-                document.getElementById('shop-message').innerText = '돈이 부족하다. 블랙잭으로 더 모아야 한다.';
-                return;
-            }
+            if (balance < item.price) return;
             balance -= item.price;
             ownedItems[id] = true;
-            updateUI();
+            updateGlobalBalanceUI();
             playSound('chip');
             document.getElementById('shop-story').innerText = `전당포 주인이 ${item.name}을(를) 돌려줬다. 남은 돈은 $${balance.toLocaleString()}이다.`;
-            document.getElementById('shop-message').innerText = `${item.name}을(를) 되찾았다.`;
             renderShop();
         }
+
         function renderInventory() {
             const container = document.getElementById('inventory-items');
             container.innerHTML = storyItems.map(item => `<div class="flex items-center gap-3 p-3 rounded-xl border ${ownedItems[item.id] ? 'border-emerald-700/50 bg-emerald-950/30' : 'border-slate-800 bg-slate-900/70'}"><i class="fa-solid ${item.icon} w-6 text-center ${ownedItems[item.id] ? 'text-emerald-400' : 'text-slate-600'}"></i><span class="flex-1 text-sm ${ownedItems[item.id] ? 'text-white' : 'text-slate-500'}">${item.name}</span><span class="text-xs font-bold ${ownedItems[item.id] ? 'text-emerald-400' : 'text-slate-500'}">${ownedItems[item.id] ? '보유 중' : '전당포에 맡김'}</span></div>`).join('');
         }
-        function endingIllustration(kind) {
-            const scenes = {
-                king: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="goldbg" x2="0" y2="1"><stop stop-color="#78350f"/><stop offset="1" stop-color="#111827"/></linearGradient></defs><rect width="640" height="260" fill="url(#goldbg)"/><circle cx="320" cy="100" r="82" fill="#f59e0b" opacity=".13"/><path d="M0 210 L640 210" stroke="#fbbf24" stroke-width="2" opacity=".6"/><path d="M255 70 L275 105 L320 55 L365 105 L385 70 L375 130 L265 130 Z" fill="#fbbf24" stroke="#fff1a8" stroke-width="4"/><circle cx="275" cy="70" r="7" fill="#fff1a8"/><circle cx="320" cy="55" r="7" fill="#fff1a8"/><circle cx="385" cy="70" r="7" fill="#fff1a8"/><path d="M280 150 Q320 125 360 150 L390 230 L250 230 Z" fill="#1e293b" stroke="#fbbf24" stroke-width="3"/><path d="M310 145 L320 175 L330 145" fill="#f8fafc"/><text x="320" y="247" fill="#fde68a" text-anchor="middle" font-size="17" font-weight="bold">KING OF THE CASINO</text></svg>`,
-                car: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="night" y2="1"><stop stop-color="#172554"/><stop offset="1" stop-color="#020617"/></linearGradient></defs><rect width="640" height="260" fill="url(#night)"/><circle cx="510" cy="45" r="25" fill="#fde68a" opacity=".8"/><path d="M0 170 L70 110 L120 165 L190 95 L260 165 L330 120 L400 170 L470 115 L550 170 L610 125 L640 150 V260 H0Z" fill="#1e293b"/><path d="M0 220 H640" stroke="#f8fafc" stroke-width="3" stroke-dasharray="28 22"/><path d="M160 170 L210 125 H360 L410 170 Z" fill="#38bdf8" stroke="#bae6fd" stroke-width="3"/><rect x="145" y="168" width="285" height="42" rx="13" fill="#dc2626" stroke="#fecaca" stroke-width="3"/><circle cx="205" cy="210" r="25" fill="#020617" stroke="#cbd5e1" stroke-width="7"/><circle cx="370" cy="210" r="25" fill="#020617" stroke="#cbd5e1" stroke-width="7"/><text x="320" y="42" fill="#e2e8f0" text-anchor="middle" font-size="18" font-weight="bold">HOMEWARD BOUND</text></svg>`,
-                taxi: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="260" fill="#0f172a"/><path d="M0 0 H640 V100 L0 160Z" fill="#312e81" opacity=".65"/><g fill="#fbbf24"><rect x="55" y="40" width="12" height="75"/><rect x="105" y="20" width="12" height="85"/><rect x="500" y="30" width="12" height="90"/><rect x="550" y="55" width="12" height="65"/></g><path d="M0 220 H640" stroke="#64748b" stroke-width="4"/><path d="M175 155 L220 115 H370 L415 155Z" fill="#fef3c7" stroke="#fbbf24" stroke-width="3"/><rect x="150" y="152" width="300" height="58" rx="12" fill="#facc15" stroke="#fef08a" stroke-width="3"/><rect x="265" y="130" width="65" height="18" rx="4" fill="#f8fafc"/><text x="298" y="143" fill="#111827" text-anchor="middle" font-size="11" font-weight="bold">TAXI</text><circle cx="210" cy="210" r="22" fill="#020617" stroke="#cbd5e1" stroke-width="6"/><circle cx="390" cy="210" r="22" fill="#020617" stroke="#cbd5e1" stroke-width="6"/><text x="320" y="40" fill="#f8fafc" text-anchor="middle" font-size="18" font-weight="bold">A RIDE HOME</text></svg>`,
-                walk: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="walkbg" y2="1"><stop stop-color="#1e1b4b"/><stop offset="1" stop-color="#020617"/></linearGradient></defs><rect width="640" height="260" fill="url(#walkbg)"/><circle cx="500" cy="45" r="22" fill="#e2e8f0"/><path d="M0 190 L80 145 L145 185 L230 130 L310 190 L405 145 L480 185 L560 135 L640 175 V260 H0Z" fill="#1e293b"/><path d="M310 260 L280 185 H360 L390 260Z" fill="#334155"/><circle cx="320" cy="112" r="22" fill="#f1c7a5"/><path d="M297 108 Q295 78 323 80 Q348 84 343 108Z" fill="#111827"/><path d="M294 140 L346 140 L360 194 L280 194Z" fill="#64748b"/><path d="M305 190 L300 238 M338 190 L350 238" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round"/><text x="320" y="30" fill="#e2e8f0" text-anchor="middle" font-size="18" font-weight="bold">THE LONG WALK HOME</text></svg>`,
-                blocked: `<svg viewBox="0 0 640 260" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"><rect width="640" height="260" fill="#1f2937"/><rect x="70" y="35" width="500" height="190" rx="12" fill="#111827" stroke="#b91c1c" stroke-width="4"/><path d="M100 80 H540 M100 125 H540 M100 170 H540" stroke="#7f1d1d" stroke-width="12"/><circle cx="320" cy="122" r="48" fill="#475569"/><path d="M295 100 L345 145 M345 100 L295 145" stroke="#fecaca" stroke-width="9" stroke-linecap="round"/><text x="320" y="242" fill="#fca5a5" text-anchor="middle" font-size="18" font-weight="bold">NOT READY TO LEAVE</text></svg>`
-            };
-            return scenes[kind] || scenes.blocked;
-        }
-        function leaveCasino() {
-            if (inRound || currentBet > 0) {
-                statusEl.innerText = '라운드를 끝내고 베팅금을 초기화한 뒤 떠날 수 있습니다.';
-                return;
-            }
-            let title, icon, story, scene;
-            if (balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car) {
-                title = '카지노의 왕'; icon = 'fa-crown'; scene = 'king'; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. 카지노의 누구도 당신을 무시하지 못한다. 이제 당신은 이곳의 전설, 카지노의 왕이다.`;
-            } else if (!ownedItems.clothes) {
-                title = '아직 떠날 수 없다'; icon = 'fa-ban'; scene = 'blocked'; story = '전당포에 맡긴 옷조차 되찾지 못했다. 이 차림으로는 카지노를 나갈 수 없다. 돈을 더 모아 옷부터 되찾아라.';
-            } else if (ownedItems.phone && ownedItems.car) {
-                title = '내 차로 귀가'; icon = 'fa-car'; scene = 'car'; story = '옷을 갖춰 입고 스마트폰과 자동차까지 되찾았다. 차 키를 돌리자 엔진 소리가 울린다. 당신은 직접 운전해 집으로 향한다.';
-            } else if (ownedItems.phone) {
-                title = '택시를 타고 귀가'; icon = 'fa-taxi'; scene = 'taxi'; story = '옷을 되찾고 스마트폰도 손에 넣었다. 택시를 호출하고, 카지노의 네온사인을 뒤로한 채 집으로 향한다.';
-            } else {
-                title = '걸어서 귀가'; icon = 'fa-person-walking'; scene = 'walk'; story = '옷 한 벌을 되찾은 당신은 무거운 발걸음으로 카지노를 나선다. 차도, 스마트폰도 없으니 집까지 걸어가야 한다.';
-            }
-            document.getElementById('ending-art').innerHTML = endingIllustration(scene);
-            document.getElementById('ending-title').innerText = title;
-            document.getElementById('ending-icon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
-            document.getElementById('ending-text').innerText = story;
-            document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 되찾은 물건: ${storyItems.filter(item => ownedItems[item.id]).length}/4 · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
-            document.getElementById('ending-modal').classList.remove('hidden');
-            if (ownedItems.clothes) playSound('win');
-        }
-        function showBankruptModal() {
-            playSound('kickout');
-            document.getElementById('bankrupt-modal').classList.remove('hidden');
-        }
-
-        function finishBankruptGame() {
-            document.getElementById('bankrupt-modal').classList.add('hidden');
-            document.getElementById('ending-art').innerHTML = endingIllustration('blocked');
-            document.getElementById('ending-title').innerText = '빈털터리의 최후';
-            document.getElementById('ending-icon').innerHTML = '<i class="fa-solid fa-person-walking"></i>';
-            document.getElementById('ending-text').innerText = '카지노의 경비원들에게 쫓겨난 당신은 빈 주머니를 붙잡고 어두운 거리로 걸어 나왔습니다. 되찾았던 물건도 모두 사라졌습니다. 도박으로 모든 것을 잃은 오늘을 후회하며, 당신의 이야기는 여기서 끝납니다.';
-            document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 되찾은 물건: ${storyItems.filter(item => ownedItems[item.id]).length}/4 · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
-            document.getElementById('ending-modal').classList.remove('hidden');
-        }
-
-        function changeNpcCount(delta) {
-            if (inRound) return;
-            const newCount = activeNpcCount + delta;
-            if (newCount >= 0 && newCount <= 4) {
-                activeNpcCount = newCount;
-                npcCountDisplayEl.innerText = `${activeNpcCount}명`;
-                setupPlayerSeats();
-                playSound('chip');
-            }
-        }
-
-        function setupPlayerSeats() {
-            npcHands = [];
-            for (let i = 0; i < activeNpcCount; i++) {
-                npcHands.push({
-                    info: npcPool[i],
-                    cards: [],
-                    bet: 0,
-                    status: '대기 중'
-                });
-            }
-            renderSeatsUI();
-        }
-
-        function renderSeatsUI() {
-            playersContainerEl.innerHTML = '';
-            const leftNpcCount = Math.ceil(activeNpcCount / 2);
-            
-            for (let i = 0; i < leftNpcCount; i++) {
-                playersContainerEl.appendChild(createNpcSeatElement(i));
-            }
-            playersContainerEl.appendChild(createPlayerSeatElement());
-            for (let i = leftNpcCount; i < activeNpcCount; i++) {
-                playersContainerEl.appendChild(createNpcSeatElement(i));
-            }
-        }
-
-        function createNpcSeatElement(index) {
-            const npc = npcHands[index];
-            const div = document.createElement('div');
-            div.className = "flex flex-col items-center bg-black/35 p-2 sm:p-3 rounded-2xl border border-white/10 backdrop-blur-sm min-w-[100px] sm:min-w-[130px] flex-shrink-0";
-            div.innerHTML = `
-                <div class="flex items-center space-x-1 mb-1">
-                    <i class="fa-solid fa-robot ${npc.info.color} text-xs"></i>
-                    <span class="text-xs font-bold text-slate-200">${npc.info.name}</span>
-                </div>
-                <div id="npc-cards-${index}" class="flex justify-center -space-x-5 sm:-space-x-7 min-h-[100px] sm:min-h-[122px] items-center my-1 scale-90 sm:scale-100"></div>
-                <div class="flex items-center space-x-1 mt-0.5 text-xs">
-                    <span id="npc-score-${index}" class="bg-slate-900 text-amber-300 font-bold px-2 py-0.5 rounded text-[11px]">-</span>
-                    <span id="npc-bet-${index}" class="text-slate-400 font-medium text-[11px]">$${npc.bet}</span>
-                </div>
-                <div id="npc-status-${index}" class="text-[10px] sm:text-xs text-amber-400 mt-0.5 font-bold h-4">${npc.status}</div>
-            `;
-            return div;
-        }
-
-        function createPlayerSeatElement() {
-            const div = document.createElement('div');
-            const widthClass = activeNpcCount === 0 ? "min-w-[200px] sm:min-w-[280px] px-4" : "min-w-[130px] sm:min-w-[170px]";
-            
-            div.className = `flex flex-col items-center bg-amber-500/10 p-2 sm:p-3 rounded-2xl border-2 border-amber-500/40 backdrop-blur-md shadow-2xl relative ${widthClass}`;
-            div.innerHTML = `
-                <div class="absolute -top-3 bg-amber-500 text-black font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">
-                    YOU (나)
-                </div>
-                <div id="player-cards" class="flex justify-center -space-x-4 sm:-space-x-5 min-h-[100px] sm:min-h-[122px] items-center my-1 w-full px-1"></div>
-                <div class="flex items-center space-x-2 mt-0.5">
-                    <span id="player-score" class="bg-black/80 text-amber-400 font-extrabold text-xs sm:text-sm px-2.5 py-0.5 rounded-lg border border-amber-500/40">-</span>
-                </div>
-                <div id="player-status" class="text-xs text-emerald-400 mt-0.5 font-extrabold h-4"></div>
-            `;
-            return div;
-        }
-
-        function createDeck() {
-            deck = [];
-            for (let suit of suits) {
-                for (let val of values) {
-                    deck.push({ suit, value: val });
-                }
-            }
-            for (let i = deck.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [deck[i], deck[j]] = [deck[j], deck[i]];
-            }
-        }
-
-        function addBet(amount) {
-            if (inRound) return;
-            if (balance >= amount) {
-                balance -= amount;
-                currentBet += amount;
-                updateUI();
-                playSound('chip');
-            } else {
-                statusEl.innerText = "잔액이 부족합니다!";
-            }
-        }
-
-        function allInBet() {
-            if (inRound) return;
-            if (balance <= 0) return;
-            currentBet += balance;
-            balance = 0;
-            updateUI();
-            playSound('allin');
-            statusEl.innerText = "🔥 전 재산을 올인하셨습니다!";
-        }
-
-        function resetBet() {
-            if (inRound) return;
-            balance += currentBet;
-            currentBet = 0;
-            updateUI();
-            playSound('chip');
-        }
-
-        function updateUI() {
-            balanceEl.innerText = `$${balance.toLocaleString()}`;
-            betEl.innerText = `$${currentBet.toLocaleString()}`;
-            if (!document.getElementById('shop-modal').classList.contains('hidden')) renderShop();
-        }
-
-        function calculateScore(hand) {
-            let score = 0;
-            let aces = 0;
-            for (let card of hand) {
-                if (card.hidden) continue;
-                if (['J', 'Q', 'K'].includes(card.value)) {
-                    score += 10;
-                } else if (card.value === 'A') {
-                    aces += 1;
-                    score += 11;
-                } else {
-                    score += parseInt(card.value);
-                }
-            }
-            while (score > 21 && aces > 0) {
-                score -= 10;
-                aces -= 1;
-            }
-            return score;
-        }
-
-        function renderCardHTML(card) {
-            const animClass = card.isNew ? 'deal-animation' : '';
-            if (card.hidden) {
-                return `<div class="playing-card back ${animClass}"></div>`;
-            }
-            const isRed = card.suit === '♥' || card.suit === '♦';
-            const colorClass = isRed ? 'red' : 'black';
-            return `
-                <div class="playing-card ${colorClass} ${animClass}">
-                    <div class="text-[10px] sm:text-xs font-bold leading-none">${card.value}<br>${card.suit}</div>
-                    <div class="text-center text-base sm:text-xl">${card.suit}</div>
-                    <div class="text-[10px] sm:text-xs font-bold leading-none text-right">${card.value}<br>${card.suit}</div>
-                </div>
-            `;
-        }
-
-        function startGameRound() {
-            if (currentBet <= 0) {
-                statusEl.innerText = "칩을 선택하여 베팅해주세요!";
-                return;
-            }
-
-            inRound = true;
-            createDeck();
-
-            playerHand = [];
-            dealerHand = [];
-            npcHands.forEach(npc => {
-                npc.cards = [];
-                npc.bet = Math.min(Math.floor(Math.random() * 6 + 1) * 25, 300);
-                npc.status = '진행 중';
-            });
-
-            document.getElementById('player-status').innerText = '';
-            document.getElementById('player-count-control').classList.add('opacity-40', 'pointer-events-none');
-            btnDeal.disabled = true;
-
-            renderSeatsUI();
-
-            let delay = 100;
-            
-            npcHands.forEach((npc) => {
-                setTimeout(() => { dealCardTo(npc.cards); renderAllCards(); }, delay);
-                delay += 220;
-            });
-            setTimeout(() => { dealCardTo(playerHand); renderAllCards(); }, delay);
-            delay += 220;
-            setTimeout(() => { dealCardTo(dealerHand); renderAllCards(); }, delay);
-            delay += 220;
-
-            npcHands.forEach((npc) => {
-                setTimeout(() => { dealCardTo(npc.cards); renderAllCards(); }, delay);
-                delay += 220;
-            });
-            setTimeout(() => { dealCardTo(playerHand); renderAllCards(); }, delay);
-            delay += 220;
-            setTimeout(() => { 
-                dealCardTo(dealerHand, true); 
-                renderAllCards(); 
-                
-                btnHit.disabled = false;
-                btnStand.disabled = false;
-                statusEl.innerText = "HIT 또는 STAND를 선택하세요.";
-
-                if (calculateScore(playerHand) === 21) {
-                    document.getElementById('player-status').innerText = "BLACKJACK!";
-                    playerStand();
-                }
-            }, delay);
-        }
-
-        function dealCardTo(hand, hidden = false) {
-            if (deck.length > 0) {
-                hand.forEach(c => c.isNew = false);
-
-                const card = deck.pop();
-                if (hidden) card.hidden = true;
-                card.isNew = true;
-                hand.push(card);
-                playSound('card');
-            }
-        }
-
-        function renderAllCards() {
-            const playerCardsEl = document.getElementById('player-cards');
-            if (playerCardsEl) {
-                playerCardsEl.innerHTML = playerHand.map(c => renderCardHTML(c)).join('');
-            }
-            dealerCardsEl.innerHTML = dealerHand.map(c => renderCardHTML(c)).join('');
-
-            document.getElementById('player-score').innerText = calculateScore(playerHand);
-            
-            const dealerScore = calculateScore(dealerHand);
-            dealerScoreEl.innerText = dealerScore > 0 ? dealerScore : '?';
-            dealerScoreEl.classList.remove('hidden');
-
-            npcHands.forEach((npc, idx) => {
-                const cardsEl = document.getElementById(`npc-cards-${idx}`);
-                const scoreEl = document.getElementById(`npc-score-${idx}`);
-                const betEl = document.getElementById(`npc-bet-${idx}`);
-                const statusEl = document.getElementById(`npc-status-${idx}`);
-
-                if (cardsEl) cardsEl.innerHTML = npc.cards.map(c => renderCardHTML(c)).join('');
-                if (scoreEl) scoreEl.innerText = calculateScore(npc.cards);
-                if (betEl) betEl.innerText = `$${npc.bet}`;
-                if (statusEl) statusEl.innerText = npc.status;
-            });
-
-            playerHand.forEach(c => c.isNew = false);
-            dealerHand.forEach(c => c.isNew = false);
-            npcHands.forEach(npc => npc.cards.forEach(c => c.isNew = false));
-        }
-
-        function playerHit() {
-            if (!inRound) return;
-            dealCardTo(playerHand);
-            renderAllCards();
-
-            if (calculateScore(playerHand) > 21) {
-                document.getElementById('player-status').innerText = "BUST";
-                playerStand();
-            }
-        }
-
-        function playerStand() {
-            if (!inRound) return;
-            btnHit.disabled = true;
-            btnStand.disabled = true;
-
-            processNPCTurns(() => {
-                processDealerTurn();
-            });
-        }
-
-        function processNPCTurns(callback) {
-            if (npcHands.length === 0) {
-                callback();
-                return;
-            }
-
-            statusEl.innerText = "NPC 플레이어들이 카드를 받는 중입니다...";
-
-            let delay = 350;
-            npcHands.forEach((npc) => {
-                setTimeout(() => {
-                    while (calculateScore(npc.cards) < npc.info.risk) {
-                        dealCardTo(npc.cards);
-                    }
-                    const score = calculateScore(npc.cards);
-                    npc.status = score > 21 ? "BUST" : "STAND";
-                    renderAllCards();
-                }, delay);
-                delay += 450;
-            });
-
-            setTimeout(callback, delay + 100);
-        }
-
-        function processDealerTurn() {
-            if (dealerHand.length > 1) {
-                dealerHand[1].hidden = false;
-            }
-            renderAllCards();
-            statusEl.innerText = "딜러의 차례입니다...";
-
-            const dealerInterval = setInterval(() => {
-                if (calculateScore(dealerHand) < 17) {
-                    dealCardTo(dealerHand);
-                    renderAllCards();
-                } else {
-                    clearInterval(dealerInterval);
-                    settleRound();
-                }
-            }, 600);
-        }
 
         function forceSellItemsIfBroke() {
             if (balance >= 10) return;
-            // Sell the highest-resale item first; each item returns less than its buyback price.
             const ownedForSale = storyItems.filter(item => ownedItems[item.id]).sort((a, b) => b.resale - a.resale);
             const sold = [];
             for (const item of ownedForSale) {
@@ -1002,78 +732,838 @@
                 sold.push(`${item.name} ($${item.resale.toLocaleString()})`);
             }
             if (sold.length) {
-                statusEl.innerText = `파산 위기! 물건을 강제로 헐값에 처분했습니다: ${sold.join(', ')}. 현재 잔액 $${balance.toLocaleString()}`;
-                document.getElementById('shop-story').innerText = `전당포 주인이 당신이 되찾았던 물건을 헐값에 가져갔다. 처분 내역: ${sold.join(', ')}.`;
-                renderShop();
-                renderInventory();
+                alert(`파산 위기! 소지 물건이 강제로 매각되었습니다: ${sold.join(', ')}`);
+                updateGlobalBalanceUI();
             }
         }
 
-        function settleRound() {
-            inRound = false;
-            document.getElementById('player-count-control').classList.remove('opacity-40', 'pointer-events-none');
-
-            const pScore = calculateScore(playerHand);
-            const dScore = calculateScore(dealerHand);
-
-            let message = "";
-
-            if (pScore > 21) {
-                message = "버스트로 패배하셨습니다.";
-                playSound('lose');
-            } else if (dScore > 21 || pScore > dScore) {
-                const winAmount = currentBet * 2;
-                balance += winAmount;
-                lifetimeProfit += currentBet;
-                message = `🎉 승리! $${winAmount.toLocaleString()} 획득!`;
-                playSound('win');
-            } else if (pScore === dScore) {
-                balance += currentBet;
-                message = "무승부 (Push) - 베팅금 환급";
-                playSound('chip');
-            } else {
-                message = "딜러의 승리입니다.";
-                playSound('lose');
-            }
-
-            currentBet = 0;
-            updateUI();
-            statusEl.innerText = message;
-            btnDeal.disabled = false;
-
+        function checkBankruptOrEnding() {
             if (balance < 10) {
                 forceSellItemsIfBroke();
-                updateUI();
-                if (balance < 10) setTimeout(showBankruptModal, 800);
+                if (balance < 10) {
+                    playSound('kickout');
+                    document.getElementById('bankrupt-modal').classList.remove('hidden');
+                }
             }
         }
 
-        
-        function restartGame() {
-            balance = 1000;
-            currentBet = 0;
-            inRound = false;
-            Object.keys(ownedItems).forEach(id => ownedItems[id] = false);
-            lifetimeProfit = 0;
-            activeNpcCount = 0; // Reset NPC count to default 0 (1:1 with dealer)
-            npcCountDisplayEl.innerText = `0명`;
+        function leaveCasino() {
+            if (bjInRound || rInSpin || thInRound) {
+                alert("진행 중인 라운드가 있습니다!");
+                return;
+            }
+            let title, icon, story;
+            if (balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car) {
+                title = '카지노의 왕'; icon = 'fa-crown'; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. 이제 당신은 카지노의 전설이다.`;
+            } else if (!ownedItems.clothes) {
+                title = '아직 떠날 수 없다'; icon = 'fa-ban'; story = '전당포에 맡긴 옷조차 되찾지 못했습니다. 돈을 모아 옷부터 되찾으세요.';
+            } else if (ownedItems.phone && ownedItems.car) {
+                title = '내 차로 귀가'; icon = 'fa-car'; story = '옷과 자동차를 되찾고 당당하게 전용 차량으로 카지노를 떠납니다.';
+            } else if (ownedItems.phone) {
+                title = '택시를 타고 귀가'; icon = 'fa-taxi'; story = '스마트폰으로 택시를 불러 편안히 귀가합니다.';
+            } else {
+                title = '걸어서 귀가'; icon = 'fa-person-walking'; story = '옷 한 벌만 겨우 되찾고 걸어서 집으로 돌아갑니다.';
+            }
 
-            playerHand = [];
-            dealerHand = [];
-            setupPlayerSeats();
-            renderAllCards();
-            updateUI();
-
-            document.getElementById('bankrupt-modal').classList.add('hidden');
-            document.getElementById('ending-modal').classList.add('hidden');
-            document.getElementById('rules-modal').classList.add('hidden');
-            document.getElementById('intro-modal').classList.remove('hidden');
-            statusEl.innerText = "새로운 이야기가 시작됩니다.";
-            playSound('win');
+            document.getElementById('ending-title').innerText = title;
+            document.getElementById('ending-icon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            document.getElementById('ending-text').innerText = story;
+            document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
+            document.getElementById('ending-modal').classList.remove('hidden');
         }
 
+        function restartGame() {
+            balance = 1000;
+            lifetimeProfit = 0;
+            Object.keys(ownedItems).forEach(id => ownedItems[id] = false);
+            updateGlobalBalanceUI();
+            document.getElementById('bankrupt-modal').classList.add('hidden');
+            document.getElementById('ending-modal').classList.add('hidden');
+            switchView('lobby');
+        }
+
+        function renderCardHTML(card) {
+            const animClass = card.isNew ? 'deal-animation' : '';
+            if (card.hidden) return `<div class="playing-card back ${animClass}"></div>`;
+            const isRed = card.suit === '♥' || card.suit === '♦';
+            const colorClass = isRed ? 'red' : 'black';
+            return `
+                <div class="playing-card ${colorClass} ${animClass}">
+                    <div class="text-[10px] sm:text-xs font-bold leading-none">${card.value}<br>${card.suit}</div>
+                    <div class="text-center text-base sm:text-lg">${card.suit}</div>
+                    <div class="text-[10px] sm:text-xs font-bold leading-none text-right">${card.value}<br>${card.suit}</div>
+                </div>
+            `;
+        }
+
+        function createDeck() {
+            const d = [];
+            for (let suit of suits) { for (let val of values) { d.push({ suit, value: val }); } }
+            for (let i = d.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [d[i], d[j]] = [d[j], d[i]];
+            }
+            return d;
+        }
+
+        function addBet(gameType, amount) {
+            if (gameType === 'bj' && bjInRound) return;
+            if (gameType === 'th' && thInRound) return;
+            if (balance >= amount) {
+                balance -= amount;
+                if (gameType === 'bj') bjBet += amount;
+                if (gameType === 'th') thBet += amount;
+                updateGlobalBalanceUI();
+                updateGameBetsUI();
+                playSound('chip');
+            }
+        }
+
+        function allInBet(gameType) {
+            if (gameType === 'bj' && bjInRound) return;
+            if (balance <= 0) return;
+            const amt = balance;
+            balance = 0;
+            if (gameType === 'bj') bjBet += amt;
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
+            playSound('allin');
+        }
+
+        function resetBet(gameType) {
+            if (gameType === 'bj' && bjInRound) return;
+            if (gameType === 'th' && thInRound) return;
+            if (gameType === 'bj') { balance += bjBet; bjBet = 0; }
+            if (gameType === 'th') { balance += thBet; thBet = 0; }
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
+            playSound('chip');
+        }
+
+        function updateGameBetsUI() {
+            document.getElementById('bj-current-bet').innerText = `$${bjBet.toLocaleString()}`;
+            document.getElementById('th-current-bet').innerText = `$${thBet.toLocaleString()}`;
+        }
+    </script>
+
+
+    <!-- ==================== BLACKJACK LOGIC ==================== -->
+    <script>
+        let bjNpcCount = 0;
+        let bjBet = 0;
+        let bjInRound = false;
+        let bjDeck = [];
+        let bjDealerHand = [];
+        let bjPlayerHand = [];
+        let bjNpcHands = [];
+
+        const npcPool = [
+            { name: '김철수', color: 'text-blue-400', risk: 16 },
+            { name: '이지은', color: 'text-purple-400', risk: 17 },
+            { name: '박민수', color: 'text-emerald-400', risk: 15 },
+            { name: '제시카', color: 'text-pink-400', risk: 17 }
+        ];
+
+        function changeBjNpcCount(delta) {
+            if (bjInRound) return;
+            const newCount = bjNpcCount + delta;
+            if (newCount >= 0 && newCount <= 4) {
+                bjNpcCount = newCount;
+                document.getElementById('bj-npc-display').innerText = `${bjNpcCount}명`;
+                setupBjPlayerSeats();
+                playSound('chip');
+            }
+        }
+
+        function setupBjPlayerSeats() {
+            bjNpcHands = [];
+            for (let i = 0; i < bjNpcCount; i++) {
+                bjNpcHands.push({ info: npcPool[i], cards: [], bet: 0, status: '대기 중' });
+            }
+            renderBjSeatsUI();
+        }
+
+        function renderBjSeatsUI() {
+            const container = document.getElementById('bj-players-container');
+            container.innerHTML = '';
+            const leftNpc = Math.ceil(bjNpcCount / 2);
+            for (let i = 0; i < leftNpc; i++) container.appendChild(createBjNpcSeat(i));
+            container.appendChild(createBjPlayerSeat());
+            for (let i = leftNpc; i < bjNpcCount; i++) container.appendChild(createBjNpcSeat(i));
+        }
+
+        function createBjNpcSeat(index) {
+            const npc = bjNpcHands[index];
+            const div = document.createElement('div');
+            div.className = "flex flex-col items-center bg-black/35 p-2 rounded-2xl border border-white/10 backdrop-blur-sm min-w-[95px] sm:min-w-[120px]";
+            div.innerHTML = `
+                <div class="flex items-center space-x-1 mb-1 text-xs"><i class="fa-solid fa-robot ${npc.info.color}"></i><span class="font-bold text-slate-200">${npc.info.name}</span></div>
+                <div id="bj-npc-cards-${index}" class="flex justify-center -space-x-5 min-h-[96px] sm:min-h-[114px] items-center my-1 scale-90 sm:scale-100"></div>
+                <div class="flex items-center space-x-1 text-xs"><span id="bj-npc-score-${index}" class="bg-slate-900 text-amber-300 font-bold px-1.5 py-0.5 rounded text-[10px]">-</span><span id="bj-npc-bet-${index}" class="text-slate-400 text-[10px]">$${npc.bet}</span></div>
+                <div id="bj-npc-status-${index}" class="text-[10px] text-amber-400 font-bold h-4">${npc.status}</div>
+            `;
+            return div;
+        }
+
+        function createBjPlayerSeat() {
+            const div = document.createElement('div');
+            const widthClass = bjNpcCount === 0 ? "min-w-[190px] sm:min-w-[250px]" : "min-w-[120px] sm:min-w-[150px]";
+            div.className = `flex flex-col items-center bg-amber-500/10 p-2 rounded-2xl border-2 border-amber-500/40 backdrop-blur-md relative ${widthClass}`;
+            div.innerHTML = `
+                <div class="absolute -top-3 bg-amber-500 text-black font-black text-[10px] px-2 py-0.5 rounded-full uppercase">YOU (나)</div>
+                <div id="bj-player-cards" class="flex justify-center -space-x-4 min-h-[96px] sm:min-h-[114px] items-center my-1 w-full"></div>
+                <div class="flex items-center space-x-2 mt-0.5"><span id="bj-player-score" class="bg-black/80 text-amber-400 font-extrabold text-xs px-2 py-0.5 rounded-lg border border-amber-500/40">-</span></div>
+                <div id="bj-player-status" class="text-xs text-emerald-400 font-extrabold h-4"></div>
+            `;
+            return div;
+        }
+
+        function calculateBjScore(hand) {
+            let score = 0, aces = 0;
+            for (let c of hand) {
+                if (c.hidden) continue;
+                if (['J', 'Q', 'K'].includes(c.value)) score += 10;
+                else if (c.value === 'A') { aces += 1; score += 11; }
+                else score += parseInt(c.value);
+            }
+            while (score > 21 && aces > 0) { score -= 10; aces -= 1; }
+            return score;
+        }
+
+        function startBjRound() {
+            if (bjBet <= 0) {
+                document.getElementById('bj-status').innerText = "베팅 칩을 먼저 선택해주세요!";
+                return;
+            }
+            bjInRound = true;
+            bjDeck = createDeck();
+            bjPlayerHand = [];
+            bjDealerHand = [];
+            bjNpcHands.forEach(npc => { npc.cards = []; npc.bet = Math.min(Math.floor(Math.random() * 5 + 1) * 25, 200); npc.status = '진행 중'; });
+
+            document.getElementById('bj-player-status').innerText = '';
+            document.getElementById('bj-npc-control').classList.add('opacity-40', 'pointer-events-none');
+            document.getElementById('bj-btn-deal').disabled = true;
+
+            renderBjSeatsUI();
+            let delay = 100;
+            bjNpcHands.forEach(npc => { setTimeout(() => { dealBjCardTo(npc.cards); renderBjCards(); }, delay); delay += 200; });
+            setTimeout(() => { dealBjCardTo(bjPlayerHand); renderBjCards(); }, delay); delay += 200;
+            setTimeout(() => { dealBjCardTo(bjDealerHand); renderBjCards(); }, delay); delay += 200;
+            bjNpcHands.forEach(npc => { setTimeout(() => { dealBjCardTo(npc.cards); renderBjCards(); }, delay); delay += 200; });
+            setTimeout(() => { dealBjCardTo(bjPlayerHand); renderBjCards(); }, delay); delay += 200;
+            setTimeout(() => {
+                dealBjCardTo(bjDealerHand, true);
+                renderBjCards();
+                document.getElementById('bj-btn-hit').disabled = false;
+                document.getElementById('bj-btn-stand').disabled = false;
+                document.getElementById('bj-status').innerText = "HIT 또는 STAND를 선택하세요.";
+                if (calculateBjScore(bjPlayerHand) === 21) {
+                    document.getElementById('bj-player-status').innerText = "BLACKJACK!";
+                    bjPlayerStand();
+                }
+            }, delay);
+        }
+
+        function dealBjCardTo(hand, hidden = false) {
+            if (bjDeck.length > 0) {
+                hand.forEach(c => c.isNew = false);
+                const c = bjDeck.pop();
+                if (hidden) c.hidden = true;
+                c.isNew = true;
+                hand.push(c);
+                playSound('card');
+            }
+        }
+
+        function renderBjCards() {
+            const pEl = document.getElementById('bj-player-cards');
+            if (pEl) pEl.innerHTML = bjPlayerHand.map(c => renderCardHTML(c)).join('');
+            document.getElementById('bj-dealer-cards').innerHTML = bjDealerHand.map(c => renderCardHTML(c)).join('');
+            document.getElementById('bj-player-score').innerText = calculateBjScore(bjPlayerHand);
+            const dScore = calculateBjScore(bjDealerHand);
+            const dScoreEl = document.getElementById('bj-dealer-score');
+            dScoreEl.innerText = dScore > 0 ? dScore : '?';
+            dScoreEl.classList.remove('hidden');
+
+            bjNpcHands.forEach((npc, idx) => {
+                const cEl = document.getElementById(`bj-npc-cards-${idx}`);
+                const sEl = document.getElementById(`bj-npc-score-${idx}`);
+                if (cEl) cEl.innerHTML = npc.cards.map(c => renderCardHTML(c)).join('');
+                if (sEl) sEl.innerText = calculateBjScore(npc.cards);
+            });
+
+            bjPlayerHand.forEach(c => c.isNew = false);
+            bjDealerHand.forEach(c => c.isNew = false);
+            bjNpcHands.forEach(n => n.cards.forEach(c => c.isNew = false));
+        }
+
+        function bjPlayerHit() {
+            if (!bjInRound) return;
+            dealBjCardTo(bjPlayerHand);
+            renderBjCards();
+            if (calculateBjScore(bjPlayerHand) > 21) {
+                document.getElementById('bj-player-status').innerText = "BUST";
+                bjPlayerStand();
+            }
+        }
+
+        function bjPlayerStand() {
+            if (!bjInRound) return;
+            document.getElementById('bj-btn-hit').disabled = true;
+            document.getElementById('bj-btn-stand').disabled = true;
+            let delay = 300;
+            bjNpcHands.forEach(npc => {
+                setTimeout(() => {
+                    while (calculateBjScore(npc.cards) < npc.info.risk) dealBjCardTo(npc.cards);
+                    npc.status = calculateBjScore(npc.cards) > 21 ? "BUST" : "STAND";
+                    renderBjCards();
+                }, delay);
+                delay += 350;
+            });
+
+            setTimeout(() => {
+                if (bjDealerHand.length > 1) bjDealerHand[1].hidden = false;
+                renderBjCards();
+                const timer = setInterval(() => {
+                    if (calculateBjScore(bjDealerHand) < 17) {
+                        dealBjCardTo(bjDealerHand);
+                        renderBjCards();
+                    } else {
+                        clearInterval(timer);
+                        settleBjRound();
+                    }
+                }, 500);
+            }, delay + 100);
+        }
+
+        function settleBjRound() {
+            bjInRound = false;
+            document.getElementById('bj-npc-control').classList.remove('opacity-40', 'pointer-events-none');
+            const pScore = calculateBjScore(bjPlayerHand);
+            const dScore = calculateBjScore(bjDealerHand);
+            let msg = "";
+
+            if (pScore > 21) {
+                msg = "버스트로 패배하셨습니다."; playSound('lose');
+            } else if (dScore > 21 || pScore > dScore) {
+                const winAmt = bjBet * 2;
+                balance += winAmt; lifetimeProfit += bjBet;
+                msg = `🎉 승리! $${winAmt.toLocaleString()} 획득!`; playSound('win');
+            } else if (pScore === dScore) {
+                balance += bjBet; msg = "무승부 (Push) - 환급"; playSound('chip');
+            } else {
+                msg = "딜러의 승리입니다."; playSound('lose');
+            }
+
+            bjBet = 0;
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
+            document.getElementById('bj-status').innerText = msg;
+            document.getElementById('bj-btn-deal').disabled = false;
+            checkBankruptOrEnding();
+        }
+    </script>
+
+
+    <!-- ==================== EUROPEAN ROULETTE LOGIC ==================== -->
+    <script>
+        const rouletteNumbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+        const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+        
+        let selectedRouletteChip = 10;
+        let rouletteBets = {};
+        let rInSpin = false;
+        let wheelAngle = 0;
+
+        function initRouletteBoard() {
+            const grid = document.getElementById('roulette-numbers-grid');
+            grid.innerHTML = '';
+            // Render 1 to 36
+            for (let i = 1; i <= 36; i++) {
+                const isRed = redNumbers.includes(i);
+                const bg = isRed ? 'bg-red-700 hover:bg-red-600' : 'bg-slate-900 hover:bg-slate-800';
+                grid.innerHTML += `
+                    <div onclick="placeRouletteBet('${i}')" class="${bg} text-white rounded py-2 cursor-pointer transition relative border border-white/5">
+                        ${i}
+                        <span id="r-bet-${i}" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span>
+                    </div>
+                `;
+            }
+        }
+
+        function selectRouletteChip(amt) {
+            selectedRouletteChip = amt;
+            playSound('chip');
+        }
+
+        function placeRouletteBet(key) {
+            if (rInSpin) return;
+            if (balance < selectedRouletteChip) {
+                document.getElementById('roulette-status').innerText = "잔액이 부족합니다!";
+                return;
+            }
+            balance -= selectedRouletteChip;
+            rouletteBets[key] = (rouletteBets[key] || 0) + selectedRouletteChip;
+            updateGlobalBalanceUI();
+            updateRouletteBetsUI();
+            playSound('chip');
+        }
+
+        function clearRouletteBets() {
+            if (rInSpin) return;
+            let total = 0;
+            Object.values(rouletteBets).forEach(v => total += v);
+            balance += total;
+            rouletteBets = {};
+            updateGlobalBalanceUI();
+            updateRouletteBetsUI();
+            playSound('chip');
+        }
+
+        function updateRouletteBetsUI() {
+            let total = 0;
+            // Clear all badges
+            document.querySelectorAll('[id^="r-bet-"]').forEach(el => { el.classList.add('hidden'); el.classList.remove('flex'); });
+            
+            Object.keys(rouletteBets).forEach(k => {
+                const amt = rouletteBets[k];
+                total += amt;
+                const badge = document.getElementById(`r-bet-${k}`);
+                if (badge && amt > 0) {
+                    badge.innerText = amt >= 1000 ? `${amt/1000}k` : amt;
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                }
+            });
+            document.getElementById('r-total-bet').innerText = `$${total.toLocaleString()}`;
+        }
+
+        function drawRouletteWheel() {
+            const canvas = document.getElementById('roulette-wheel');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = canvas.width / 2 - 10;
+            const slice = (Math.PI * 2) / rouletteNumbers.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            rouletteNumbers.forEach((num, i) => {
+                const angle = wheelAngle + i * slice;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, angle, angle + slice);
+                ctx.closePath();
+
+                if (num === 0) ctx.fillStyle = '#047857';
+                else if (redNumbers.includes(num)) ctx.fillStyle = '#b91c1c';
+                else ctx.fillStyle = '#0f172a';
+                ctx.fill();
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Number text
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle + slice / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(num, radius - 12, 4);
+                ctx.restore();
+            });
+
+            // Center Brass Knob
+            ctx.beginPath();
+            ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+            ctx.fillStyle = '#d97706';
+            ctx.fill();
+            ctx.strokeStyle = '#fef08a';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function spinRoulette() {
+            if (rInSpin) return;
+            let totalBet = 0;
+            Object.values(rouletteBets).forEach(v => totalBet += v);
+            if (totalBet <= 0) {
+                document.getElementById('roulette-status').innerText = "베팅을 먼저 진행하세요!";
+                return;
+            }
+
+            rInSpin = true;
+            document.getElementById('btn-spin-roulette').disabled = true;
+            document.getElementById('roulette-status').innerText = "휠이 회전하는 중입니다...";
+
+            const winIndex = Math.floor(Math.random() * rouletteNumbers.length);
+            const winningNum = rouletteNumbers[winIndex];
+            const slice = (Math.PI * 2) / rouletteNumbers.length;
+            
+            // Pointer at top (270deg = -PI/2)
+            const targetAngle = (Math.PI * 3 / 2) - (winIndex * slice) - (slice / 2);
+            const totalRotation = targetAngle + (Math.PI * 2 * 6); // 6 full spins
+
+            let startTime = null;
+            const duration = 4000;
+
+            function animateSpin(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = (timestamp - startTime) / duration;
+                if (progress < 1) {
+                    // Ease out cubic
+                    const ease = 1 - Math.pow(1 - progress, 3);
+                    wheelAngle = totalRotation * ease;
+                    drawRouletteWheel();
+                    if (Math.random() < 0.15) playSound('spin');
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    wheelAngle = targetAngle;
+                    drawRouletteWheel();
+                    settleRoulette(winningNum);
+                }
+            }
+            requestAnimationFrame(animateSpin);
+        }
+
+        function settleRoulette(winningNum) {
+            rInSpin = false;
+            document.getElementById('btn-spin-roulette').disabled = false;
+            const isRed = redNumbers.includes(winningNum);
+            const colorText = winningNum === 0 ? 'GREEN' : isRed ? 'RED' : 'BLACK';
+            document.getElementById('roulette-result-display').innerText = `당첨 번호: ${winningNum} (${colorText})`;
+
+            let totalPayout = 0;
+            Object.keys(rouletteBets).forEach(key => {
+                const betAmt = rouletteBets[key];
+                if (key === winningNum.toString()) totalPayout += betAmt * 36;
+                else if (key === 'RED' && isRed) totalPayout += betAmt * 2;
+                else if (key === 'BLACK' && !isRed && winningNum !== 0) totalPayout += betAmt * 2;
+                else if (key === 'EVEN' && winningNum !== 0 && winningNum % 2 === 0) totalPayout += betAmt * 2;
+                else if (key === 'ODD' && winningNum % 2 !== 0) totalPayout += betAmt * 2;
+                else if (key === '1-18' && winningNum >= 1 && winningNum <= 18) totalPayout += betAmt * 2;
+                else if (key === '19-36' && winningNum >= 19 && winningNum <= 36) totalPayout += betAmt * 2;
+                else if (key === '1st12' && winningNum >= 1 && winningNum <= 12) totalPayout += betAmt * 3;
+                else if (key === '2nd12' && winningNum >= 13 && winningNum <= 24) totalPayout += betAmt * 3;
+                else if (key === '3rd12' && winningNum >= 25 && winningNum <= 36) totalPayout += betAmt * 3;
+            });
+
+            if (totalPayout > 0) {
+                balance += totalPayout;
+                lifetimeProfit += totalPayout;
+                document.getElementById('roulette-status').innerText = `🎉 당첨! $${totalPayout.toLocaleString()} 획득!`;
+                playSound('win');
+            } else {
+                document.getElementById('roulette-status').innerText = "아쉽게도 낙첨되었습니다.";
+                playSound('lose');
+            }
+
+            rouletteBets = {};
+            updateGlobalBalanceUI();
+            updateRouletteBetsUI();
+            checkBankruptOrEnding();
+        }
+    </script>
+
+
+    <!-- ==================== TEXAS HOLD'EM LOGIC ==================== -->
+    <script>
+        let thNpcCount = 3;
+        let thBet = 0;
+        let thPot = 0;
+        let thInRound = false;
+        let thStage = 0; // 0: Preflop, 1: Flop, 2: Turn, 3: River, 4: Showdown
+        let thDeck = [];
+        let thCommunityCards = [];
+        let thPlayerHand = [];
+        let thNpcHands = [];
+
+        function changeThNpcCount(delta) {
+            if (thInRound) return;
+            const n = thNpcCount + delta;
+            if (n >= 1 && n <= 4) {
+                thNpcCount = n;
+                document.getElementById('th-npc-display').innerText = `${thNpcCount}명`;
+                setupThPlayerSeats();
+                playSound('chip');
+            }
+        }
+
+        function setupThPlayerSeats() {
+            thNpcHands = [];
+            for (let i = 0; i < thNpcCount; i++) {
+                thNpcHands.push({ info: npcPool[i], cards: [], bet: 0, folded: false, status: '대기 중' });
+            }
+            renderThSeatsUI();
+        }
+
+        function renderThSeatsUI() {
+            const container = document.getElementById('th-players-container');
+            container.innerHTML = '';
+            const leftNpc = Math.ceil(thNpcCount / 2);
+            for (let i = 0; i < leftNpc; i++) container.appendChild(createThNpcSeat(i));
+            container.appendChild(createThPlayerSeat());
+            for (let i = leftNpc; i < thNpcCount; i++) container.appendChild(createThNpcSeat(i));
+        }
+
+        function createThNpcSeat(index) {
+            const npc = thNpcHands[index];
+            const div = document.createElement('div');
+            div.className = "flex flex-col items-center bg-black/35 p-2 rounded-2xl border border-white/10 backdrop-blur-sm min-w-[95px] sm:min-w-[120px]";
+            div.innerHTML = `
+                <div class="flex items-center space-x-1 mb-1 text-xs"><i class="fa-solid fa-robot ${npc.info.color}"></i><span class="font-bold text-slate-200">${npc.info.name}</span></div>
+                <div id="th-npc-cards-${index}" class="flex justify-center -space-x-5 min-h-[96px] sm:min-h-[114px] items-center my-1 scale-90 sm:scale-100"></div>
+                <div class="flex items-center space-x-1 text-xs"><span id="th-npc-bet-${index}" class="text-amber-400 font-bold text-[10px]">$${npc.bet}</span></div>
+                <div id="th-npc-status-${index}" class="text-[10px] text-slate-400 font-bold h-4">${npc.status}</div>
+            `;
+            return div;
+        }
+
+        function createThPlayerSeat() {
+            const div = document.createElement('div');
+            div.className = "flex flex-col items-center bg-amber-500/10 p-2 rounded-2xl border-2 border-amber-500/40 backdrop-blur-md relative min-w-[130px] sm:min-w-[160px]";
+            div.innerHTML = `
+                <div class="absolute -top-3 bg-amber-500 text-black font-black text-[10px] px-2 py-0.5 rounded-full uppercase">YOU (나)</div>
+                <div id="th-player-cards" class="flex justify-center -space-x-4 min-h-[96px] sm:min-h-[114px] items-center my-1 w-full"></div>
+                <div id="th-player-hand-rank" class="text-xs text-amber-300 font-extrabold h-4"></div>
+            `;
+            return div;
+        }
+
+        function startThRound() {
+            if (thBet <= 0) {
+                document.getElementById('th-status').innerText = "시작 베팅액을 선택해주세요!";
+                return;
+            }
+
+            thInRound = true;
+            thStage = 0;
+            thDeck = createDeck();
+            thCommunityCards = [];
+            thPlayerHand = [];
+            thPot = thBet;
+
+            thNpcHands.forEach(npc => {
+                npc.cards = [];
+                npc.bet = thBet;
+                npc.folded = false;
+                npc.status = '참여 중';
+                thPot += thBet;
+            });
+
+            document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
+            document.getElementById('th-npc-control').classList.add('opacity-40', 'pointer-events-none');
+            document.getElementById('th-btn-deal').disabled = true;
+
+            renderThSeatsUI();
+
+            // Deal 2 Hole Cards to everyone
+            let delay = 100;
+            thNpcHands.forEach(npc => {
+                setTimeout(() => { dealThCardTo(npc.cards, true); renderThBoard(); }, delay); delay += 150;
+                setTimeout(() => { dealThCardTo(npc.cards, true); renderThBoard(); }, delay); delay += 150;
+            });
+            setTimeout(() => { dealThCardTo(thPlayerHand); renderThBoard(); }, delay); delay += 150;
+            setTimeout(() => {
+                dealThCardTo(thPlayerHand);
+                renderThBoard();
+                enableThActionButtons();
+                document.getElementById('th-status').innerText = "프리플랍: 액션을 선택하세요.";
+            }, delay + 100);
+        }
+
+        function dealThCardTo(hand, hidden = false) {
+            if (thDeck.length > 0) {
+                hand.forEach(c => c.isNew = false);
+                const c = thDeck.pop();
+                if (hidden) c.hidden = true;
+                c.isNew = true;
+                hand.push(c);
+                playSound('card');
+            }
+        }
+
+        function renderThBoard() {
+            const pEl = document.getElementById('th-player-cards');
+            if (pEl) pEl.innerHTML = thPlayerHand.map(c => renderCardHTML(c)).join('');
+            document.getElementById('th-community-cards').innerHTML = thCommunityCards.map(c => renderCardHTML(c)).join('');
+
+            thNpcHands.forEach((npc, idx) => {
+                const cEl = document.getElementById(`th-npc-cards-${idx}`);
+                const bEl = document.getElementById(`th-npc-bet-${idx}`);
+                const sEl = document.getElementById(`th-npc-status-${idx}`);
+                if (cEl) cEl.innerHTML = npc.cards.map(c => renderCardHTML(c)).join('');
+                if (bEl) bEl.innerText = `$${npc.bet}`;
+                if (sEl) sEl.innerText = npc.status;
+            });
+
+            if (thPlayerHand.length === 2) {
+                const evalRes = evaluate7CardHand([...thPlayerHand, ...thCommunityCards]);
+                document.getElementById('th-player-hand-rank').innerText = evalRes.rankName;
+            }
+
+            thPlayerHand.forEach(c => c.isNew = false);
+            thCommunityCards.forEach(c => c.isNew = false);
+            thNpcHands.forEach(n => n.cards.forEach(c => c.isNew = false));
+        }
+
+        function enableThActionButtons() {
+            document.getElementById('th-btn-fold').disabled = false;
+            document.getElementById('th-btn-check').disabled = false;
+            document.getElementById('th-btn-call').disabled = false;
+            document.getElementById('th-btn-raise').disabled = false;
+        }
+
+        function disableThActionButtons() {
+            document.getElementById('th-btn-fold').disabled = true;
+            document.getElementById('th-btn-check').disabled = true;
+            document.getElementById('th-btn-call').disabled = true;
+            document.getElementById('th-btn-raise').disabled = true;
+        }
+
+        function thPlayerAction(action) {
+            if (!thInRound) return;
+            disableThActionButtons();
+
+            if (action === 'fold') {
+                document.getElementById('th-status').innerText = "폴드 하셨습니다.";
+                settleThShowdown(true);
+                return;
+            } else if (action === 'raise') {
+                const raiseAmt = 50;
+                if (balance >= raiseAmt) {
+                    balance -= raiseAmt;
+                    thPot += raiseAmt;
+                    document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
+                    updateGlobalBalanceUI();
+                    playSound('chip');
+                }
+            }
+
+            // Advance Game Stage
+            thStage++;
+            if (thStage === 1) {
+                // Flop (3 Cards)
+                dealThCardTo(thCommunityCards); dealThCardTo(thCommunityCards); dealThCardTo(thCommunityCards);
+                renderThBoard();
+                document.getElementById('th-status').innerText = "플랍(Flop): 액션을 선택하세요.";
+                enableThActionButtons();
+            } else if (thStage === 2) {
+                // Turn (1 Card)
+                dealThCardTo(thCommunityCards);
+                renderThBoard();
+                document.getElementById('th-status').innerText = "턴(Turn): 액션을 선택하세요.";
+                enableThActionButtons();
+            } else if (thStage === 3) {
+                // River (1 Card)
+                dealThCardTo(thCommunityCards);
+                renderThBoard();
+                document.getElementById('th-status').innerText = "리버(River): 마지막 액션!";
+                enableThActionButtons();
+            } else {
+                // Showdown
+                settleThShowdown(false);
+            }
+        }
+
+        function settleThShowdown(playerFolded) {
+            thInRound = false;
+            document.getElementById('th-npc-control').classList.remove('opacity-40', 'pointer-events-none');
+            disableThActionButtons();
+
+            // Reveal NPC Cards
+            thNpcHands.forEach(npc => npc.cards.forEach(c => c.hidden = false));
+            renderThBoard();
+
+            if (playerFolded) {
+                playSound('lose');
+                document.getElementById('th-status').innerText = "폴드로 이번 판을 포기하셨습니다.";
+            } else {
+                const playerEval = evaluate7CardHand([...thPlayerHand, ...thCommunityCards]);
+                let bestScore = playerEval.score;
+                let winnerName = 'YOU (나)';
+                let isPlayerWin = true;
+
+                thNpcHands.forEach(npc => {
+                    const evalRes = evaluate7CardHand([...npc.cards, ...thCommunityCards]);
+                    if (evalRes.score > bestScore) {
+                        bestScore = evalRes.score;
+                        winnerName = npc.info.name;
+                        isPlayerWin = false;
+                    }
+                });
+
+                if (isPlayerWin) {
+                    balance += thPot;
+                    lifetimeProfit += thPot;
+                    document.getElementById('th-status').innerText = `🎉 승리! [${playerEval.rankName}] (팟 $${thPot.toLocaleString()} 획득)`;
+                    playSound('win');
+                } else {
+                    document.getElementById('th-status').innerText = `${winnerName} 승리! (팟 $${thPot.toLocaleString()})`;
+                    playSound('lose');
+                }
+            }
+
+            thBet = 0;
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
+            document.getElementById('th-btn-deal').disabled = false;
+            checkBankruptOrEnding();
+        }
+
+        /* 7-Card Poker Evaluator */
+        function evaluate7CardHand(cards) {
+            if (cards.length < 5) return { score: 0, rankName: 'High Card' };
+            const vMap = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':11, 'Q':12, 'K':13, 'A':14 };
+            const parsed = cards.map(c => ({ val: vMap[c.value], suit: c.suit }));
+            parsed.sort((a,b) => b.val - a.val);
+
+            // Counts
+            const counts = {};
+            parsed.forEach(c => counts[c.val] = (counts[c.val] || 0) + 1);
+
+            const pairs = [];
+            let trips = 0, quads = 0;
+            Object.keys(counts).forEach(v => {
+                const count = counts[v];
+                const val = parseInt(v);
+                if (count === 4) quads = val;
+                else if (count === 3) trips = val;
+                else if (count === 2) pairs.push(val);
+            });
+            pairs.sort((a,b) => b - a);
+
+            // Flush Check
+            const sCounts = {};
+            let flushSuit = null;
+            parsed.forEach(c => {
+                sCounts[c.suit] = (sCounts[c.suit] || 0) + 1;
+                if (sCounts[c.suit] >= 5) flushSuit = c.suit;
+            });
+
+            if (quads) return { score: 800 + quads, rankName: '포카드 (Four of a Kind)' };
+            if (trips && pairs.length > 0) return { score: 700 + trips, rankName: '풀하우스 (Full House)' };
+            if (flushSuit) return { score: 600, rankName: '플러시 (Flush)' };
+            if (trips) return { score: 400 + trips, rankName: '삼표 (Three of a Kind)' };
+            if (pairs.length >= 2) return { score: 300 + pairs[0], rankName: '투페어 (Two Pair)' };
+            if (pairs.length === 1) return { score: 200 + pairs[0], rankName: '원페어 (One Pair)' };
+
+            return { score: 100 + parsed[0].val, rankName: `하이카드 (${cards[0]?.value || ''})` };
+        }
+    </script>
+
+
+    <!-- Initialization -->
+    <script>
         window.addEventListener('DOMContentLoaded', () => {
-            setupPlayerSeats();
+            setupBjPlayerSeats();
+            initRouletteBoard();
+            setupThPlayerSeats();
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
         });
     </script>
 </body>
