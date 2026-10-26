@@ -736,24 +736,48 @@
         // 로비 복귀 시 완료된 판의 화면/임시 상태를 정리한다.
         // 잔액, 보유 아이템, 게임별 NPC 인원 설정은 초기화하지 않는다.
         function resetFinishedGameDisplays() {
-            // Blackjack
+            // 라운드 시작 전 미확정 블랙잭/홀덤 베팅은 로비 복귀 시 취소하고 환불한다.
+            // 완료된 판의 베팅은 정산 함수가 이미 0으로 만들었으므로 중복 환불되지 않는다.
+            const pendingBjRefund = Math.max(0, bjBet || 0);
+            const pendingThRefund = Math.max(0, thBet || 0);
+            if (pendingBjRefund + pendingThRefund > 0) {
+                balance += pendingBjRefund + pendingThRefund;
+            }
+
+            // Blackjack: 데이터뿐 아니라 버튼과 NPC 좌석도 기본 상태로 복구한다.
+            bjInRound = false;
+            bjBet = 0;
             bjDeck = []; bjDealerHand = []; bjPlayerHand = []; bjNpcHands = [];
+            setupBjPlayerSeats();
             const bjPlayer = document.getElementById('bj-player-cards');
             const bjDealer = document.getElementById('bj-dealer-cards');
             if (bjPlayer) bjPlayer.innerHTML = '';
             if (bjDealer) bjDealer.innerHTML = '';
             const bjPlayerScore = document.getElementById('bj-player-score');
             const bjDealerScore = document.getElementById('bj-dealer-score');
-            if (bjPlayerScore) bjPlayerScore.innerText = '0';
+            const bjPlayerStatus = document.getElementById('bj-player-status');
+            if (bjPlayerScore) bjPlayerScore.innerText = '-';
             if (bjDealerScore) bjDealerScore.innerText = '?';
+            if (bjPlayerStatus) bjPlayerStatus.innerText = '';
             const bjStatus = document.getElementById('bj-status');
             if (bjStatus) bjStatus.innerText = '베팅금을 정하고 DEAL을 눌러 블랙잭을 시작하세요.';
+            const bjDeal = document.getElementById('bj-btn-deal');
+            const bjHit = document.getElementById('bj-btn-hit');
+            const bjStand = document.getElementById('bj-btn-stand');
+            if (bjDeal) bjDeal.disabled = false;
+            if (bjHit) bjHit.disabled = true;
+            if (bjStand) bjStand.disabled = true;
+            const bjNpcControl = document.getElementById('bj-npc-control');
+            if (bjNpcControl) bjNpcControl.classList.remove('opacity-40', 'pointer-events-none');
 
             // Roulette: 아직 회전하지 않은 베팅은 로비 복귀 시 취소하고 환불한다.
             // 정산이 끝난 판은 rouletteBets가 이미 비어 있으므로 중복 환불되지 않는다.
             const pendingRouletteRefund = Object.values(rouletteBets).reduce((sum, amount) => sum + amount, 0);
             if (pendingRouletteRefund > 0) balance += pendingRouletteRefund;
             rouletteBets = {};
+            rInSpin = false;
+            const spinButton = document.getElementById('btn-spin-roulette');
+            if (spinButton) spinButton.disabled = false;
             updateRouletteBetsUI();
             const rouletteStatus = document.getElementById('roulette-status');
             if (rouletteStatus) rouletteStatus.innerText = '원하는 번호나 구역에 베팅하세요';
@@ -761,6 +785,8 @@
             if (rouletteResult) rouletteResult.innerText = '당첨 번호: -';
 
             // Texas Hold'em
+            thInRound = false;
+            thBet = 0;
             thPot = 0; thCurrentBet = 0; thPlayerStreetBet = 0; thPlayerTotalContribution = 0;
             thStage = 0; thDeck = []; thCommunityCards = []; thPlayerHand = []; thNpcHands = [];
             thRevealInProgress = false; thLastActionWasAllIn = false;
@@ -776,6 +802,13 @@
             if (thSeats) thSeats.innerHTML = '';
             // renderThSeatsUI는 NPC 데이터가 먼저 만들어져 있어야 하므로 초기화 함수를 호출한다.
             setupThPlayerSeats();
+            const thDeal = document.getElementById('th-btn-deal');
+            if (thDeal) thDeal.disabled = false;
+            const thNpcControl = document.getElementById('th-npc-control');
+            if (thNpcControl) thNpcControl.classList.remove('opacity-40', 'pointer-events-none');
+            disableThActionButtons();
+            const thRank = document.getElementById('th-player-hand-rank');
+            if (thRank) thRank.innerText = '';
             updateGlobalBalanceUI();
             updateGameBetsUI();
         }
@@ -869,15 +902,14 @@
         }
 
         function restartGame() {
-            // 파산 상태에서 재시작하면 기존 라운드 플래그 때문에
-            // switchView('lobby')가 이동을 막을 수 있으므로 먼저 모든 판을 종료 상태로 돌린다.
+            // 새 게임으로 돌아가기 전에 모든 진행 플래그와 베팅/결과 데이터를 정리한다.
+            // 먼저 진행 상태를 해제해야 switchView('lobby')의 이동 제한에 걸리지 않는다.
             bjInRound = false;
             rInSpin = false;
             thInRound = false;
             thRevealInProgress = false;
             thLastActionWasAllIn = false;
 
-            // 새 게임의 기본값으로 초기화한다.
             balance = 1000;
             lifetimeProfit = 0;
             bjBet = 0;
@@ -888,6 +920,7 @@
 
             document.getElementById('bankrupt-modal').classList.add('hidden');
             document.getElementById('ending-modal').classList.add('hidden');
+            resetFinishedGameDisplays();
             updateGlobalBalanceUI();
             updateGameBetsUI();
             switchView('lobby');
