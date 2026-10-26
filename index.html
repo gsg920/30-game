@@ -517,10 +517,20 @@
                     <div class="chip-wrapper"><div class="chip chip-25" onclick="addBet('th', 25)">$25</div></div>
                     <div class="chip-wrapper"><div class="chip chip-50" onclick="addBet('th', 50)">$50</div></div>
                     <div class="chip-wrapper"><div class="chip chip-100" onclick="addBet('th', 100)">$100</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-500" onclick="addBet('th', 500)">$500</div></div>
+                    <div class="chip-wrapper"><div class="chip chip-1000" onclick="addBet('th', 1000)">$1K</div></div>
                     <button onclick="resetBet('th')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">초기화</button>
                 </div>
 
-                <div class="flex items-center justify-between w-full lg:w-auto gap-2">
+                <div class="flex flex-col sm:flex-row items-center justify-between w-full lg:w-auto gap-2">
+                    <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                        <span class="text-[10px] font-bold text-slate-400">레이즈 추가액</span>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="50" onclick="setThRaiseIncrement(50)">+$50</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="100" onclick="setThRaiseIncrement(100)">+$100</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="250" onclick="setThRaiseIncrement(250)">+$250</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="500" onclick="setThRaiseIncrement(500)">+$500</button>
+                    </div>
+                    <div class="flex items-center justify-between w-full lg:w-auto gap-2">
                     <div class="bg-slate-950 px-3 py-2 rounded-xl border border-amber-500/30 text-center min-w-[95px]">
                         <div class="text-[10px] text-slate-400 font-bold">내 베팅액</div>
                         <div id="th-current-bet" class="text-sm font-black text-amber-400">$0</div>
@@ -531,6 +541,8 @@
                         <button id="th-btn-check" onclick="thPlayerAction('check')" disabled class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CHECK</button>
                         <button id="th-btn-call" onclick="thPlayerAction('call')" disabled class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CALL</button>
                         <button id="th-btn-raise" onclick="thPlayerAction('raise')" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">RAISE</button>
+                        <button id="th-btn-allin" onclick="thPlayerAction('allin')" disabled class="btn-allin text-white font-black px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">ALL IN</button>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -696,6 +708,10 @@
                 return;
             }
 
+            // 로비로 돌아올 때는 이전 판의 카드/베팅 기록만 초기화한다.
+            // 보유 잔액과 구매한 아이템은 유지한다.
+            if (viewName === 'lobby') resetFinishedGameDisplays();
+
             currentView = viewName;
             ['lobby', 'blackjack', 'roulette', 'holdem'].forEach(v => {
                 const el = document.getElementById(`view-${v}`);
@@ -715,6 +731,48 @@
             else returnBtn.classList.remove('hidden');
 
             if (viewName === 'roulette') drawRouletteWheel();
+        }
+
+        // 로비 복귀 시 완료된 판의 화면/임시 상태를 정리한다.
+        // 잔액, 보유 아이템, 게임별 NPC 인원 설정은 초기화하지 않는다.
+        function resetFinishedGameDisplays() {
+            // Blackjack
+            bjDeck = []; bjDealerHand = []; bjPlayerHand = []; bjNpcHands = [];
+            const bjPlayer = document.getElementById('bj-player-cards');
+            const bjDealer = document.getElementById('bj-dealer-cards');
+            if (bjPlayer) bjPlayer.innerHTML = '';
+            if (bjDealer) bjDealer.innerHTML = '';
+            const bjPlayerScore = document.getElementById('bj-player-score');
+            const bjDealerScore = document.getElementById('bj-dealer-score');
+            if (bjPlayerScore) bjPlayerScore.innerText = '0';
+            if (bjDealerScore) bjDealerScore.innerText = '?';
+            const bjStatus = document.getElementById('bj-status');
+            if (bjStatus) bjStatus.innerText = '베팅금을 정하고 DEAL을 눌러 블랙잭을 시작하세요.';
+
+            // Roulette: 판돈은 결과 처리 후 이미 반환/정산되므로 잔액은 건드리지 않는다.
+            rouletteBets = {};
+            const rouletteStatus = document.getElementById('roulette-status');
+            if (rouletteStatus) rouletteStatus.innerText = '원하는 번호나 구역에 베팅하세요';
+            const rouletteResult = document.getElementById('roulette-result-display');
+            if (rouletteResult) rouletteResult.innerText = '당첨 번호: -';
+
+            // Texas Hold'em
+            thPot = 0; thCurrentBet = 0; thPlayerStreetBet = 0; thPlayerTotalContribution = 0;
+            thStage = 0; thDeck = []; thCommunityCards = []; thPlayerHand = []; thNpcHands = [];
+            thRevealInProgress = false; thLastActionWasAllIn = false;
+            const thCommunity = document.getElementById('th-community-cards');
+            const thPlayer = document.getElementById('th-player-cards');
+            const thPotEl = document.getElementById('th-pot-amount');
+            const thStatus = document.getElementById('th-status');
+            if (thCommunity) thCommunity.innerHTML = '';
+            if (thPlayer) thPlayer.innerHTML = '';
+            if (thPotEl) thPotEl.innerText = '$0';
+            if (thStatus) thStatus.innerText = '베팅금을 정하고 DEAL을 눌러 텍사스 홀덤을 시작하세요.';
+            const thSeats = document.getElementById('th-players-container');
+            if (thSeats) thSeats.innerHTML = '';
+            renderThSeatsUI();
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
         }
 
         function closeIntroModal() { document.getElementById('intro-modal').classList.add('hidden'); }
@@ -858,6 +916,7 @@
             const amt = balance;
             balance = 0;
             if (gameType === 'bj') bjBet += amt;
+            if (gameType === 'th' && !thInRound) thBet += amt;
             updateGlobalBalanceUI();
             updateGameBetsUI();
             playSound('allin');
@@ -1317,6 +1376,23 @@
         let thPlayerHand = [];
         let thNpcHands = [];
         let thRevealInProgress = false;
+        let thRaiseIncrement = 50;
+        let thLastActionWasAllIn = false;
+
+        function setThRaiseIncrement(amount) {
+            if (thInRound && thRevealInProgress) return;
+            thRaiseIncrement = amount;
+            document.querySelectorAll('.th-raise-size').forEach(btn => {
+                const selected = Number(btn.dataset.raise) === amount;
+                btn.classList.toggle('bg-emerald-600', selected);
+                btn.classList.toggle('border-emerald-400', selected);
+                btn.classList.toggle('text-white', selected);
+                btn.classList.toggle('bg-slate-800', !selected);
+                btn.classList.toggle('border-slate-600', !selected);
+                btn.classList.toggle('text-slate-200', !selected);
+            });
+            enableThActionButtons();
+        }
 
         function changeThNpcCount(delta) {
             if (thInRound) return;
@@ -1501,9 +1577,10 @@
             document.getElementById('th-btn-fold').disabled = false;
             document.getElementById('th-btn-check').disabled = toCall > 0;
             document.getElementById('th-btn-call').disabled = toCall <= 0 || balance < toCall;
-            document.getElementById('th-btn-raise').disabled = balance < toCall + 50;
-            document.getElementById('th-btn-call').innerText = toCall > 0 ? `CALL $${toCall}` : 'CALL';
-            document.getElementById('th-btn-raise').innerText = `RAISE +$50`;
+            document.getElementById('th-btn-raise').disabled = balance <= 0 || balance < toCall + thRaiseIncrement;
+            document.getElementById('th-btn-allin').disabled = balance <= 0;
+            document.getElementById('th-btn-call').innerText = toCall > 0 ? `CALL $${toCall.toLocaleString()}` : 'CALL';
+            document.getElementById('th-btn-raise').innerText = `RAISE +$${thRaiseIncrement.toLocaleString()}`;
         }
 
         function disableThActionButtons() {
@@ -1511,6 +1588,7 @@
             document.getElementById('th-btn-check').disabled = true;
             document.getElementById('th-btn-call').disabled = true;
             document.getElementById('th-btn-raise').disabled = true;
+            document.getElementById('th-btn-allin').disabled = true;
         }
 
         // 스트리트마다 NPC가 체크하거나 $50 베팅하는 간단한 자동 액션
@@ -1553,26 +1631,36 @@
             }
 
             let playerContribution = 0;
-            if (action === 'call') {
+            thLastActionWasAllIn = action === 'allin';
+            if (action === 'allin') {
+                playerContribution = balance;
+                thPlayerStreetBet += playerContribution;
+                thCurrentBet = Math.max(thCurrentBet, thPlayerStreetBet);
+            } else if (action === 'call') {
                 playerContribution = toCall;
                 thPlayerStreetBet += toCall;
             } else if (action === 'raise') {
-                playerContribution = toCall + 50;
+                playerContribution = toCall + thRaiseIncrement;
                 thPlayerStreetBet += playerContribution;
                 thCurrentBet = thPlayerStreetBet;
-                // 간단한 NPC AI: 레이즈에 일부 NPC는 폴드, 나머지는 콜
+                // NPC별 성향: risk 값이 높은 상대는 더 공격적이고, 낮은 상대는 보수적으로 플레이
                 thNpcHands.forEach(npc => {
                     if (npc.folded) return;
-                    if (Math.random() < 0.2) {
+                    const aggression = (npc.info.risk || 16) / 20; // 0.75~0.85 정도
+                    const roll = Math.random();
+                    const foldChance = Math.max(0.08, 0.38 - aggression * 0.28);
+                    if (roll < foldChance) {
                         npc.folded = true;
                         npc.status = '폴드';
                         return;
                     }
                     const extra = Math.max(0, thCurrentBet - npc.streetBet);
+                    // 보유한 가상 칩이 아니라 현재 팟/행동을 기준으로 한 간단 AI. 일부는 리레이즈 성향 표시
                     npc.streetBet += extra;
                     npc.bet += extra;
                     thPot += extra;
-                    npc.status = '콜';
+                    if (roll > 0.92 && aggression > 0.8) npc.status = '공격적 콜';
+                    else npc.status = aggression > 0.82 ? '공격적 콜' : '콜';
                 });
             }
 
@@ -1588,6 +1676,22 @@
                 updateGlobalBalanceUI();
                 playSound('chip');
             }
+            if (action === 'allin' && playerContribution > 0) {
+                thNpcHands.forEach(npc => {
+                    if (npc.folded) return;
+                    const aggression = (npc.info.risk || 16) / 20;
+                    if (Math.random() < Math.max(0.12, 0.48 - aggression * 0.3)) {
+                        npc.folded = true;
+                        npc.status = '올인에 폴드';
+                    } else {
+                        const extra = Math.max(0, thCurrentBet - npc.streetBet);
+                        npc.streetBet += extra;
+                        npc.bet += extra;
+                        thPot += extra;
+                        npc.status = aggression > 0.82 ? '올인 콜 (공격적)' : '올인 콜';
+                    }
+                });
+            }
             document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
             renderThBoard();
             disableThActionButtons();
@@ -1598,6 +1702,28 @@
                 document.getElementById('th-status').innerText = `🎉 모든 상대가 폴드했습니다. 팟 $${thPot.toLocaleString()} 획득!`;
                 playSound('win');
                 finishThRound();
+                return;
+            }
+
+            // 올인 후에는 추가 베팅 액션 없이 남은 커뮤니티 카드를 모두 공개하고 쇼다운한다.
+            if (action === 'allin') {
+                if (thCommunityCards.length === 0) {
+                    for (let i = 0; i < 5; i++) {
+                        const card = thDeck.pop();
+                        if (!card) break;
+                        card.revealed = false;
+                        card.justRevealed = false;
+                        thCommunityCards.push(card);
+                    }
+                }
+                const unrevealed = thCommunityCards.map((c, i) => c.revealed ? -1 : i).filter(i => i >= 0);
+                const runout = () => settleThShowdown(false);
+                const revealNext = (pos) => {
+                    if (pos >= unrevealed.length) { runout(); return; }
+                    revealThCommunityCards([unrevealed[pos]], () => revealNext(pos + 1));
+                };
+                document.getElementById('th-status').innerText = '올인! 남은 커뮤니티 카드를 공개합니다…';
+                revealNext(0);
                 return;
             }
 
@@ -1655,7 +1781,6 @@
         function settleThShowdown(playerFolded) {
             thInRound = false;
             thRevealInProgress = false;
-            // 정상 쇼다운에서는 보드가 모두 공개되어야 한다. 폴드 시에는 숨겨진 카드를 유지한다.
             if (!playerFolded) thCommunityCards.forEach(c => c.revealed = true);
             document.getElementById('th-npc-control').classList.remove('opacity-40', 'pointer-events-none');
             disableThActionButtons();
@@ -1667,33 +1792,53 @@
                 playSound('lose');
                 document.getElementById('th-status').innerText = '폴드로 이번 판을 포기했습니다. 베팅한 금액은 팟에 남습니다.';
             } else {
-                const playerEval = evaluate7CardHand([...thPlayerHand, ...thCommunityCards]);
-                let bestScore = playerEval.score;
-                let winners = [{ name: 'YOU (나)', player: true, eval: playerEval }];
+                // 쇼다운은 반드시 공개된 보드 5장 + 각자의 홀 카드 2장으로 다시 평가한다.
+                const board = thCommunityCards.slice(0, 5);
+                const contenders = [{
+                    name: 'YOU (나)',
+                    player: true,
+                    eval: evaluate7CardHand([...thPlayerHand, ...board])
+                }];
 
                 thNpcHands.forEach(npc => {
                     if (npc.folded) return;
-                    const evalRes = evaluate7CardHand([...npc.cards, ...thCommunityCards]);
-                    if (evalRes.score > bestScore) {
-                        bestScore = evalRes.score;
-                        winners = [{ name: npc.info.name, player: false, eval: evalRes }];
-                    } else if (evalRes.score === bestScore) {
-                        winners.push({ name: npc.info.name, player: false, eval: evalRes });
-                    }
+                    contenders.push({
+                        name: npc.info.name,
+                        player: false,
+                        eval: evaluate7CardHand([...npc.cards, ...board])
+                    });
                 });
 
+                // 숫자 점수 대신 족보 등급과 킥커 배열을 순서대로 비교해 판정한다.
+                const compareHands = (a, b) => {
+                    if (a.category !== b.category) return a.category - b.category;
+                    const ak = a.kickers || [];
+                    const bk = b.kickers || [];
+                    for (let i = 0; i < Math.max(ak.length, bk.length, 5); i++) {
+                        const diff = (ak[i] || 0) - (bk[i] || 0);
+                        if (diff !== 0) return diff;
+                    }
+                    return 0;
+                };
+                let best = contenders[0].eval;
+                contenders.slice(1).forEach(c => {
+                    if (compareHands(c.eval, best) > 0) best = c.eval;
+                });
+                const winners = contenders.filter(c => compareHands(c.eval, best) === 0);
                 const playerWins = winners.some(w => w.player);
+
                 if (playerWins) {
                     const share = Math.floor(thPot / winners.length);
                     balance += share;
-                    // 팟은 이미 플레이어의 베팅금을 포함하므로 실제 순이익은 수령액에서 본인 총 기여금을 뺀 값
                     lifetimeProfit += share - thPlayerTotalContribution;
                     document.getElementById('th-status').innerText = winners.length > 1
-                        ? `🤝 무승부! ${winners.map(w => w.name).join(', ')}가 팟을 나눕니다. $${share.toLocaleString()} 획득`
-                        : `🎉 승리! [${playerEval.rankName}] 팟 $${share.toLocaleString()} 획득`;
+                        ? `🤝 무승부! ${winners.map(w => `${w.name} (${w.eval.rankName})`).join(', ')}가 팟을 나눕니다. $${share.toLocaleString()} 획득`
+                        : `🎉 승리! ${winners[0].name} [${best.rankName}] 팟 $${share.toLocaleString()} 획득`;
                     playSound('win');
                 } else {
-                    document.getElementById('th-status').innerText = `${winners.map(w => w.name).join(', ')} 승리! 내 족보: ${playerEval.rankName}`;
+                    const winnerRanks = winners.map(w => `${w.name}: ${w.eval.rankName}`).join(' / ');
+                    document.getElementById('th-status').innerText =
+                        `${winnerRanks} 승리! 내 족보: ${contenders[0].eval.rankName}`;
                     playSound('lose');
                 }
             }
@@ -1768,6 +1913,7 @@
             setupBjPlayerSeats();
             initRouletteBoard();
             setupThPlayerSeats();
+            setThRaiseIncrement(50);
             updateGlobalBalanceUI();
             updateGameBetsUI();
         });
