@@ -749,8 +749,12 @@
             const bjStatus = document.getElementById('bj-status');
             if (bjStatus) bjStatus.innerText = '베팅금을 정하고 DEAL을 눌러 블랙잭을 시작하세요.';
 
-            // Roulette: 판돈은 결과 처리 후 이미 반환/정산되므로 잔액은 건드리지 않는다.
+            // Roulette: 아직 회전하지 않은 베팅은 로비 복귀 시 취소하고 환불한다.
+            // 정산이 끝난 판은 rouletteBets가 이미 비어 있으므로 중복 환불되지 않는다.
+            const pendingRouletteRefund = Object.values(rouletteBets).reduce((sum, amount) => sum + amount, 0);
+            if (pendingRouletteRefund > 0) balance += pendingRouletteRefund;
             rouletteBets = {};
+            updateRouletteBetsUI();
             const rouletteStatus = document.getElementById('roulette-status');
             if (rouletteStatus) rouletteStatus.innerText = '원하는 번호나 구역에 베팅하세요';
             const rouletteResult = document.getElementById('roulette-result-display');
@@ -770,7 +774,8 @@
             if (thStatus) thStatus.innerText = '베팅금을 정하고 DEAL을 눌러 텍사스 홀덤을 시작하세요.';
             const thSeats = document.getElementById('th-players-container');
             if (thSeats) thSeats.innerHTML = '';
-            renderThSeatsUI();
+            // renderThSeatsUI는 NPC 데이터가 먼저 만들어져 있어야 하므로 초기화 함수를 호출한다.
+            setupThPlayerSeats();
             updateGlobalBalanceUI();
             updateGameBetsUI();
         }
@@ -864,12 +869,27 @@
         }
 
         function restartGame() {
+            // 파산 상태에서 재시작하면 기존 라운드 플래그 때문에
+            // switchView('lobby')가 이동을 막을 수 있으므로 먼저 모든 판을 종료 상태로 돌린다.
+            bjInRound = false;
+            rInSpin = false;
+            thInRound = false;
+            thRevealInProgress = false;
+            thLastActionWasAllIn = false;
+
+            // 새 게임의 기본값으로 초기화한다.
             balance = 1000;
             lifetimeProfit = 0;
+            bjBet = 0;
+            thBet = 0;
+            thRaiseIncrement = 50;
+            rouletteBets = {};
             Object.keys(ownedItems).forEach(id => ownedItems[id] = false);
-            updateGlobalBalanceUI();
+
             document.getElementById('bankrupt-modal').classList.add('hidden');
             document.getElementById('ending-modal').classList.add('hidden');
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
             switchView('lobby');
         }
 
