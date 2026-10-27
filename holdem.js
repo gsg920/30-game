@@ -82,23 +82,23 @@ let thNpcCount = 3;
         function createThNpcSeat(index) {
             const npc = thNpcHands[index];
             const div = document.createElement('div');
-            div.className = "flex flex-col items-center bg-black/35 p-2 rounded-2xl border border-white/10 backdrop-blur-sm min-w-[95px] sm:min-w-[120px]";
+            div.className = "flex flex-col items-center bg-black/35 p-1 sm:p-2 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-sm min-w-[66px] sm:min-w-[120px] flex-shrink-0";
             div.innerHTML = `
-                <div class="flex items-center space-x-1 mb-1 text-xs"><i class="fa-solid fa-robot ${npc.info.color}"></i><span class="font-bold text-slate-200">${npc.info.name}</span></div>
-                <div id="th-npc-cards-${index}" class="flex justify-center -space-x-5 min-h-[96px] sm:min-h-[114px] items-center my-1 scale-90 sm:scale-100"></div>
-                <div class="flex items-center space-x-1 text-xs"><span id="th-npc-bet-${index}" class="text-amber-400 font-bold text-[10px]">$${npc.bet}</span></div>
-                <div id="th-npc-status-${index}" class="text-[10px] text-slate-400 font-bold h-4">${npc.status}</div>
+                <div class="flex items-center space-x-1 mb-0.5 sm:mb-1 text-[10px] sm:text-xs"><i class="fa-solid fa-robot ${npc.info.color}"></i><span class="font-bold text-slate-200 truncate max-w-[48px] sm:max-w-none">${npc.info.name}</span></div>
+                <div id="th-npc-cards-${index}" class="flex justify-center -space-x-5 min-h-[70px] sm:min-h-[114px] items-center my-0.5 sm:my-1 scale-90 sm:scale-100"></div>
+                <div class="flex items-center space-x-1 text-[10px] sm:text-xs"><span id="th-npc-bet-${index}" class="text-amber-400 font-bold text-[9px] sm:text-[10px]">$${npc.bet}</span></div>
+                <div id="th-npc-status-${index}" class="text-[9px] sm:text-[10px] text-slate-400 font-bold h-3.5 sm:h-4 text-center truncate max-w-[62px] sm:max-w-none">${npc.status}</div>
             `;
             return div;
         }
 
         function createThPlayerSeat() {
             const div = document.createElement('div');
-            div.className = "flex flex-col items-center bg-amber-500/10 p-2 rounded-2xl border-2 border-amber-500/40 backdrop-blur-md relative min-w-[130px] sm:min-w-[160px]";
+            div.className = "flex flex-col items-center bg-amber-500/10 p-1 sm:p-2 rounded-xl sm:rounded-2xl border-2 border-amber-500/40 backdrop-blur-md relative min-w-[95px] sm:min-w-[160px] flex-shrink-0";
             div.innerHTML = `
-                <div class="absolute -top-3 bg-amber-500 text-black font-black text-[10px] px-2 py-0.5 rounded-full uppercase">YOU (나)</div>
-                <div id="th-player-cards" class="flex justify-center -space-x-4 min-h-[96px] sm:min-h-[114px] items-center my-1 w-full"></div>
-                <div id="th-player-hand-rank" class="text-xs text-amber-300 font-extrabold h-4"></div>
+                <div class="absolute -top-2.5 sm:-top-3 bg-amber-500 text-black font-black text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full uppercase">YOU (나)</div>
+                <div id="th-player-cards" class="flex justify-center -space-x-4 min-h-[70px] sm:min-h-[114px] items-center my-0.5 sm:my-1 w-full scale-95 sm:scale-100"></div>
+                <div id="th-player-hand-rank" class="text-[10px] sm:text-xs text-amber-300 font-extrabold h-3.5 sm:h-4 text-center"></div>
             `;
             return div;
         }

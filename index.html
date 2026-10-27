@@ -12,31 +12,31 @@
 <body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 bg-slate-950">
 
     <!-- Global Top Header -->
-    <header class="max-w-7xl w-full mx-auto flex flex-wrap justify-between items-center py-2.5 px-4 bg-slate-900/95 backdrop-blur rounded-2xl border border-slate-800 shadow-xl mb-2 gap-3 z-40">
-        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('lobby')">
-            <i class="fa-solid fa-crown text-amber-400 text-2xl"></i>
-            <h1 class="text-xl sm:text-2xl font-black tracking-wider text-amber-400 serif">ROYAL CASINO</h1>
+    <header class="max-w-7xl w-full mx-auto flex flex-wrap justify-between items-center py-2 px-3 sm:py-2.5 sm:px-4 bg-slate-900/95 backdrop-blur rounded-2xl border border-slate-800 shadow-xl mb-2 gap-2 sm:gap-3 z-40">
+        <div class="flex items-center space-x-2 sm:space-x-3 cursor-pointer" onclick="switchView('lobby')">
+            <i class="fa-solid fa-crown text-amber-400 text-lg sm:text-2xl"></i>
+            <h1 class="text-base sm:text-2xl font-black tracking-wider text-amber-400 serif">ROYAL CASINO</h1>
         </div>
 
         <!-- Global Balance & Main Actions -->
-        <div class="flex items-center space-x-2 sm:space-x-4">
-            <button id="btn-return-lobby" onclick="switchView('lobby')" class="text-xs sm:text-sm text-slate-200 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 font-bold hidden">
-                <i class="fa-solid fa-house"></i><span>메인 로비</span>
+        <div class="flex items-center flex-wrap gap-1.5 sm:gap-3">
+            <button id="btn-return-lobby" onclick="switchView('lobby')" class="text-[11px] sm:text-sm text-slate-200 hover:text-amber-400 transition flex items-center gap-1 bg-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-slate-700 font-bold hidden">
+                <i class="fa-solid fa-house"></i><span>로비</span>
             </button>
-            <button onclick="openShopModal()" class="text-xs sm:text-sm text-amber-300 hover:text-amber-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-500/30 font-bold">
+            <button onclick="openShopModal()" class="text-[11px] sm:text-sm text-amber-300 hover:text-amber-200 transition flex items-center gap-1 bg-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-amber-500/30 font-bold">
                 <i class="fa-solid fa-store"></i><span>전당포</span>
             </button>
-            <button onclick="openInventoryModal()" class="text-xs sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+            <button onclick="openInventoryModal()" class="text-[11px] sm:text-sm text-slate-300 hover:text-amber-400 transition flex items-center gap-1 bg-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-slate-700">
                 <i class="fa-solid fa-box-open"></i><span>소지품</span>
             </button>
-            <button onclick="leaveCasino()" class="text-xs sm:text-sm text-rose-300 hover:text-rose-200 transition flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-lg border border-rose-500/30 font-bold">
-                <i class="fa-solid fa-door-open"></i><span>카지노 떠나기</span>
+            <button onclick="leaveCasino()" class="text-[11px] sm:text-sm text-rose-300 hover:text-rose-200 transition flex items-center gap-1 bg-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-rose-500/30 font-bold">
+                <i class="fa-solid fa-door-open"></i><span>떠나기</span>
             </button>
             
-            <div class="bg-slate-950 px-4 py-1.5 rounded-xl border border-amber-500/40 flex items-center space-x-2 shadow-inner">
-                <i class="fa-solid fa-coins text-amber-400 text-sm"></i>
+            <div class="bg-slate-950 px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-xl border border-amber-500/40 flex items-center space-x-1.5 shadow-inner">
+                <i class="fa-solid fa-coins text-amber-400 text-xs sm:text-sm"></i>
                 <span class="text-xs text-slate-400 hidden sm:inline">잔액:</span>
-                <span id="global-balance" class="font-extrabold text-amber-400 text-base sm:text-lg">$1,000</span>
+                <span id="global-balance" class="font-extrabold text-amber-400 text-xs sm:text-lg">$1,000</span>
             </div>
         </div>
     </header>
@@ -159,15 +159,15 @@
                     <button onclick="resetBet('bj')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">초기화</button>
                 </div>
 
-                <div class="flex items-center justify-between w-full lg:w-auto gap-3">
-                    <div class="bg-slate-950 px-4 py-2 rounded-xl border border-amber-500/30 text-center min-w-[110px]">
-                        <div class="text-[10px] text-slate-400 font-bold">베팅금액</div>
-                        <div id="bj-current-bet" class="text-base font-black text-amber-400">$0</div>
+                <div class="flex flex-col sm:flex-row items-center justify-between w-full lg:w-auto gap-2 sm:gap-3">
+                    <div class="bg-slate-950 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-amber-500/30 text-center min-w-[90px] sm:min-w-[110px] flex sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto px-4 sm:px-3">
+                        <div class="text-[10px] text-slate-400 font-bold">베팅금액:</div>
+                        <div id="bj-current-bet" class="text-sm sm:text-base font-black text-amber-400">$0</div>
                     </div>
-                    <div class="flex items-center gap-2 flex-1 lg:flex-none">
-                        <button id="bj-btn-deal" onclick="startBjRound()" class="flex-1 lg:flex-none bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg transition active:scale-95 disabled:opacity-40">DEAL</button>
-                        <button id="bj-btn-hit" onclick="bjPlayerHit()" disabled class="flex-1 lg:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">HIT</button>
-                        <button id="bj-btn-stand" onclick="bjPlayerStand()" disabled class="flex-1 lg:flex-none bg-rose-600 hover:bg-rose-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">STAND</button>
+                    <div class="grid grid-cols-3 sm:flex items-center gap-1.5 w-full sm:w-auto">
+                        <button id="bj-btn-deal" onclick="startBjRound()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm shadow-lg transition active:scale-95 disabled:opacity-40">DEAL</button>
+                        <button id="bj-btn-hit" onclick="bjPlayerHit()" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">HIT</button>
+                        <button id="bj-btn-stand" onclick="bjPlayerStand()" disabled class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">STAND</button>
                     </div>
                 </div>
             </div>
@@ -201,33 +201,35 @@
                 </div>
 
                 <!-- Numbers Grid -->
-                <div class="grid grid-cols-13 gap-1 w-full bg-slate-950 p-2 rounded-2xl border border-slate-800 text-center text-xs font-bold select-none shadow-inner">
-                    <!-- Zero -->
-                    <div onclick="placeRouletteBet('0')" class="col-span-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded py-4 flex items-center justify-center cursor-pointer transition relative">
-                        0
-                        <span id="r-bet-0" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center shadow"></span>
-                    </div>
+                <div class="w-full overflow-x-auto pb-1">
+                    <div class="grid grid-cols-13 gap-1 min-w-[340px] bg-slate-950 p-2 rounded-2xl border border-slate-800 text-center text-xs font-bold select-none shadow-inner">
+                        <!-- Zero -->
+                        <div onclick="placeRouletteBet('0')" class="col-span-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded py-4 flex items-center justify-center cursor-pointer transition relative">
+                            0
+                            <span id="r-bet-0" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center shadow"></span>
+                        </div>
 
-                    <!-- 1-36 Numbers Container -->
-                    <div class="col-span-12 grid grid-cols-12 gap-1" id="roulette-numbers-grid">
-                        <!-- Rendered by JS -->
+                        <!-- 1-36 Numbers Container -->
+                        <div class="col-span-12 grid grid-cols-12 gap-1" id="roulette-numbers-grid">
+                            <!-- Rendered by JS -->
+                        </div>
                     </div>
                 </div>
 
                 <!-- Outside Bets -->
-                <div class="grid grid-cols-6 gap-1.5 w-full mt-2 text-xs font-bold">
-                    <button onclick="placeRouletteBet('1-18')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">1 to 18 <span id="r-bet-1-18" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
-                    <button onclick="placeRouletteBet('EVEN')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">EVEN <span id="r-bet-EVEN" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
-                    <button onclick="placeRouletteBet('RED')" class="bg-red-800 hover:bg-red-700 text-white py-2 rounded-xl border border-red-600/50 relative">RED <span id="r-bet-RED" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
-                    <button onclick="placeRouletteBet('BLACK')" class="bg-slate-950 hover:bg-slate-900 text-white py-2 rounded-xl border border-slate-700 relative">BLACK <span id="r-bet-BLACK" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
-                    <button onclick="placeRouletteBet('ODD')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">ODD <span id="r-bet-ODD" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
-                    <button onclick="placeRouletteBet('19-36')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">19 to 36 <span id="r-bet-19-36" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 w-full mt-2 text-[11px] sm:text-xs font-bold">
+                    <button onclick="placeRouletteBet('1-18')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">1-18 <span id="r-bet-1-18" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('EVEN')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">EVEN <span id="r-bet-EVEN" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('RED')" class="bg-red-800 hover:bg-red-700 text-white py-1.5 sm:py-2 rounded-xl border border-red-600/50 relative">RED <span id="r-bet-RED" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('BLACK')" class="bg-slate-950 hover:bg-slate-900 text-white py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">BLACK <span id="r-bet-BLACK" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('ODD')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">ODD <span id="r-bet-ODD" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('19-36')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">19-36 <span id="r-bet-19-36" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
                 </div>
 
-                <div class="grid grid-cols-3 gap-1.5 w-full mt-1.5 text-xs font-bold">
-                    <button onclick="placeRouletteBet('1st12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">1st 12 (1-12) <span id="r-bet-1st12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
-                    <button onclick="placeRouletteBet('2nd12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">2nd 12 (13-24) <span id="r-bet-2nd12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
-                    <button onclick="placeRouletteBet('3rd12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl border border-slate-700 relative">3rd 12 (25-36) <span id="r-bet-3rd12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                <div class="grid grid-cols-3 gap-1.5 w-full mt-1.5 text-[11px] sm:text-xs font-bold">
+                    <button onclick="placeRouletteBet('1st12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">1st 12 <span id="r-bet-1st12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('2nd12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">2nd 12 <span id="r-bet-2nd12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
+                    <button onclick="placeRouletteBet('3rd12')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 sm:py-2 rounded-xl border border-slate-700 relative">3rd 12 <span id="r-bet-3rd12" class="absolute -top-1 -right-1 bg-amber-400 text-black rounded-full w-4 h-4 text-[9px] font-black hidden items-center justify-center"></span></button>
                 </div>
             </div>
         </div>
@@ -262,92 +264,92 @@
 
     <!-- ==================== VIEW 4: TEXAS HOLD'EM ==================== -->
     <div id="view-holdem" class="max-w-7xl w-full mx-auto flex-1 flex-col justify-between my-1 hidden">
-        <div id="th-table-container" class="poker-table flex-1 flex flex-col justify-between p-4 sm:p-6 relative min-h-[460px]">
+        <div id="th-table-container" class="poker-table flex-1 flex flex-col justify-between p-2.5 sm:p-6 relative min-h-[350px] sm:min-h-[460px]">
             <!-- ALL IN BANNER FOR HOLDEM -->
             <div id="th-allin-banner" class="global-allin-banner">ALL IN</div>
 
             <!-- Header inside table -->
             <div class="flex justify-between items-center w-full mb-1">
-                <div class="bg-black/60 px-3 py-1 rounded-xl border border-white/10 text-xs font-bold text-slate-300">
+                <div class="bg-black/60 px-2.5 py-1 rounded-xl border border-white/10 text-[11px] sm:text-xs font-bold text-slate-300">
                     <i class="fa-solid fa-suit-heart text-amber-400 mr-1"></i> TEXAS HOLD'EM
                 </div>
-                <div id="th-npc-control" class="flex items-center bg-slate-950/80 px-3 py-1 rounded-xl border border-slate-800 space-x-2">
-                    <span class="text-xs font-bold text-slate-400">NPC:</span>
-                    <button onclick="changeThNpcCount(-1)" class="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center">-</button>
-                    <span id="th-npc-display" class="font-black text-amber-300 text-xs min-w-[28px] text-center">3명</span>
-                    <button onclick="changeThNpcCount(1)" class="w-6 h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center">+</button>
+                <div id="th-npc-control" class="flex items-center bg-slate-950/80 px-2.5 py-1 rounded-xl border border-slate-800 space-x-1.5 sm:space-x-2">
+                    <span class="text-[11px] sm:text-xs font-bold text-slate-400">NPC:</span>
+                    <button onclick="changeThNpcCount(-1)" class="w-5 h-5 sm:w-6 sm:h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center text-xs">-</button>
+                    <span id="th-npc-display" class="font-black text-amber-300 text-[11px] sm:text-xs min-w-[24px] sm:min-w-[28px] text-center">3명</span>
+                    <button onclick="changeThNpcCount(1)" class="w-5 h-5 sm:w-6 sm:h-6 bg-slate-800 hover:bg-slate-700 text-amber-400 font-extrabold rounded flex items-center justify-center text-xs">+</button>
                 </div>
             </div>
 
             <!-- Community Cards & Pot -->
-            <div class="flex flex-col items-center justify-center my-2">
-                <div class="bg-black/70 px-4 py-1 rounded-full border border-amber-500/30 text-xs font-black text-amber-300 mb-2 shadow">
+            <div class="flex flex-col items-center justify-center my-1 sm:my-2">
+                <div class="bg-black/70 px-3 py-0.5 sm:px-4 sm:py-1 rounded-full border border-amber-500/30 text-[11px] sm:text-xs font-black text-amber-300 mb-1.5 shadow">
                     POT: <span id="th-pot-amount" class="text-amber-400">$0</span>
                 </div>
                 <!-- 5 Community Cards Container -->
-                <div id="th-community-cards" class="flex justify-center gap-1.5 sm:gap-2 min-h-[96px] sm:min-h-[114px] items-center">
+                <div id="th-community-cards" class="flex justify-center gap-1 sm:gap-2 min-h-[70px] sm:min-h-[114px] items-center">
                     <!-- Community cards rendered here -->
                 </div>
             </div>
 
             <!-- Table Center Status Message -->
-            <div class="text-center my-2">
-                <div id="th-status" class="inline-block px-6 py-2.5 rounded-2xl bg-black/80 backdrop-blur-md border-2 border-amber-400 text-amber-300 text-sm sm:text-base md:text-lg font-black shadow-[0_0_25px_rgba(245,158,11,0.4)] tracking-wide">
+            <div class="text-center my-1 sm:my-2 px-1">
+                <div id="th-status" class="inline-block px-3 py-1.5 sm:px-6 sm:py-2.5 rounded-xl sm:rounded-2xl bg-black/80 backdrop-blur-md border border-amber-400 text-amber-300 text-xs sm:text-base font-black shadow-[0_0_20px_rgba(245,158,11,0.3)] tracking-wide max-w-full">
                     베팅금을 정하고 DEAL을 눌러 텍사스 홀덤을 시작하세요.
                 </div>
             </div>
 
             <!-- Player Seats -->
-            <div id="th-players-container" class="flex justify-center items-end gap-2 sm:gap-4 mt-1 w-full px-2"></div>
+            <div id="th-players-container" class="flex justify-center items-end gap-1 sm:gap-3 mt-1 w-full px-1 overflow-x-auto pb-1"></div>
         </div>
 
         <!-- Texas Holdem Action Deck -->
-        <footer class="mt-2 bg-slate-900/95 backdrop-blur p-3 rounded-2xl border border-slate-800 shadow-2xl">
+        <footer class="mt-2 bg-slate-900/95 backdrop-blur p-2.5 sm:p-3 rounded-2xl border border-slate-800 shadow-2xl">
             <!-- All-In Condition Rule & Live Status Indicator -->
-            <div class="flex flex-wrap items-center justify-between pb-2 mb-2 border-b border-slate-800 gap-2">
-                <div class="flex items-center gap-1.5 text-xs text-slate-400">
+            <div class="flex flex-wrap items-center justify-between pb-1.5 mb-1.5 sm:pb-2 sm:mb-2 border-b border-slate-800 gap-1.5">
+                <div class="flex items-center gap-1 text-[10px] sm:text-xs text-slate-400">
                     <i class="fa-solid fa-circle-info text-amber-400"></i>
-                    <span class="font-bold text-slate-300">올인 밸런스 룰:</span>
-                    <span>플랍(3장 공개) 이후 &amp; 원페어 이상 보유 시 또는 숏스택 위기 시만 가능</span>
+                    <span class="font-bold text-slate-300">올인 룰:</span>
+                    <span>플랍 이후 &amp; 원페어 이상 또는 숏스택 시 가능</span>
                 </div>
-                <div id="th-allin-badge" class="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950/80 text-slate-400 transition">
+                <div id="th-allin-badge" class="flex items-center gap-1 text-[10px] sm:text-[11px] px-2 py-0.5 rounded-lg border border-slate-700 bg-slate-950/80 text-slate-400 transition">
                     <i id="th-allin-badge-icon" class="fa-solid fa-lock text-amber-400"></i>
                     <span id="th-allin-badge-text">올인 조건: 플랍 이후 &amp; 원페어 이상 (또는 숏스택)</span>
                 </div>
             </div>
 
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
-                <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
-                    <span class="text-xs font-bold text-slate-400 mr-1">시작 베팅액:</span>
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-2 sm:gap-3">
+                <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 w-full lg:w-auto">
+                    <span class="text-[11px] sm:text-xs font-bold text-slate-400 mr-0.5">시작 베팅:</span>
                     <div class="chip-wrapper"><div class="chip chip-10" onclick="addBet('th', 10)">$10</div></div>
                     <div class="chip-wrapper"><div class="chip chip-25" onclick="addBet('th', 25)">$25</div></div>
                     <div class="chip-wrapper"><div class="chip chip-50" onclick="addBet('th', 50)">$50</div></div>
                     <div class="chip-wrapper"><div class="chip chip-100" onclick="addBet('th', 100)">$100</div></div>
                     <div class="chip-wrapper"><div class="chip chip-500" onclick="addBet('th', 500)">$500</div></div>
                     <div class="chip-wrapper"><div class="chip chip-1000" onclick="addBet('th', 1000)">$1K</div></div>
-                    <button onclick="resetBet('th')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition">초기화</button>
+                    <button onclick="resetBet('th')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-slate-700 transition">초기화</button>
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-between w-full lg:w-auto gap-2">
-                    <div id="th-raise-container" class="flex items-center justify-center gap-1.5 flex-wrap">
+                    <div id="th-raise-container" class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
                         <span class="text-[10px] font-bold text-slate-400">레이즈 인상폭</span>
-                        <button type="button" class="th-raise-size bg-emerald-600 border border-emerald-400 text-white text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="100" onclick="setThRaiseIncrement(100)">+1x ($100)</button>
-                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="200" onclick="setThRaiseIncrement(200)">+2x ($200)</button>
-                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="300" onclick="setThRaiseIncrement(300)">+3x ($300)</button>
-                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="500" onclick="setThRaiseIncrement(500)">+5x ($500)</button>
+                        <button type="button" class="th-raise-size bg-emerald-600 border border-emerald-400 text-white text-xs px-2 py-1 sm:py-1.5 rounded-lg font-bold" data-raise="100" onclick="setThRaiseIncrement(100)">+1x ($100)</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1 sm:py-1.5 rounded-lg font-bold" data-raise="200" onclick="setThRaiseIncrement(200)">+2x ($200)</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1 sm:py-1.5 rounded-lg font-bold" data-raise="300" onclick="setThRaiseIncrement(300)">+3x ($300)</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1 sm:py-1.5 rounded-lg font-bold" data-raise="500" onclick="setThRaiseIncrement(500)">+5x ($500)</button>
                     </div>
-                    <div class="flex items-center justify-between w-full lg:w-auto gap-2">
-                    <div class="bg-slate-950 px-3 py-2 rounded-xl border border-amber-500/30 text-center min-w-[95px]">
-                        <div class="text-[10px] text-slate-400 font-bold">내 베팅액</div>
+                    <div class="flex flex-col sm:flex-row items-center justify-between w-full lg:w-auto gap-2">
+                    <div class="bg-slate-950 px-3 py-1.5 sm:py-2 rounded-xl border border-amber-500/30 text-center min-w-[90px] sm:min-w-[95px] flex sm:flex-col items-center justify-between sm:justify-center w-full sm:w-auto px-4 sm:px-3">
+                        <div class="text-[10px] text-slate-400 font-bold">내 베팅액:</div>
                         <div id="th-current-bet" class="text-sm font-black text-amber-400">$0</div>
                     </div>
-                    <div class="flex items-center gap-1.5 flex-1 lg:flex-none">
-                        <button id="th-btn-deal" onclick="startThRound()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow transition">DEAL</button>
-                        <button id="th-btn-fold" onclick="thPlayerAction('fold')" disabled class="bg-rose-700 hover:bg-rose-600 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">FOLD</button>
-                        <button id="th-btn-check" onclick="thPlayerAction('check')" disabled class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CHECK</button>
-                        <button id="th-btn-call" onclick="thPlayerAction('call')" disabled class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CALL</button>
-                        <button id="th-btn-raise" onclick="thPlayerAction('raise')" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">RAISE</button>
-                        <button id="th-btn-allin" onclick="thPlayerAction('allin')" disabled class="btn-allin text-white font-black px-3 py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">ALL IN</button>
+                    <div class="grid grid-cols-3 sm:flex items-center gap-1.5 w-full sm:w-auto">
+                        <button id="th-btn-deal" onclick="startThRound()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm shadow transition">DEAL</button>
+                        <button id="th-btn-fold" onclick="thPlayerAction('fold')" disabled class="bg-rose-700 hover:bg-rose-600 text-white font-bold px-3 py-2 sm:px-3 sm:py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">FOLD</button>
+                        <button id="th-btn-check" onclick="thPlayerAction('check')" disabled class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-2 sm:px-3 sm:py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CHECK</button>
+                        <button id="th-btn-call" onclick="thPlayerAction('call')" disabled class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-2 sm:px-3 sm:py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">CALL</button>
+                        <button id="th-btn-raise" onclick="thPlayerAction('raise')" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 sm:px-3 sm:py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">RAISE</button>
+                        <button id="th-btn-allin" onclick="thPlayerAction('allin')" disabled class="btn-allin text-white font-black px-3 py-2 sm:px-3 sm:py-2.5 rounded-xl text-xs sm:text-sm transition disabled:opacity-40">ALL IN</button>
                     </div>
                     </div>
                 </div>
