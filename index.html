@@ -303,6 +303,19 @@
 
         <!-- Texas Holdem Action Deck -->
         <footer class="mt-2 bg-slate-900/95 backdrop-blur p-3 rounded-2xl border border-slate-800 shadow-2xl">
+            <!-- All-In Condition Rule & Live Status Indicator -->
+            <div class="flex flex-wrap items-center justify-between pb-2 mb-2 border-b border-slate-800 gap-2">
+                <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                    <i class="fa-solid fa-circle-info text-amber-400"></i>
+                    <span class="font-bold text-slate-300">올인 밸런스 룰:</span>
+                    <span>플랍(3장 공개) 이후 &amp; 원페어 이상 보유 시 또는 숏스택 위기 시만 가능</span>
+                </div>
+                <div id="th-allin-badge" class="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950/80 text-slate-400 transition">
+                    <i id="th-allin-badge-icon" class="fa-solid fa-lock text-amber-400"></i>
+                    <span id="th-allin-badge-text">올인 조건: 플랍 이후 &amp; 원페어 이상 (또는 숏스택)</span>
+                </div>
+            </div>
+
             <div class="flex flex-col lg:flex-row items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
                     <span class="text-xs font-bold text-slate-400 mr-1">시작 베팅액:</span>
@@ -316,12 +329,12 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-between w-full lg:w-auto gap-2">
-                    <div class="flex items-center justify-center gap-1.5 flex-wrap">
-                        <span class="text-[10px] font-bold text-slate-400">레이즈 추가액</span>
-                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="100" onclick="setThRaiseIncrement(100)">+$100</button>
-                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="250" onclick="setThRaiseIncrement(250)">+$250</button>
-                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="500" onclick="setThRaiseIncrement(500)">+$500</button>
-                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg" data-raise="1000" onclick="setThRaiseIncrement(1000)">+$1,000</button>
+                    <div id="th-raise-container" class="flex items-center justify-center gap-1.5 flex-wrap">
+                        <span class="text-[10px] font-bold text-slate-400">레이즈 인상폭</span>
+                        <button type="button" class="th-raise-size bg-emerald-600 border border-emerald-400 text-white text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="100" onclick="setThRaiseIncrement(100)">+1x ($100)</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="200" onclick="setThRaiseIncrement(200)">+2x ($200)</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="300" onclick="setThRaiseIncrement(300)">+3x ($300)</button>
+                        <button type="button" class="th-raise-size bg-slate-800 border border-slate-600 text-slate-200 text-xs px-2 py-1.5 rounded-lg font-bold" data-raise="500" onclick="setThRaiseIncrement(500)">+5x ($500)</button>
                     </div>
                     <div class="flex items-center justify-between w-full lg:w-auto gap-2">
                     <div class="bg-slate-950 px-3 py-2 rounded-xl border border-amber-500/30 text-center min-w-[95px]">

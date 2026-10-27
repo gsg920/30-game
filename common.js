@@ -13,6 +13,15 @@ let balance = 1000;
         const suits = ['♠', '♥', '♦', '♣'];
         const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
+        function clearAllInEffects() {
+            ['bj', 'r', 'th'].forEach(prefix => {
+                const table = document.getElementById(`${prefix}-table-container`);
+                const banner = document.getElementById(`${prefix}-allin-banner`);
+                if (table) table.classList.remove('allin-active');
+                if (banner) banner.classList.remove('animate');
+            });
+        }
+
         function triggerAllInEffect() {
             playSound('allin');
             let tableEl, bannerEl;
@@ -37,6 +46,9 @@ let balance = 1000;
                 bannerEl.classList.remove('animate');
                 void bannerEl.offsetWidth; // Reflow
                 bannerEl.classList.add('animate');
+                setTimeout(() => {
+                    bannerEl.classList.remove('animate');
+                }, 1300);
             }
         }
 
@@ -50,6 +62,8 @@ let balance = 1000;
                 alert("현재 라운드가 진행 중입니다! 끝난 후 이동 가능합니다.");
                 return;
             }
+
+            clearAllInEffects();
 
             if (viewName === 'lobby') resetFinishedGameDisplays();
 
@@ -75,6 +89,7 @@ let balance = 1000;
         }
 
         function resetFinishedGameDisplays() {
+            clearAllInEffects();
             const pendingBjRefund = Math.max(0, bjBet || 0);
             const pendingThRefund = Math.max(0, thBet || 0);
             if (pendingBjRefund + pendingThRefund > 0) {
@@ -229,6 +244,7 @@ let balance = 1000;
             if (balance < 10) {
                 forceSellItemsIfBroke();
                 if (balance < 10) {
+                    clearAllInEffects();
                     playSound('kickout');
                     document.getElementById('bankrupt-modal').classList.remove('hidden');
                 }
@@ -240,6 +256,7 @@ let balance = 1000;
                 alert("진행 중인 라운드가 있습니다!");
                 return;
             }
+            clearAllInEffects();
             let title, icon, story, isBlocked = false;
 
             if (balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car) {
@@ -275,6 +292,7 @@ let balance = 1000;
 
         function restartGame() {
             unlockControlsAfterRestart();
+            clearAllInEffects();
             bjInRound = false;
             rInSpin = false;
             thInRound = false;
@@ -360,4 +378,5 @@ let balance = 1000;
         function updateGameBetsUI() {
             document.getElementById('bj-current-bet').innerText = `$${bjBet.toLocaleString()}`;
             document.getElementById('th-current-bet').innerText = `$${thBet.toLocaleString()}`;
+            if (typeof updateThRaiseButtons === 'function') updateThRaiseButtons();
         }

@@ -266,6 +266,25 @@
             background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
             border: 2px solid #fca5a5;
             box-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
+            transition: all 0.2s ease;
+        }
+
+        .btn-allin.ready-allin {
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            border-color: #fef08a;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 30px rgba(245, 158, 11, 0.4);
+            animation: allInGlow 1.5s infinite alternate;
+        }
+
+        @keyframes allInGlow {
+            0% {
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+                border-color: #fca5a5;
+            }
+            100% {
+                box-shadow: 0 0 22px rgba(239, 68, 68, 1), 0 0 35px rgba(245, 158, 11, 0.7);
+                border-color: #fde047;
+            }
         }
 
         /* Modal Backdrop */

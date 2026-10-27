@@ -14,19 +14,41 @@ let thNpcCount = 3;
         let thRaiseIncrement = 100;
         let thLastActionWasAllIn = false;
 
+        function updateThRaiseButtons() {
+            const base = (thInRound ? (thPlayerTotalContribution || thBet) : thBet) || 100;
+            const tiers = [
+                { mult: 1, amount: base },
+                { mult: 2, amount: base * 2 },
+                { mult: 3, amount: base * 3 },
+                { mult: 5, amount: base * 5 }
+            ];
+
+            const container = document.getElementById('th-raise-container');
+            if (!container) return;
+
+            const validAmounts = tiers.map(t => t.amount);
+            if (!validAmounts.includes(thRaiseIncrement)) {
+                thRaiseIncrement = tiers[0].amount;
+            }
+
+            container.innerHTML = `
+                <span class="text-[10px] font-bold text-slate-400">레이즈 인상폭:</span>
+                ${tiers.map(t => {
+                    const isSelected = thRaiseIncrement === t.amount;
+                    const cls = isSelected 
+                        ? 'bg-emerald-600 border-emerald-400 text-white shadow' 
+                        : 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700';
+                    return `<button type="button" class="th-raise-size text-xs px-2.5 py-1.5 rounded-lg border font-bold transition ${cls}" data-raise="${t.amount}" onclick="setThRaiseIncrement(${t.amount})">+${t.mult}x ($${t.amount.toLocaleString()})</button>`;
+                }).join('')}
+            `;
+        }
+
         function setThRaiseIncrement(amount) {
             if (thInRound && thRevealInProgress) return;
             thRaiseIncrement = amount;
-            document.querySelectorAll('.th-raise-size').forEach(btn => {
-                const selected = Number(btn.dataset.raise) === amount;
-                btn.classList.toggle('bg-emerald-600', selected);
-                btn.classList.toggle('border-emerald-400', selected);
-                btn.classList.toggle('text-white', selected);
-                btn.classList.toggle('bg-slate-800', !selected);
-                btn.classList.toggle('border-slate-600', !selected);
-                btn.classList.toggle('text-slate-200', !selected);
-            });
+            updateThRaiseButtons();
             enableThActionButtons();
+            playSound('chip');
         }
 
         function changeThNpcCount(delta) {
@@ -97,6 +119,7 @@ let thNpcCount = 3;
             thCurrentBet = 0;
             thPlayerStreetBet = 0;
             thPlayerTotalContribution = thBet;
+            updateThRaiseButtons();
 
             thNpcHands.forEach(npc => {
                 npc.cards = [];
@@ -213,13 +236,101 @@ let thNpcCount = 3;
             thNpcHands.forEach(n => n.cards.forEach(c => c.isNew = false));
         }
 
+        function getThAllInEligibility() {
+            if (balance <= 0) {
+                return { allowed: false, reason: '잔액이 없습니다.' };
+            }
+
+            const baseBet = thPlayerTotalContribution || thBet || 10;
+            // 숏스택(위기) 조건: 남은 잔액이 시작 베팅의 3배 이하이거나 $200 이하인 경우
+            const isShortStack = balance <= Math.max(200, baseBet * 3);
+
+            // 1. 프리플랍(thStage === 0) 제한: 숏스택이 아닌 경우 프리플랍 올인 불가
+            if (thStage === 0) {
+                if (!isShortStack) {
+                    return {
+                        allowed: false,
+                        reason: '프리플랍 올인 불가 (플랍 3장 공개 후 가능)'
+                    };
+                }
+            }
+
+            // 2. 족보 검증
+            const visibleCommunity = thCommunityCards.filter(c => c.revealed);
+            let playerCategory = -1;
+            let rankName = '미확인';
+
+            if (thPlayerHand.length === 2 && visibleCommunity.length >= 3) {
+                const evalRes = evaluate7CardHand([...thPlayerHand, ...visibleCommunity]);
+                playerCategory = evalRes.category;
+                rankName = evalRes.rankName;
+            } else if (thPlayerHand.length === 2 && visibleCommunity.length === 0) {
+                if (thPlayerHand[0].value === thPlayerHand[1].value) {
+                    playerCategory = 1;
+                    rankName = '포켓 페어';
+                } else {
+                    playerCategory = 0;
+                    rankName = '하이카드';
+                }
+            }
+
+            // 최소 원페어 이상 (playerCategory >= 1) 이면 허용
+            if (playerCategory >= 1) {
+                return { allowed: true, reason: `올인 가능! [${rankName}] 완성` };
+            }
+
+            // 숏스택 위기 긴급 올인 허용
+            if (isShortStack) {
+                return { allowed: true, reason: '올인 가능! (잔액 위기 숏스택 긴급 올인)' };
+            }
+
+            return {
+                allowed: false,
+                reason: '올인 불가 (원페어 이상 패를 만들거나 잔액 부족 시 가능)'
+            };
+        }
+
+        function updateThAllInRuleBadge(status) {
+            const badge = document.getElementById('th-allin-badge');
+            const icon = document.getElementById('th-allin-badge-icon');
+            const text = document.getElementById('th-allin-badge-text');
+            if (!badge || !icon || !text) return;
+
+            if (status && status.allowed) {
+                badge.className = 'flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/50 bg-emerald-950/60 text-emerald-300 transition shadow-[0_0_10px_rgba(16,185,129,0.2)]';
+                icon.className = 'fa-solid fa-lock-open text-emerald-400';
+                text.innerText = `🔥 ${status.reason}`;
+            } else {
+                badge.className = 'flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-slate-400 transition';
+                icon.className = 'fa-solid fa-lock text-amber-400';
+                const reasonStr = status ? status.reason : '플랍 이후 & 원페어 이상 (또는 숏스택)';
+                text.innerText = `🔒 올인 조건: ${reasonStr}`;
+            }
+        }
+
         function enableThActionButtons() {
             const toCall = Math.max(0, thCurrentBet - thPlayerStreetBet);
             document.getElementById('th-btn-fold').disabled = false;
             document.getElementById('th-btn-check').disabled = toCall > 0;
             document.getElementById('th-btn-call').disabled = toCall <= 0 || balance < toCall;
             document.getElementById('th-btn-raise').disabled = balance <= 0 || balance < toCall + thRaiseIncrement;
-            document.getElementById('th-btn-allin').disabled = balance <= 0;
+
+            const allInStatus = getThAllInEligibility();
+            const btnAllIn = document.getElementById('th-btn-allin');
+            btnAllIn.disabled = !allInStatus.allowed;
+            if (allInStatus.allowed) {
+                btnAllIn.classList.remove('opacity-40', 'cursor-not-allowed');
+                btnAllIn.classList.add('ready-allin');
+                btnAllIn.innerHTML = '<i class="fa-solid fa-fire mr-1 text-amber-300"></i>ALL IN';
+                btnAllIn.title = allInStatus.reason;
+            } else {
+                btnAllIn.classList.add('opacity-40', 'cursor-not-allowed');
+                btnAllIn.classList.remove('ready-allin');
+                btnAllIn.innerHTML = '<i class="fa-solid fa-lock mr-1 text-[10px]"></i>ALL IN';
+                btnAllIn.title = allInStatus.reason;
+            }
+
+            updateThAllInRuleBadge(allInStatus);
 
             document.getElementById('th-btn-call').innerText = toCall > 0 ? `CALL $${toCall.toLocaleString()}` : 'CALL';
             document.getElementById('th-btn-raise').innerText = `RAISE +$${thRaiseIncrement.toLocaleString()}`;
@@ -230,24 +341,91 @@ let thNpcCount = 3;
             document.getElementById('th-btn-check').disabled = true;
             document.getElementById('th-btn-call').disabled = true;
             document.getElementById('th-btn-raise').disabled = true;
-            document.getElementById('th-btn-allin').disabled = true;
+
+            const btnAllIn = document.getElementById('th-btn-allin');
+            if (btnAllIn) {
+                btnAllIn.disabled = true;
+                btnAllIn.classList.add('opacity-40');
+                btnAllIn.classList.remove('ready-allin');
+                btnAllIn.innerHTML = 'ALL IN';
+            }
+            updateThAllInRuleBadge(null);
         }
 
         function prepareThBettingRound() {
             thCurrentBet = 0;
             thPlayerStreetBet = 0;
+            const baseBet = (thPlayerTotalContribution || thBet || 10);
+            const visibleCards = thCommunityCards.filter(c => c.revealed);
+
             thNpcHands.forEach(npc => {
                 npc.streetBet = 0;
                 if (npc.folded) return;
-                if (Math.random() < 0.35) {
-                    const betAmt = 50;
-                    npc.streetBet = betAmt;
-                    npc.bet += betAmt;
-                    thPot += betAmt;
-                    thCurrentBet = betAmt;
-                    npc.status = `베팅 $${betAmt}`;
+
+                // NPC 패 족보 평가
+                let cat = 0;
+                let rankName = '하이카드';
+                if (visibleCards.length >= 3) {
+                    const evalRes = evaluate7CardHand([...npc.cards, ...visibleCards]);
+                    cat = evalRes.category;
+                    rankName = evalRes.rankName;
+                } else if (npc.cards.length === 2 && npc.cards[0].value === npc.cards[1].value) {
+                    cat = 1;
+                    rankName = '포켓 페어';
+                }
+
+                const aggression = (npc.info.risk || 16) / 20;
+
+                // 패의 강도와 공격성에 따른 베팅 확률 및 배율
+                let shouldBet = false;
+                let betMultiplier = 1;
+
+                if (cat >= 2) {
+                    // 투페어 이상 (강력한 패): 75% 베팅 (1배 또는 2배)
+                    shouldBet = Math.random() < 0.75;
+                    betMultiplier = Math.random() < 0.4 ? 2 : 1;
+                } else if (cat === 1) {
+                    // 원페어: 45% 베팅 (1배)
+                    shouldBet = Math.random() < 0.45;
+                    betMultiplier = 1;
                 } else {
-                    npc.status = '체크';
+                    // 하이카드: 공격성 높은 봇 위주 가끔 블러핑 베팅
+                    shouldBet = Math.random() < (aggression > 0.8 ? 0.20 : 0.08);
+                    betMultiplier = 1;
+                }
+
+                if (shouldBet) {
+                    const betAmt = Math.max(10, Math.round(baseBet * betMultiplier));
+                    if (betAmt > thCurrentBet) {
+                        const extra = betAmt - npc.streetBet;
+                        npc.streetBet = betAmt;
+                        npc.bet += extra;
+                        thPot += extra;
+                        thCurrentBet = betAmt;
+                        npc.status = `베팅 $${betAmt.toLocaleString()}`;
+                    } else if (thCurrentBet > 0 && npc.streetBet < thCurrentBet) {
+                        const extra = thCurrentBet - npc.streetBet;
+                        npc.streetBet = thCurrentBet;
+                        npc.bet += extra;
+                        thPot += extra;
+                        npc.status = `콜 $${thCurrentBet.toLocaleString()}`;
+                    }
+                } else {
+                    if (thCurrentBet > 0) {
+                        // 앞서 누군가 베팅했을 때: 원페어 이상이거나 콜 확률 통과 시 콜, 아니면 폴드
+                        if (cat >= 1 || Math.random() > 0.65) {
+                            const extra = thCurrentBet - npc.streetBet;
+                            npc.streetBet = thCurrentBet;
+                            npc.bet += extra;
+                            thPot += extra;
+                            npc.status = `콜 $${thCurrentBet.toLocaleString()}`;
+                        } else {
+                            npc.folded = true;
+                            npc.status = '폴드';
+                        }
+                    } else {
+                        npc.status = '체크';
+                    }
                 }
             });
             document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
@@ -300,6 +478,13 @@ let thNpcCount = 3;
             thLastActionWasAllIn = action === 'allin';
 
             if (action === 'allin') {
+                const eligibility = getThAllInEligibility();
+                if (!eligibility.allowed) {
+                    document.getElementById('th-status').innerText = `⚠️ ${eligibility.reason}`;
+                    playSound('chip');
+                    enableThActionButtons();
+                    return;
+                }
                 playerContribution = balance;
                 thPlayerStreetBet += playerContribution;
                 thCurrentBet = Math.max(thCurrentBet, thPlayerStreetBet);
@@ -315,19 +500,46 @@ let thNpcCount = 3;
                 thNpcHands.forEach(npc => {
                     if (npc.folded) return;
                     const aggression = (npc.info.risk || 16) / 20;
-                    const roll = Math.random();
-                    const foldChance = Math.max(0.08, 0.38 - aggression * 0.28);
-                    if (roll < foldChance) {
+
+                    const visibleCards = thCommunityCards.filter(c => c.revealed);
+                    let cat = 0;
+                    let rankName = '하이카드';
+                    if (visibleCards.length >= 3) {
+                        const evalRes = evaluate7CardHand([...npc.cards, ...visibleCards]);
+                        cat = evalRes.category;
+                        rankName = evalRes.rankName;
+                    } else if (npc.cards.length === 2 && npc.cards[0].value === npc.cards[1].value) {
+                        cat = 1;
+                        rankName = '포켓 페어';
+                    }
+
+                    const baseBet = thPlayerTotalContribution || thBet || 10;
+                    const raiseRatio = thRaiseIncrement / baseBet;
+
+                    let foldChance = 0.35;
+                    if (cat === 0) {
+                        // 하이카드: 레이즈 인상폭이 클수록 더 많이 폴드
+                        foldChance = raiseRatio >= 3 ? 0.85 : 0.65;
+                    } else if (cat === 1) {
+                        // 원페어: 거액 레이즈(5배 이상)가 아니면 80% 콜
+                        foldChance = raiseRatio >= 5 ? 0.45 : 0.20;
+                    } else {
+                        // 투페어 이상: 거의 무조건 콜
+                        foldChance = 0.06;
+                    }
+
+                    foldChance = Math.max(0.05, foldChance - (aggression - 0.75) * 0.25);
+
+                    if (Math.random() < foldChance) {
                         npc.folded = true;
                         npc.status = '폴드';
-                        return;
+                    } else {
+                        const extra = Math.max(0, thCurrentBet - npc.streetBet);
+                        npc.streetBet += extra;
+                        npc.bet += extra;
+                        thPot += extra;
+                        npc.status = `콜 [${rankName}]`;
                     }
-                    const extra = Math.max(0, thCurrentBet - npc.streetBet);
-                    npc.streetBet += extra;
-                    npc.bet += extra;
-                    thPot += extra;
-                    if (roll > 0.92 && aggression > 0.8) npc.status = '공격적 콜';
-                    else npc.status = aggression > 0.82 ? '공격적 콜' : '콜';
                 });
             }
 
@@ -354,15 +566,50 @@ let thNpcCount = 3;
                 thNpcHands.forEach(npc => {
                     if (npc.folded) return;
                     const aggression = (npc.info.risk || 16) / 20;
-                    if (Math.random() < Math.max(0.12, 0.48 - aggression * 0.3)) {
+
+                    // NPC 패 족보 평가
+                    const visibleCards = thCommunityCards.filter(c => c.revealed);
+                    let npcCat = 0;
+                    let npcRankName = '하이카드';
+                    if (visibleCards.length >= 3) {
+                        const evalRes = evaluate7CardHand([...npc.cards, ...visibleCards]);
+                        npcCat = evalRes.category;
+                        npcRankName = evalRes.rankName;
+                    } else if (npc.cards.length === 2 && npc.cards[0].value === npc.cards[1].value) {
+                        npcCat = 1;
+                        npcRankName = '포켓 페어';
+                    }
+
+                    // 시작 베팅 대비 올인액 배율 (오버벳 판별)
+                    const isHugeBet = playerContribution > ((thPlayerTotalContribution || 10) * 4);
+
+                    let foldChance = 0.5;
+                    if (npcCat === 0) {
+                        // 하이카드: 올인에는 95% 폴드 (무지성 기부 방지)
+                        foldChance = 0.95;
+                    } else if (npcCat === 1) {
+                        // 원페어: 거액 올인이면 70% 폴드, 보통 올인이면 40% 폴드
+                        foldChance = isHugeBet ? 0.70 : 0.40;
+                    } else if (npcCat === 2) {
+                        // 투페어: 좋은 패 (거액 35% 폴드, 보통 15% 폴드)
+                        foldChance = isHugeBet ? 0.35 : 0.15;
+                    } else {
+                        // 트리플 이상: 몬스터 핸드 (거의 무조건 콜)
+                        foldChance = 0.05;
+                    }
+
+                    // 성향(공격성) 보정
+                    foldChance = Math.max(0.05, foldChance - (aggression - 0.75) * 0.25);
+
+                    if (Math.random() < foldChance) {
                         npc.folded = true;
-                        npc.status = '올인에 폴드';
+                        npc.status = `올인에 폴드 (${npcRankName})`;
                     } else {
                         const extra = Math.max(0, thCurrentBet - npc.streetBet);
                         npc.streetBet += extra;
                         npc.bet += extra;
                         thPot += extra;
-                        npc.status = aggression > 0.82 ? '올인 콜 (공격적)' : '올인 콜';
+                        npc.status = `올인 콜! [${npcRankName}]`;
                     }
                 });
             }
