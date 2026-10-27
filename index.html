@@ -299,8 +299,10 @@
                 </div>
             </div>
 
-            <!-- Player Seats -->
-            <div id="th-players-container" class="flex justify-center items-end gap-1 sm:gap-3 mt-1 w-full px-1 overflow-x-auto pb-1"></div>
+            <!-- Player Seats (스크롤 래퍼: 모바일에서 overflow-visible인 poker-table 밖에서 가로스크롤) -->
+            <div id="th-players-scroll-wrapper">
+                <div id="th-players-container" class="flex justify-center items-end gap-1 sm:gap-3 mt-1 w-full px-1 pb-1"></div>
+            </div>
         </div>
 
         <!-- Texas Holdem Action Deck -->
