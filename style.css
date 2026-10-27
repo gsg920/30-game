@@ -1,0 +1,294 @@
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            user-select: none;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Casino Table Felt Background Base */
+        .casino-table {
+            background: radial-gradient(circle at center, #115e3b 0%, #064e3b 50%, #022c22 100%);
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+            border: 14px solid #3d2314;
+            border-radius: 140px 140px 40px 40px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .poker-table {
+            background: radial-gradient(circle at center, #1e3a8a 0%, #172554 50%, #0f172a 100%);
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+            border: 14px solid #3d2314;
+            border-radius: 140px 140px 40px 40px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .roulette-container {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* ALL IN Visual FX & Banner Animation for ALL TABLES */
+        @keyframes allInPulse {
+            0% { box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85), 0 0 0px rgba(220, 38, 38, 0); }
+            50% { box-shadow: inset 0 0 120px rgba(220, 38, 38, 0.5), 0 0 40px rgba(220, 38, 38, 0.8); }
+            100% { box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85), 0 0 0px rgba(220, 38, 38, 0); }
+        }
+
+        @keyframes tableShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px) translateY(2px); }
+            40% { transform: translateX(6px) translateY(-2px); }
+            60% { transform: translateX(-4px) translateY(-2px); }
+            80% { transform: translateX(4px) translateY(2px); }
+        }
+
+        .allin-active {
+            animation: allInPulse 1.2s ease-in-out, tableShake 0.4s ease-in-out;
+            border-color: #dc2626 !important;
+        }
+
+        /* BIG ALL IN TEXT BANNER ANIMATION */
+        @keyframes popUpText {
+            0% {
+                transform: translate(-50%, -50%) scale(0.2) rotate(-10deg);
+                opacity: 0;
+            }
+            30% {
+                transform: translate(-50%, -50%) scale(1.2) rotate(3deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            80% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+                opacity: 0;
+            }
+        }
+
+        .global-allin-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #ef4444;
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.9), 0 0 40px rgba(0, 0, 0, 0.9), 4px 4px 0px #000;
+            letter-spacing: 0.15em;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .global-allin-banner.animate {
+            animation: popUpText 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @media (min-width: 640px) {
+            .global-allin-banner { font-size: 6rem; }
+        }
+
+        @media (max-width: 1024px) {
+            .casino-table, .poker-table {
+                border-radius: 30px;
+                border-width: 8px;
+            }
+        }
+
+        /* Card Visuals Base */
+        .playing-card {
+            width: 64px;
+            height: 92px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: -2px 5px 12px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            font-weight: 800;
+            position: relative;
+            flex-shrink: 0;
+            will-change: transform, opacity;
+        }
+
+        @media (min-width: 640px) {
+            .playing-card {
+                width: 78px;
+                height: 112px;
+                border-radius: 10px;
+                padding: 7px;
+            }
+        }
+
+        .playing-card.back {
+            background: linear-gradient(135deg, #1e3a8a 25%, #1e40af 25%, #1e40af 50%, #1e3a8a 50%, #1e3a8a 75%, #1e40af 75%, #1e40af 100%);
+            background-size: 20px 20px;
+            border: 3px solid #ffffff;
+        }
+
+        .playing-card.red { color: #dc2626; }
+        .playing-card.black { color: #111827; }
+
+        /* Card Animation Slide In */
+        @keyframes dealCard {
+            0% {
+                opacity: 0;
+                transform: translateY(-160px) scale(0.6) rotate(10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .deal-animation {
+            animation: dealCard 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Texas Hold'em community-card flip */
+        .th-community-card {
+            width: 64px;
+            height: 92px;
+            flex-shrink: 0;
+            perspective: 900px;
+            position: relative;
+        }
+        .th-card-flip-inner {
+            position: absolute;
+            inset: 0;
+            transform-style: preserve-3d;
+            transition: transform 0.62s cubic-bezier(0.2, 0.72, 0.25, 1);
+        }
+        .th-community-card.revealed .th-card-flip-inner { transform: rotateY(180deg); }
+        .th-card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+        }
+        .th-card-face .playing-card { width: 100%; height: 100%; box-sizing: border-box; }
+        .th-card-face-front { transform: rotateY(180deg); }
+        .th-community-card.revealing { animation: thCardPop 0.25s ease-out; }
+        @keyframes thCardPop {
+            0% { transform: translateY(-8px) scale(0.96); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        @media (min-width: 640px) {
+            .th-community-card { width: 78px; height: 112px; }
+        }
+
+        /* Chips Styling & Hover Tooltips */
+        .chip-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .chip-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%) translateY(5px);
+            background: rgba(15, 23, 42, 0.95);
+            color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .chip-wrapper:hover .chip-tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .chip {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 11px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.4), inset 0 0 0 5px dashed rgba(255,255,255,0.6);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            position: relative;
+        }
+
+        .chip:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 rgba(0,0,0,0.4), inset 0 0 0 5px dashed rgba(255,255,255,0.8);
+        }
+
+        .chip:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+        }
+
+        .chip-10 { background: radial-gradient(circle, #ef4444, #991b1b); color: white; border: 3px solid #fca5a5; }
+        .chip-25 { background: radial-gradient(circle, #3b82f6, #1e40af); color: white; border: 3px solid #93c5fd; }
+        .chip-50 { background: radial-gradient(circle, #10b981, #065f46); color: white; border: 3px solid #6ee7b7; }
+        .chip-100 { background: radial-gradient(circle, #374151, #111827); color: #f3f4f6; border: 3px solid #9ca3af; }
+        .chip-500 { background: radial-gradient(circle, #8b5cf6, #5b21b6); color: white; border: 3px solid #c4b5fd; }
+        .chip-1000 { background: radial-gradient(circle, #f59e0b, #78350f); color: white; border: 3px solid #fde047; }
+
+        .btn-allin {
+            background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
+            border: 2px solid #fca5a5;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
+        }
+
+        /* Modal Backdrop */
+        .modal-backdrop { backdrop-filter: blur(8px); }
+
+        /* Bankruptcy Animation Effects */
+        @keyframes doorSlam {
+            0% { transform: scale(1.4); opacity: 0; }
+            60% { transform: scale(0.95); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .door-slam-anim { animation: doorSlam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        @keyframes beggarFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .beggar-float { animation: beggarFloat 3s ease-in-out infinite; }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
