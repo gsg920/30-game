@@ -275,6 +275,9 @@ let balance = 1000;
             bankrupt: 'ending-bankrupt.webp'
         };
 
+        // 엔딩 화면이 열릴 때 바로 보이도록 미리 불러와 캐시에 올려 둔다.
+        Object.values(endingImages).forEach(file => { new Image().src = ENDING_IMAGE_DIR + file; });
+
         // 이미지를 보여주고 대체 요소(아이콘/SVG)를 숨긴다. 이미지가 없거나 불러오지 못하면 대체 요소를 보여준다.
         function showEndingImage(imgId, fallbackId, file) {
             const img = document.getElementById(imgId);
@@ -288,6 +291,9 @@ let balance = 1000;
                 img.classList.remove('hidden');
                 fallback.classList.add('hidden');
             };
+            // 이미지가 준비되기 전에는 아이콘이 먼저 보이지 않도록 둘 다 숨겨 둔다.
+            img.classList.add('hidden');
+            fallback.classList.add('hidden');
             if (!file) {
                 img.removeAttribute('src');
                 showFallback();
