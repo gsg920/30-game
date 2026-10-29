@@ -167,6 +167,7 @@
             document.getElementById('roulette-result-display').innerText = `당첨 번호: ${winningNum} (${colorText})`;
 
             let totalPayout = 0;
+            const totalBet = Object.values(rouletteBets).reduce((sum, amount) => sum + amount, 0);
             Object.keys(rouletteBets).forEach(key => {
                 const betAmt = rouletteBets[key];
                 if (key === winningNum.toString()) totalPayout += betAmt * 36;
@@ -183,7 +184,7 @@
 
             if (totalPayout > 0) {
                 balance += totalPayout;
-                lifetimeProfit += totalPayout;
+                lifetimeProfit += Math.max(0, totalPayout - totalBet);
                 document.getElementById('roulette-status').innerText = `🎉 당첨! $${totalPayout.toLocaleString()} 획득!`;
                 playSound('win');
             } else {

@@ -116,6 +116,9 @@ let balance = 1000;
             const bjDeal = document.getElementById('bj-btn-deal');
             const bjHit = document.getElementById('bj-btn-hit');
             const bjStand = document.getElementById('bj-btn-stand');
+            const bjDouble = document.getElementById('bj-btn-double');
+            if (bjDouble) bjDouble.disabled = true;
+            bjPlayerBlackjack = false;
             if (bjDeal) bjDeal.disabled = false;
             if (bjHit) bjHit.disabled = true;
             if (bjStand) bjStand.disabled = true;
@@ -354,6 +357,7 @@ let balance = 1000;
 
         function allInBet(gameType) {
             if (gameType === 'bj' && bjInRound) return;
+            if (gameType === 'th' && thInRound) return;
             if (balance <= 0) return;
             const amt = balance;
             balance = 0;

@@ -164,10 +164,11 @@
                         <div class="text-[10px] text-slate-400 font-bold">베팅금액:</div>
                         <div id="bj-current-bet" class="text-sm sm:text-base font-black text-amber-400">$0</div>
                     </div>
-                    <div class="grid grid-cols-3 sm:flex items-center gap-1.5 w-full sm:w-auto">
+                    <div class="grid grid-cols-4 sm:flex items-center gap-1.5 w-full sm:w-auto">
                         <button id="bj-btn-deal" onclick="startBjRound()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm shadow-lg transition active:scale-95 disabled:opacity-40">DEAL</button>
                         <button id="bj-btn-hit" onclick="bjPlayerHit()" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">HIT</button>
                         <button id="bj-btn-stand" onclick="bjPlayerStand()" disabled class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm transition active:scale-95 disabled:opacity-40">STAND</button>
+                        <button id="bj-btn-double" onclick="bjPlayerDouble()" disabled class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-2 py-2 sm:px-4 sm:py-2.5 rounded-xl text-[10px] sm:text-sm transition active:scale-95 disabled:opacity-40">DOUBLE</button>
                     </div>
                 </div>
             </div>

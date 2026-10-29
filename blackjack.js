@@ -5,6 +5,7 @@
         let bjDealerHand = [];
         let bjPlayerHand = [];
         let bjNpcHands = [];
+        let bjPlayerBlackjack = false;
 
         const npcPool = [
             { name: '김철수', color: 'text-blue-400', risk: 16 },
@@ -90,6 +91,7 @@
             }
 
             bjInRound = true;
+            bjPlayerBlackjack = false;
             bjDeck = createDeck();
             bjPlayerHand = [];
             bjDealerHand = [];
@@ -111,8 +113,10 @@
                 renderBjCards();
                 document.getElementById('bj-btn-hit').disabled = false;
                 document.getElementById('bj-btn-stand').disabled = false;
-                document.getElementById('bj-status').innerText = "HIT 또는 STAND를 선택하세요.";
+                document.getElementById('bj-btn-double').disabled = balance < bjBet;
+                document.getElementById('bj-status').innerText = "HIT, STAND, DOUBLE 중 선택하세요.";
                 if (calculateBjScore(bjPlayerHand) === 21) {
+                    bjPlayerBlackjack = true;
                     document.getElementById('bj-player-status').innerText = "BLACKJACK!";
                     bjPlayerStand();
                 }
@@ -154,6 +158,7 @@
 
         function bjPlayerHit() {
             if (!bjInRound) return;
+            document.getElementById('bj-btn-double').disabled = true;
             dealBjCardTo(bjPlayerHand);
             renderBjCards();
             if (calculateBjScore(bjPlayerHand) > 21) {
@@ -162,10 +167,25 @@
             }
         }
 
+        function bjPlayerDouble() {
+            if (!bjInRound || bjPlayerHand.length !== 2 || balance < bjBet) return;
+            balance -= bjBet;
+            bjBet *= 2;
+            updateGlobalBalanceUI();
+            updateGameBetsUI();
+            playSound('chip');
+            if (balance === 0) triggerAllInEffect();
+            dealBjCardTo(bjPlayerHand);
+            renderBjCards();
+            if (calculateBjScore(bjPlayerHand) > 21) document.getElementById('bj-player-status').innerText = "BUST";
+            bjPlayerStand();
+        }
+
         function bjPlayerStand() {
             if (!bjInRound) return;
             document.getElementById('bj-btn-hit').disabled = true;
             document.getElementById('bj-btn-stand').disabled = true;
+            document.getElementById('bj-btn-double').disabled = true;
             let delay = 300;
             bjNpcHands.forEach(npc => {
                 setTimeout(() => {
@@ -179,8 +199,9 @@
             setTimeout(() => {
                 if (bjDealerHand.length > 1) bjDealerHand[1].hidden = false;
                 renderBjCards();
+                const dealerStandsPat = calculateBjScore(bjPlayerHand) > 21 || bjPlayerBlackjack;
                 const timer = setInterval(() => {
-                    if (calculateBjScore(bjDealerHand) < 17) {
+                    if (!dealerStandsPat && calculateBjScore(bjDealerHand) < 17) {
                         dealBjCardTo(bjDealerHand);
                         renderBjCards();
                     } else {
@@ -198,8 +219,18 @@
             const dScore = calculateBjScore(bjDealerHand);
             let msg = "";
 
+            const dealerBlackjack = bjDealerHand.length === 2 && dScore === 21;
+
             if (pScore > 21) {
                 msg = "버스트로 패배하셨습니다."; playSound('lose');
+            } else if (bjPlayerBlackjack && dealerBlackjack) {
+                balance += bjBet; msg = "블랙잭 무승부 (Push) - 환급"; playSound('chip');
+            } else if (bjPlayerBlackjack) {
+                const profit = Math.floor(bjBet * 1.5);
+                balance += bjBet + profit; lifetimeProfit += profit;
+                msg = `🃏 블랙잭! 1.5배 배당으로 $${(bjBet + profit).toLocaleString()} 획득!`; playSound('win');
+            } else if (dealerBlackjack) {
+                msg = "딜러 블랙잭! 딜러의 승리입니다."; playSound('lose');
             } else if (dScore > 21 || pScore > dScore) {
                 const winAmt = bjBet * 2;
                 balance += winAmt; lifetimeProfit += bjBet;

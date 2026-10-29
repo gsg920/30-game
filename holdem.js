@@ -13,6 +13,52 @@ let thNpcCount = 3;
         let thRevealInProgress = false;
         let thRaiseIncrement = 100;
         let thLastActionWasAllIn = false;
+        const TH_SHORT_STACK_LIMIT = 300;
+        // NPC별 콜 성향: margin(+면 타이트), heroCall(승률이 부족해도 콜하는 확률)
+        const TH_NPC_STYLES = {
+            '김철수': { margin: 0.02, heroCall: 0.06 },
+            '이지은': { margin: 0.06, heroCall: 0.03 },
+            '박민수': { margin: -0.04, heroCall: 0.12 },
+            '제시카': { margin: 0.0, heroCall: 0.08 }
+        };
+
+        // 보유 패가 상대 1명의 무작위 패를 이길 확률(무승부는 절반)을 몬테카를로로 추정한다.
+        function estimateThEquity(holeCards, boardCards, sims = 60) {
+            const known = new Set([...holeCards, ...boardCards].map(c => c.value + c.suit));
+            const remaining = [];
+            for (const suit of suits) for (const value of values) {
+                if (!known.has(value + suit)) remaining.push({ suit, value });
+            }
+            const needBoard = 5 - boardCards.length;
+            const need = needBoard + 2;
+            let score = 0;
+            for (let s = 0; s < sims; s++) {
+                for (let i = 0; i < need; i++) {
+                    const j = i + Math.floor(Math.random() * (remaining.length - i));
+                    [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+                }
+                const board = [...boardCards, ...remaining.slice(0, needBoard)];
+                const opp = remaining.slice(needBoard, need);
+                const mine = evaluate7CardHand([...holeCards, ...board]).score;
+                const theirs = evaluate7CardHand([...opp, ...board]).score;
+                score += mine > theirs ? 1 : mine === theirs ? 0.5 : 0;
+            }
+            return score / sims;
+        }
+
+        // 팟 오즈와 추정 승률을 비교해 NPC가 콜할지 결정한다.
+        function npcWillCall(npc, callAmt, potAfterBet, isAllIn) {
+            if (callAmt <= 0) return true;
+            const style = TH_NPC_STYLES[npc.info.name] || { margin: 0.02, heroCall: 0.05 };
+            const board = thCommunityCards.filter(c => c.revealed);
+            const equity = estimateThEquity(npc.cards, board);
+            const potOdds = callAmt / (potAfterBet + callAmt);
+            const noise = (Math.random() - 0.5) * 0.12;
+            // 베팅한 쪽의 패는 무작위 패보다 강하므로 올인/레이즈에는 요구 승률을 조금 더 높인다.
+            const required = potOdds + style.margin + (isAllIn ? 0.05 : 0.02) + noise;
+            if (equity >= required) return true;
+            return Math.random() < style.heroCall;
+        }
 
         function updateThRaiseButtons() {
             const base = (thInRound ? (thPlayerTotalContribution || thBet) : thBet) || 100;
@@ -241,9 +287,10 @@ let thNpcCount = 3;
                 return { allowed: false, reason: '잔액이 없습니다.' };
             }
 
-            const baseBet = thPlayerTotalContribution || thBet || 10;
-            // 숏스택(위기) 조건: 남은 잔액이 시작 베팅의 3배 이하이거나 $200 이하인 경우
-            const isShortStack = balance <= Math.max(200, baseBet * 3);
+            // 숏스택(위기) 조건: 이번 판 시작 시점의 총 스택(남은 잔액 + 이미 낸 금액)이 기준 이하인 경우.
+            // 베팅액에 따라 기준이 움직이면 큰 베팅으로 우회할 수 있어 고정값을 사용한다.
+            const handStack = balance + thPlayerTotalContribution;
+            const isShortStack = handStack <= TH_SHORT_STACK_LIMIT;
 
             // 1. 프리플랍(thStage === 0) 제한: 숏스택이 아닌 경우 프리플랍 올인 불가
             if (thStage === 0) {
@@ -394,8 +441,9 @@ let thNpcCount = 3;
                     betMultiplier = 1;
                 }
 
-                if (shouldBet) {
-                    const betAmt = Math.max(10, Math.round(baseBet * betMultiplier));
+                if (shouldBet && balance > 0) {
+                    // 사이드 팟이 없으므로 NPC 베팅은 플레이어의 남은 잔액을 넘지 않게 제한한다.
+                    const betAmt = Math.min(balance, Math.max(10, Math.round(baseBet * betMultiplier)));
                     if (betAmt > thCurrentBet) {
                         const extra = betAmt - npc.streetBet;
                         npc.streetBet = betAmt;
@@ -474,6 +522,12 @@ let thNpcCount = 3;
                 return;
             }
 
+            if ((action === 'call' && toCall > balance) || (action === 'raise' && toCall + thRaiseIncrement > balance)) {
+                document.getElementById('th-status').innerText = '잔액이 부족합니다.';
+                enableThActionButtons();
+                return;
+            }
+
             let playerContribution = 0;
             thLastActionWasAllIn = action === 'allin';
 
@@ -499,46 +553,15 @@ let thNpcCount = 3;
                 
                 thNpcHands.forEach(npc => {
                     if (npc.folded) return;
-                    const aggression = (npc.info.risk || 16) / 20;
-
-                    const visibleCards = thCommunityCards.filter(c => c.revealed);
-                    let cat = 0;
-                    let rankName = '하이카드';
-                    if (visibleCards.length >= 3) {
-                        const evalRes = evaluate7CardHand([...npc.cards, ...visibleCards]);
-                        cat = evalRes.category;
-                        rankName = evalRes.rankName;
-                    } else if (npc.cards.length === 2 && npc.cards[0].value === npc.cards[1].value) {
-                        cat = 1;
-                        rankName = '포켓 페어';
-                    }
-
-                    const baseBet = thPlayerTotalContribution || thBet || 10;
-                    const raiseRatio = thRaiseIncrement / baseBet;
-
-                    let foldChance = 0.35;
-                    if (cat === 0) {
-                        // 하이카드: 레이즈 인상폭이 클수록 더 많이 폴드
-                        foldChance = raiseRatio >= 3 ? 0.85 : 0.65;
-                    } else if (cat === 1) {
-                        // 원페어: 거액 레이즈(5배 이상)가 아니면 80% 콜
-                        foldChance = raiseRatio >= 5 ? 0.45 : 0.20;
+                    const callAmt = Math.max(0, thCurrentBet - npc.streetBet);
+                    if (npcWillCall(npc, callAmt, thPot + playerContribution, false)) {
+                        npc.streetBet += callAmt;
+                        npc.bet += callAmt;
+                        thPot += callAmt;
+                        npc.status = `콜 $${thCurrentBet.toLocaleString()}`;
                     } else {
-                        // 투페어 이상: 거의 무조건 콜
-                        foldChance = 0.06;
-                    }
-
-                    foldChance = Math.max(0.05, foldChance - (aggression - 0.75) * 0.25);
-
-                    if (Math.random() < foldChance) {
                         npc.folded = true;
                         npc.status = '폴드';
-                    } else {
-                        const extra = Math.max(0, thCurrentBet - npc.streetBet);
-                        npc.streetBet += extra;
-                        npc.bet += extra;
-                        thPot += extra;
-                        npc.status = `콜 [${rankName}]`;
                     }
                 });
             }
@@ -565,51 +588,15 @@ let thNpcCount = 3;
             if (action === 'allin' && playerContribution > 0) {
                 thNpcHands.forEach(npc => {
                     if (npc.folded) return;
-                    const aggression = (npc.info.risk || 16) / 20;
-
-                    // NPC 패 족보 평가
-                    const visibleCards = thCommunityCards.filter(c => c.revealed);
-                    let npcCat = 0;
-                    let npcRankName = '하이카드';
-                    if (visibleCards.length >= 3) {
-                        const evalRes = evaluate7CardHand([...npc.cards, ...visibleCards]);
-                        npcCat = evalRes.category;
-                        npcRankName = evalRes.rankName;
-                    } else if (npc.cards.length === 2 && npc.cards[0].value === npc.cards[1].value) {
-                        npcCat = 1;
-                        npcRankName = '포켓 페어';
-                    }
-
-                    // 시작 베팅 대비 올인액 배율 (오버벳 판별)
-                    const isHugeBet = playerContribution > ((thPlayerTotalContribution || 10) * 4);
-
-                    let foldChance = 0.5;
-                    if (npcCat === 0) {
-                        // 하이카드: 올인에는 95% 폴드 (무지성 기부 방지)
-                        foldChance = 0.95;
-                    } else if (npcCat === 1) {
-                        // 원페어: 거액 올인이면 70% 폴드, 보통 올인이면 40% 폴드
-                        foldChance = isHugeBet ? 0.70 : 0.40;
-                    } else if (npcCat === 2) {
-                        // 투페어: 좋은 패 (거액 35% 폴드, 보통 15% 폴드)
-                        foldChance = isHugeBet ? 0.35 : 0.15;
+                    const callAmt = Math.max(0, thCurrentBet - npc.streetBet);
+                    if (npcWillCall(npc, callAmt, thPot, true)) {
+                        npc.streetBet += callAmt;
+                        npc.bet += callAmt;
+                        thPot += callAmt;
+                        npc.status = '올인 콜!';
                     } else {
-                        // 트리플 이상: 몬스터 핸드 (거의 무조건 콜)
-                        foldChance = 0.05;
-                    }
-
-                    // 성향(공격성) 보정
-                    foldChance = Math.max(0.05, foldChance - (aggression - 0.75) * 0.25);
-
-                    if (Math.random() < foldChance) {
                         npc.folded = true;
-                        npc.status = `올인에 폴드 (${npcRankName})`;
-                    } else {
-                        const extra = Math.max(0, thCurrentBet - npc.streetBet);
-                        npc.streetBet += extra;
-                        npc.bet += extra;
-                        thPot += extra;
-                        npc.status = `올인 콜! [${npcRankName}]`;
+                        npc.status = '올인에 폴드';
                     }
                 });
             }
