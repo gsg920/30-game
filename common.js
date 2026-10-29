@@ -9,6 +9,8 @@ let balance = 1000;
             { id: 'car', name: '자동차 열쇠와 차량', icon: 'fa-car', price: 50000, resale: 20000, desc: '직접 운전해서 집으로 돌아간다.' }
         ];
         const ownedItems = { clothes: false, wallet: false, phone: false, car: false };
+        // 이긴 판의 이익만 더한 누적 승리금이 이 값 이상이면 최고 엔딩 대신 블랙리스트 엔딩이 된다.
+        const BLACKLIST_PROFIT = 500000;
 
         const suits = ['♠', '♥', '♦', '♣'];
         const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -256,9 +258,43 @@ let balance = 1000;
                 if (balance < 10) {
                     clearAllInEffects();
                     playSound('kickout');
+                    showEndingImage('bankrupt-image', 'bankrupt-fallback', endingImages.bankrupt);
                     document.getElementById('bankrupt-modal').classList.remove('hidden');
                 }
             }
+        }
+
+        const ENDING_IMAGE_DIR = 'images/endings/';
+        const endingImages = {
+            blacklist: 'ending-black.webp',
+            highroller: 'ending-king.webp',
+            broke: 'ending-broke-home.webp',
+            car: 'ending-car.webp',
+            taxi: 'ending-taxi.webp',
+            bus: 'ending-bus.webp',
+            bankrupt: 'ending-bankrupt.webp'
+        };
+
+        // 이미지를 보여주고 대체 요소(아이콘/SVG)를 숨긴다. 이미지가 없거나 불러오지 못하면 대체 요소를 보여준다.
+        function showEndingImage(imgId, fallbackId, file) {
+            const img = document.getElementById(imgId);
+            const fallback = document.getElementById(fallbackId);
+            const showFallback = () => {
+                img.classList.add('hidden');
+                fallback.classList.remove('hidden');
+            };
+            img.onerror = showFallback;
+            img.onload = () => {
+                img.classList.remove('hidden');
+                fallback.classList.add('hidden');
+            };
+            if (!file) {
+                img.removeAttribute('src');
+                showFallback();
+                return;
+            }
+            img.src = ENDING_IMAGE_DIR + file;
+            if (img.complete && img.naturalWidth > 0) img.onload();
         }
 
         function leaveCasino() {
@@ -267,26 +303,30 @@ let balance = 1000;
                 return;
             }
             clearAllInEffects();
-            let title, icon, story, isBlocked = false;
+            let title, icon, story, image = null, isBlocked = false;
 
-            if (balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car) {
-                title = '카지노의 왕'; icon = 'fa-crown'; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. 이제 당신은 카지노의 전설이다.`;
+            const hasEverything = balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car;
+            if (hasEverything && lifetimeProfit >= BLACKLIST_PROFIT) {
+                title = '블랙리스트'; icon = 'fa-user-slash'; image = endingImages.blacklist; story = `전 재산과 모든 소지품을 되찾았지만, 너무 많이 따 버렸다. 카지노는 당신의 이름을 입장 금지 명단에 올렸다. 이제 이 카지노의 문은 다시 열리지 않는다.`;
+            } else if (hasEverything) {
+                title = '전설의 하이롤러'; icon = 'fa-crown'; image = endingImages.highroller; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. VIP 대접을 받으며 당당히 카지노를 떠난다. 이제 당신은 전설의 하이롤러다.`;
             } else if (!ownedItems.clothes) {
                 title = '아직 떠날 수 없다'; icon = 'fa-ban'; 
                 story = '전당포에 맡긴 최소한의 입을 옷조차 되찾지 못했습니다. 카지노에서 돈을 더 벌어 전당포에서 옷을 먼저 되찾으세요!';
                 isBlocked = true;
             } else if (balance === 0 && ownedItems.clothes) {
-                title = '빈털터리 귀환'; icon = 'fa-person-walking'; story = '카지노를 떠나기 위해 옷은 겨우 되찾았지만, 수중에 남은 돈은 한 푼도 없다. 결국 빈털터리로 집에 돌아갑니다.';
+                title = '빈털터리 귀환'; icon = 'fa-person-walking'; image = endingImages.broke; story = '카지노를 떠나기 위해 옷은 겨우 되찾았지만, 수중에 남은 돈은 한 푼도 없다. 결국 빈털터리로 집에 돌아갑니다.';
             } else if (ownedItems.car) {
-                title = '내 차로 귀가'; icon = 'fa-car'; story = '옷과 자동차를 되찾고 당당하게 전용 차량으로 카지노를 떠납니다.';
+                title = '내 차로 귀가'; icon = 'fa-car'; image = endingImages.car; story = '옷과 자동차를 되찾고 당당하게 전용 차량으로 카지노를 떠납니다.';
             } else if (ownedItems.phone) {
-                title = '택시를 타고 귀가'; icon = 'fa-taxi'; story = '스마트폰으로 택시를 불러 편안히 귀가합니다.';
+                title = '택시를 타고 귀가'; icon = 'fa-taxi'; image = endingImages.taxi; story = '스마트폰으로 택시를 불러 편안히 귀가합니다.';
             } else {
-                title = '버스를 타고 귀가'; icon = 'fa-bus'; story = '옷은 되찾았고 약간의 돈도 남았다. 택시를 부를 형편은 아니지만, 버스를 타고 집으로 돌아갑니다.';
+                title = '버스를 타고 귀가'; icon = 'fa-bus'; image = endingImages.bus; story = '옷은 되찾았고 약간의 돈도 남았다. 택시를 부를 형편은 아니지만, 버스를 타고 집으로 돌아갑니다.';
             }
 
             document.getElementById('ending-title').innerText = title;
             document.getElementById('ending-icon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            showEndingImage('ending-image', 'ending-icon', image);
             document.getElementById('ending-text').innerText = story;
             document.getElementById('ending-stats').innerText = `남은 돈: $${balance.toLocaleString()} · 누적 승리금: $${lifetimeProfit.toLocaleString()}`;
 

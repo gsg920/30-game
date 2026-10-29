@@ -398,7 +398,8 @@
     <!-- MODAL: Bankrupt Ending -->
     <div id="bankrupt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/90 hidden">
         <div class="bg-slate-950 border-2 border-red-600 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center relative overflow-hidden door-slam-anim">
-            <div class="w-32 h-32 mx-auto mb-2 beggar-float relative">
+            <img id="bankrupt-image" alt="" class="hidden w-full max-h-[40vh] object-contain rounded-2xl border border-red-600/40 mb-4">
+            <div id="bankrupt-fallback" class="w-32 h-32 mx-auto mb-2 beggar-float relative">
                 <svg viewBox="0 0 200 200" fill="none" class="w-full h-full drop-shadow-[0_10px_15px_rgba(239,68,68,0.4)]">
                     <ellipse cx="100" cy="180" rx="70" ry="10" fill="#0f172a" />
                     <path d="M 60 130 L 140 130 L 150 180 L 50 180 Z" fill="#334155" />
@@ -421,6 +422,7 @@
     <!-- MODAL: Story Ending (Game Result & Exit Modal) -->
     <div id="ending-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 modal-backdrop bg-black/90">
         <div class="bg-slate-950 border-2 border-amber-500/60 rounded-3xl max-w-lg w-full p-6 shadow-2xl text-center">
+            <img id="ending-image" alt="" class="hidden w-full max-h-[40vh] object-contain rounded-2xl border border-amber-500/30 mb-4">
             <div id="ending-icon" class="text-5xl text-amber-400 mb-3"></div>
             <h2 id="ending-title" class="text-2xl font-black text-amber-400 mb-3"></h2>
             <p id="ending-text" class="text-sm text-slate-300 leading-relaxed bg-slate-900 p-4 rounded-2xl border border-slate-800"></p>
