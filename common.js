@@ -174,24 +174,31 @@ let balance = 1000;
         function closeInventoryModal() { document.getElementById('inventory-modal').classList.add('hidden'); }
         function closeEndingModal() { document.getElementById('ending-modal').classList.add('hidden'); }
 
+        // 옷이 없는 채로 잔액이 파산 기준($10) 아래가 되는 구매는 막는다. 옷도 돈도 없으면 더 진행할 수 없다.
+        function isPurchaseBlocked(item) {
+            return !ownedItems.clothes && item.id !== 'clothes' && balance - item.price < 10;
+        }
+
         function renderShop() {
             const container = document.getElementById('shop-items');
             container.innerHTML = storyItems.map(item => {
                 const owned = ownedItems[item.id];
-                const canAfford = balance >= item.price;
+                const canAfford = balance >= item.price && !isPurchaseBlocked(item);
                 return `<div class="bg-slate-900 border ${owned ? 'border-emerald-600/50' : 'border-slate-800'} rounded-xl p-4 flex gap-3 items-center">
                     <div class="w-12 h-12 flex-shrink-0 rounded-xl bg-slate-800 flex items-center justify-center text-2xl ${owned ? 'text-emerald-400' : 'text-amber-400'}"><i class="fa-solid ${item.icon}"></i></div>
                     <div class="flex-1 min-w-0"><div class="font-bold text-white">${item.name}</div><div class="text-xs text-slate-400 mt-1">${item.desc}</div><div class="text-amber-300 font-black mt-2">$${item.price.toLocaleString()}</div></div>
-                    <button onclick="buyStoryItem('${item.id}')" ${owned || !canAfford ? 'disabled' : ''} class="text-xs font-black px-3 py-2 rounded-lg whitespace-nowrap ${owned ? 'bg-emerald-900 text-emerald-300' : canAfford ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-500'} disabled:opacity-80">${owned ? '되찾음' : canAfford ? '되찾기' : '잔액 부족'}</button>
+                    <button onclick="buyStoryItem('${item.id}')" ${owned || !canAfford ? 'disabled' : ''} class="text-xs font-black px-3 py-2 rounded-lg whitespace-nowrap ${owned ? 'bg-emerald-900 text-emerald-300' : canAfford ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-500'} disabled:opacity-80">${owned ? '되찾음' : canAfford ? '되찾기' : balance >= item.price ? '옷이 먼저' : '잔액 부족'}</button>
                 </div>`;
             }).join('');
-            document.getElementById('shop-message').innerText = `보유 자금: $${balance.toLocaleString()}`;
+            document.getElementById('shop-message').innerText = storyItems.some(item => !ownedItems[item.id] && balance >= item.price && isPurchaseBlocked(item))
+                ? `보유 자금: $${balance.toLocaleString()} · 옷을 먼저 되찾고 최소 $10를 남겨야 다른 물건을 살 수 있습니다.`
+                : `보유 자금: $${balance.toLocaleString()}`;
         }
 
         function buyStoryItem(id) {
             const item = storyItems.find(entry => entry.id === id);
             if (!item || ownedItems[id]) return;
-            if (balance < item.price) return;
+            if (balance < item.price || isPurchaseBlocked(item)) return;
             balance -= item.price;
             ownedItems[id] = true;
             updateGlobalBalanceUI();
@@ -307,6 +314,7 @@ let balance = 1000;
             bjBet = 0;
             thBet = 0;
             thRaiseIncrement = 100;
+            thRaiseAllIn = false;
             rouletteBets = {};
             Object.keys(ownedItems).forEach(id => ownedItems[id] = false);
 

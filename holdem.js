@@ -13,7 +13,7 @@ let thNpcCount = 3;
         let thRevealInProgress = false;
         let thRaiseIncrement = 100;
         let thLastActionWasAllIn = false;
-        const TH_SHORT_STACK_LIMIT = 300;
+        let thRaiseAllIn = false; // true면 RAISE가 남은 잔액 전부를 거는 올인 레이즈가 된다
         // NPC별 콜 성향: margin(+면 타이트), heroCall(승률이 부족해도 콜하는 확률)
         const TH_NPC_STYLES = {
             '김철수': { margin: 0.02, heroCall: 0.06 },
@@ -81,21 +81,37 @@ let thNpcCount = 3;
             container.innerHTML = `
                 <span class="text-[10px] font-bold text-slate-400">레이즈 인상폭:</span>
                 ${tiers.map(t => {
-                    const isSelected = thRaiseIncrement === t.amount;
-                    const cls = isSelected 
-                        ? 'bg-emerald-600 border-emerald-400 text-white shadow' 
+                    const isSelected = !thRaiseAllIn && thRaiseIncrement === t.amount;
+                    const cls = isSelected
+                        ? 'bg-emerald-600 border-emerald-400 text-white shadow'
                         : 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700';
                     return `<button type="button" class="th-raise-size text-xs px-2.5 py-1.5 rounded-lg border font-bold transition ${cls}" data-raise="${t.amount}" onclick="setThRaiseIncrement(${t.amount})">+${t.mult}x ($${t.amount.toLocaleString()})</button>`;
                 }).join('')}
+                <button type="button" class="th-raise-size text-xs px-2.5 py-1.5 rounded-lg border font-black transition ${thRaiseAllIn ? 'bg-rose-600 border-amber-300 text-white shadow' : 'bg-slate-800 border-rose-500/60 text-rose-300 hover:bg-slate-700'}" onclick="setThRaiseAllIn()"><i class="fa-solid fa-fire mr-1 text-amber-300"></i>ALL IN</button>
             `;
         }
 
         function setThRaiseIncrement(amount) {
             if (thInRound && thRevealInProgress) return;
             thRaiseIncrement = amount;
+            thRaiseAllIn = false;
             updateThRaiseButtons();
             enableThActionButtons();
             playSound('chip');
+        }
+
+        function setThRaiseAllIn() {
+            if (thInRound && thRevealInProgress) return;
+            thRaiseAllIn = true;
+            updateThRaiseButtons();
+            enableThActionButtons();
+            playSound('chip');
+        }
+
+        // 이번 RAISE로 낼 금액. 올인 선택 또는 잔액이 인상폭에 모자라면 남은 잔액 전부를 건다.
+        function getThRaisePlan(toCall) {
+            const allIn = thRaiseAllIn || balance <= toCall + thRaiseIncrement;
+            return { allIn, contribution: allIn ? balance : toCall + thRaiseIncrement };
         }
 
         function changeThNpcCount(delta) {
@@ -158,6 +174,7 @@ let thNpcCount = 3;
 
             thInRound = true;
             thRevealInProgress = false;
+            thRaiseAllIn = false;
             thStage = 0;
             thDeck = createDeck();
             thCommunityCards = [];
@@ -283,105 +300,21 @@ let thNpcCount = 3;
             thNpcHands.forEach(n => n.cards.forEach(c => c.isNew = false));
         }
 
-        function getThAllInEligibility() {
-            if (balance <= 0) {
-                return { allowed: false, reason: '잔액이 없습니다.' };
-            }
-
-            // 숏스택(위기) 조건: 이번 판 시작 시점의 총 스택(남은 잔액 + 이미 낸 금액)이 기준 이하인 경우.
-            // 베팅액에 따라 기준이 움직이면 큰 베팅으로 우회할 수 있어 고정값을 사용한다.
-            const handStack = balance + thPlayerTotalContribution;
-            const isShortStack = handStack <= TH_SHORT_STACK_LIMIT;
-
-            // 1. 프리플랍(thStage === 0) 제한: 숏스택이 아닌 경우 프리플랍 올인 불가
-            if (thStage === 0) {
-                if (!isShortStack) {
-                    return {
-                        allowed: false,
-                        reason: '프리플랍 올인 불가 (플랍 3장 공개 후 가능)'
-                    };
-                }
-            }
-
-            // 2. 족보 검증
-            const visibleCommunity = thCommunityCards.filter(c => c.revealed);
-            let playerCategory = -1;
-            let rankName = '미확인';
-
-            if (thPlayerHand.length === 2 && visibleCommunity.length >= 3) {
-                const evalRes = evaluate7CardHand([...thPlayerHand, ...visibleCommunity]);
-                playerCategory = evalRes.category;
-                rankName = evalRes.rankName;
-            } else if (thPlayerHand.length === 2 && visibleCommunity.length === 0) {
-                if (thPlayerHand[0].value === thPlayerHand[1].value) {
-                    playerCategory = 1;
-                    rankName = '포켓 페어';
-                } else {
-                    playerCategory = 0;
-                    rankName = '하이카드';
-                }
-            }
-
-            // 최소 원페어 이상 (playerCategory >= 1) 이면 허용
-            if (playerCategory >= 1) {
-                return { allowed: true, reason: `올인 가능! [${rankName}] 완성` };
-            }
-
-            // 숏스택 위기 긴급 올인 허용
-            if (isShortStack) {
-                return { allowed: true, reason: '올인 가능! (잔액 위기 숏스택 긴급 올인)' };
-            }
-
-            return {
-                allowed: false,
-                reason: '올인 불가 (원페어 이상 패를 만들거나 잔액 부족 시 가능)'
-            };
-        }
-
-        function updateThAllInRuleBadge(status) {
-            const badge = document.getElementById('th-allin-badge');
-            const icon = document.getElementById('th-allin-badge-icon');
-            const text = document.getElementById('th-allin-badge-text');
-            if (!badge || !icon || !text) return;
-
-            if (status && status.allowed) {
-                badge.className = 'flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/50 bg-emerald-950/60 text-emerald-300 transition shadow-[0_0_10px_rgba(16,185,129,0.2)]';
-                icon.className = 'fa-solid fa-lock-open text-emerald-400';
-                text.innerText = `🔥 ${status.reason}`;
-            } else {
-                badge.className = 'flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-900/80 text-slate-400 transition';
-                icon.className = 'fa-solid fa-lock text-amber-400';
-                const reasonStr = status ? status.reason : '플랍 이후 & 원페어 이상 (또는 숏스택)';
-                text.innerText = `🔒 올인 조건: ${reasonStr}`;
-            }
-        }
-
         function enableThActionButtons() {
             const toCall = Math.max(0, thCurrentBet - thPlayerStreetBet);
+            const plan = getThRaisePlan(toCall);
             document.getElementById('th-btn-fold').disabled = false;
             document.getElementById('th-btn-check').disabled = toCall > 0;
-            document.getElementById('th-btn-call').disabled = toCall <= 0 || balance < toCall;
-            document.getElementById('th-btn-raise').disabled = balance <= 0 || balance < toCall + thRaiseIncrement;
+            document.getElementById('th-btn-call').disabled = toCall <= 0 || balance <= 0;
+            document.getElementById('th-btn-raise').disabled = balance <= toCall;
 
-            const allInStatus = getThAllInEligibility();
-            const btnAllIn = document.getElementById('th-btn-allin');
-            btnAllIn.disabled = !allInStatus.allowed;
-            if (allInStatus.allowed) {
-                btnAllIn.classList.remove('opacity-40', 'cursor-not-allowed');
-                btnAllIn.classList.add('ready-allin');
-                btnAllIn.innerHTML = '<i class="fa-solid fa-fire mr-1 text-amber-300"></i>ALL IN';
-                btnAllIn.title = allInStatus.reason;
-            } else {
-                btnAllIn.classList.add('opacity-40', 'cursor-not-allowed');
-                btnAllIn.classList.remove('ready-allin');
-                btnAllIn.innerHTML = '<i class="fa-solid fa-lock mr-1 text-[10px]"></i>ALL IN';
-                btnAllIn.title = allInStatus.reason;
-            }
-
-            updateThAllInRuleBadge(allInStatus);
-
-            document.getElementById('th-btn-call').innerText = toCall > 0 ? `CALL $${toCall.toLocaleString()}` : 'CALL';
-            document.getElementById('th-btn-raise').innerText = `RAISE +$${thRaiseIncrement.toLocaleString()}`;
+            const callAllIn = toCall > 0 && toCall >= balance;
+            document.getElementById('th-btn-call').innerText = toCall > 0
+                ? (callAllIn ? `CALL ALL-IN $${balance.toLocaleString()}` : `CALL $${toCall.toLocaleString()}`)
+                : 'CALL';
+            document.getElementById('th-btn-raise').innerText = plan.allIn
+                ? `RAISE ALL-IN $${balance.toLocaleString()}`
+                : `RAISE +$${thRaiseIncrement.toLocaleString()}`;
         }
 
         function disableThActionButtons() {
@@ -389,15 +322,6 @@ let thNpcCount = 3;
             document.getElementById('th-btn-check').disabled = true;
             document.getElementById('th-btn-call').disabled = true;
             document.getElementById('th-btn-raise').disabled = true;
-
-            const btnAllIn = document.getElementById('th-btn-allin');
-            if (btnAllIn) {
-                btnAllIn.disabled = true;
-                btnAllIn.classList.add('opacity-40');
-                btnAllIn.classList.remove('ready-allin');
-                btnAllIn.innerHTML = 'ALL IN';
-            }
-            updateThAllInRuleBadge(null);
         }
 
         function prepareThBettingRound() {
@@ -523,54 +447,39 @@ let thNpcCount = 3;
                 return;
             }
 
-            if ((action === 'call' && toCall > balance) || (action === 'raise' && toCall + thRaiseIncrement > balance)) {
+            if (balance <= 0 || (action === 'raise' && balance <= toCall)) {
                 document.getElementById('th-status').innerText = '잔액이 부족합니다.';
                 enableThActionButtons();
                 return;
             }
 
+            // 올인은 별도 버튼 없이 CALL(잔액 이하의 콜)이나 RAISE(남은 잔액 전부)로만 이루어진다.
             let playerContribution = 0;
-            thLastActionWasAllIn = action === 'allin';
+            let isAllInRaise = false;
 
-            if (action === 'allin') {
-                const eligibility = getThAllInEligibility();
-                if (!eligibility.allowed) {
-                    document.getElementById('th-status').innerText = `⚠️ ${eligibility.reason}`;
-                    playSound('chip');
-                    enableThActionButtons();
-                    return;
-                }
-                playerContribution = balance;
+            if (action === 'call') {
+                playerContribution = Math.min(toCall, balance);
                 thPlayerStreetBet += playerContribution;
-                thCurrentBet = Math.max(thCurrentBet, thPlayerStreetBet);
-                triggerAllInEffect();
-            } else if (action === 'call') {
-                playerContribution = toCall;
-                thPlayerStreetBet += toCall;
             } else if (action === 'raise') {
-                playerContribution = toCall + thRaiseIncrement;
+                const plan = getThRaisePlan(toCall);
+                playerContribution = plan.contribution;
+                isAllInRaise = plan.allIn;
                 thPlayerStreetBet += playerContribution;
                 thCurrentBet = thPlayerStreetBet;
-                
+
                 thNpcHands.forEach(npc => {
                     if (npc.folded) return;
                     const callAmt = Math.max(0, thCurrentBet - npc.streetBet);
-                    if (npcWillCall(npc, callAmt, thPot + playerContribution, false)) {
+                    if (npcWillCall(npc, callAmt, thPot + playerContribution, isAllInRaise)) {
                         npc.streetBet += callAmt;
                         npc.bet += callAmt;
                         thPot += callAmt;
-                        npc.status = `콜 $${thCurrentBet.toLocaleString()}`;
+                        npc.status = isAllInRaise ? '올인 콜!' : `콜 $${thCurrentBet.toLocaleString()}`;
                     } else {
                         npc.folded = true;
-                        npc.status = '폴드';
+                        npc.status = isAllInRaise ? '올인에 폴드' : '폴드';
                     }
                 });
-            }
-
-            if (playerContribution > balance) {
-                document.getElementById('th-status').innerText = '잔액이 부족합니다.';
-                enableThActionButtons();
-                return;
             }
 
             if (playerContribution > 0) {
@@ -581,25 +490,9 @@ let thNpcCount = 3;
                 playSound('chip');
             }
 
-            if (balance === 0 && action !== 'allin') {
+            if (balance === 0) {
                 thLastActionWasAllIn = true;
                 triggerAllInEffect();
-            }
-
-            if (action === 'allin' && playerContribution > 0) {
-                thNpcHands.forEach(npc => {
-                    if (npc.folded) return;
-                    const callAmt = Math.max(0, thCurrentBet - npc.streetBet);
-                    if (npcWillCall(npc, callAmt, thPot, true)) {
-                        npc.streetBet += callAmt;
-                        npc.bet += callAmt;
-                        thPot += callAmt;
-                        npc.status = '올인 콜!';
-                    } else {
-                        npc.folded = true;
-                        npc.status = '올인에 폴드';
-                    }
-                });
             }
 
             document.getElementById('th-pot-amount').innerText = `$${thPot.toLocaleString()}`;
@@ -609,13 +502,14 @@ let thNpcCount = 3;
             if (thNpcHands.every(npc => npc.folded)) {
                 thInRound = false;
                 balance += thPot;
+                lifetimeProfit += Math.max(0, thPot - thPlayerTotalContribution);
                 document.getElementById('th-status').innerText = `🎉 모든 상대가 폴드했습니다. 팟 $${thPot.toLocaleString()} 획득!`;
                 playSound('win');
                 finishThRound();
                 return;
             }
 
-            if (action === 'allin' || balance === 0) {
+            if (balance === 0) {
                 document.getElementById('th-status').innerText = '🔥 올인! 승부를 결정지을 카드가 오픈됩니다…';
                 runAllInShowdown();
                 return;
@@ -724,7 +618,7 @@ let thNpcCount = 3;
                 if (playerWins) {
                     const share = Math.floor(thPot / winners.length);
                     balance += share;
-                    lifetimeProfit += share - thPlayerTotalContribution;
+                    lifetimeProfit += Math.max(0, share - thPlayerTotalContribution);
                     document.getElementById('th-status').innerText = winners.length > 1
                         ? `🤝 무승부! ${winners.map(w => `${w.name} (${w.eval.rankName})`).join(', ')}가 팟을 나눕니다. $${share.toLocaleString()} 획득`
                         : `🎉 승리! ${winners[0].name} [${best.rankName}] 팟 $${share.toLocaleString()} 획득`;
