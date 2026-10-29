@@ -70,6 +70,7 @@ let balance = 1000;
             if (viewName === 'lobby') resetFinishedGameDisplays();
 
             currentView = viewName;
+            document.body.classList.toggle('lobby-active', viewName === 'lobby');
             ['lobby', 'blackjack', 'roulette', 'holdem'].forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) {

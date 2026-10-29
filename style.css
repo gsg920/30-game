@@ -8,6 +8,23 @@
             overflow-x: hidden;
         }
 
+        /* 로비 배경 일러스트: 로비 화면에서만 보이며, 어두운 막으로 글자와 카드가 잘 읽히게 한다. */
+        #lobby-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            background:
+                linear-gradient(rgba(11, 15, 25, 0.55), rgba(11, 15, 25, 0.72)),
+                url('images/lobby/lobby-bg.webp') center / cover no-repeat;
+        }
+
+        body.lobby-active #lobby-bg {
+            opacity: 1;
+        }
+
         .serif {
             font-family: 'Playfair Display', serif;
         }

@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 bg-slate-950">
+<body class="lobby-active min-h-screen flex flex-col justify-between p-2 sm:p-4 bg-slate-950">
+
+    <!-- Lobby background illustration (shown only in the lobby view) -->
+    <div id="lobby-bg" aria-hidden="true"></div>
 
     <!-- Global Top Header -->
     <header class="max-w-7xl w-full mx-auto flex flex-wrap justify-between items-center py-2 px-3 sm:py-2.5 sm:px-4 bg-slate-900/95 backdrop-blur rounded-2xl border border-slate-800 shadow-xl mb-2 gap-2 sm:gap-3 z-40">
@@ -50,13 +53,13 @@
     <!-- ==================== VIEW 1: MAIN LOBBY ==================== -->
     <main id="view-lobby" class="max-w-7xl w-full mx-auto flex-1 flex flex-col justify-center items-center my-4">
         <div class="text-center mb-8">
-            <h2 class="text-3xl sm:text-4xl font-black text-white tracking-wide mb-2">카지노 메인 로비</h2>
-            <p class="text-slate-400 text-sm sm:text-base">원하시는 라운지를 선택하여 승부수를 던지세요.</p>
+            <h2 class="text-3xl sm:text-4xl font-black text-white tracking-wide mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">카지노 메인 로비</h2>
+            <p class="text-slate-300 text-sm sm:text-base drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">원하시는 라운지를 선택하여 승부수를 던지세요.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full px-4">
             <!-- Game Card 1: Blackjack -->
-            <div class="bg-slate-900/90 border border-slate-800 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('blackjack')">
+            <div class="bg-slate-900/80 backdrop-blur-sm border border-slate-700/70 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('blackjack')">
                 <div>
                     <div class="w-16 h-16 rounded-2xl bg-emerald-950/80 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-3xl mb-4 group-hover:scale-110 transition">
                         <i class="fa-solid fa-spade"></i>
@@ -72,7 +75,7 @@
             </div>
 
             <!-- Game Card 2: European Roulette -->
-            <div class="bg-slate-900/90 border border-slate-800 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('roulette')">
+            <div class="bg-slate-900/80 backdrop-blur-sm border border-slate-700/70 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('roulette')">
                 <div>
                     <div class="w-16 h-16 rounded-2xl bg-rose-950/80 border border-rose-500/30 flex items-center justify-center text-rose-400 text-3xl mb-4 group-hover:scale-110 transition">
                         <i class="fa-solid fa-arrows-spin"></i>
@@ -88,7 +91,7 @@
             </div>
 
             <!-- Game Card 3: Texas Hold'em -->
-            <div class="bg-slate-900/90 border border-slate-800 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('holdem')">
+            <div class="bg-slate-900/80 backdrop-blur-sm border border-slate-700/70 hover:border-amber-500/60 rounded-3xl p-6 flex flex-col justify-between transition transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer" onclick="switchView('holdem')">
                 <div>
                     <div class="w-16 h-16 rounded-2xl bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 text-3xl mb-4 group-hover:scale-110 transition">
                         <i class="fa-solid fa-suit-heart"></i>
