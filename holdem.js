@@ -61,7 +61,8 @@ let thNpcCount = 3;
         }
 
         function updateThRaiseButtons() {
-            const base = (thInRound ? (thPlayerTotalContribution || thBet) : thBet) || 100;
+            // 누적 기여액이 아니라 시작 베팅 기준이어야 스트리트마다 팟이 기하급수적으로 커지지 않는다.
+            const base = thBet || 100;
             const tiers = [
                 { mult: 1, amount: base },
                 { mult: 2, amount: base * 2 },
@@ -402,7 +403,7 @@ let thNpcCount = 3;
         function prepareThBettingRound() {
             thCurrentBet = 0;
             thPlayerStreetBet = 0;
-            const baseBet = (thPlayerTotalContribution || thBet || 10);
+            const baseBet = thBet || 10;
             const visibleCards = thCommunityCards.filter(c => c.revealed);
 
             thNpcHands.forEach(npc => {
