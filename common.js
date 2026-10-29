@@ -270,7 +270,7 @@ let balance = 1000;
                 isBlocked = true;
             } else if (balance === 0 && ownedItems.clothes) {
                 title = '빈털터리 귀환'; icon = 'fa-person-walking'; story = '카지노를 떠나기 위해 옷은 겨우 되찾았지만, 수중에 남은 돈은 한 푼도 없다. 결국 빈털터리로 집에 돌아갑니다.';
-            } else if (ownedItems.phone && ownedItems.car) {
+            } else if (ownedItems.car) {
                 title = '내 차로 귀가'; icon = 'fa-car'; story = '옷과 자동차를 되찾고 당당하게 전용 차량으로 카지노를 떠납니다.';
             } else if (ownedItems.phone) {
                 title = '택시를 타고 귀가'; icon = 'fa-taxi'; story = '스마트폰으로 택시를 불러 편안히 귀가합니다.';
