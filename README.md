@@ -88,10 +88,13 @@
 ## 🛠️ 기술 스택 (Tech Stack)
 
 * **Frontend**: HTML5, CSS3, JavaScript (Vanilla ES6+)
-* **Styling**: [Tailwind CSS CDN](https://tailwindcss.com/), Custom CSS Animations (카지노 펠트 텍스처, 네온/올인 이펙트)
+* **Styling**: [Tailwind CSS](https://tailwindcss.com/) (로컬 빌드), Custom CSS Animations (카지노 펠트 텍스처, 네온/올인 이펙트)
+* **PWA**: 웹 앱 매니페스트와 서비스 워커로 설치 및 오프라인 실행 지원
 * **Audio**: Web Audio API (외부 음원 파일 없이 코드 기반 실시간 효과음 합성)
-* **Fonts**: Google Fonts (Noto Sans KR, Playfair Display)
-* **Icons**: FontAwesome 6.4
+* **Fonts**: Noto Sans KR, Playfair Display (로컬 포함)
+* **Icons**: FontAwesome 6.4 (로컬 포함)
+
+> Tailwind 클래스를 추가하거나 바꾼 뒤에는 CSS를 다시 빌드합니다: `tailwindcss -c tailwind.config.js -i tailwind.input.css -o vendor/tailwind.css --minify` (v3 독립 실행 CLI). 캐시할 파일을 바꾸면 `sw.js`의 `CACHE_VERSION`도 올려 주세요.
 
 ---
 
@@ -128,8 +131,16 @@ casino-game/
 ├── audio.js         # Web Audio API 사운드 합성 (칩, 카드, 휠, 승패 효과음)
 ├── style.css        # 카지노 펠트 테두리, 카드 뒤집기 애니메이션, 네온 효과
 ├── server.js        # 경량 Node.js 로컬 정적 웹 서버
+├── manifest.json    # PWA 설치 정보 (이름, 아이콘, 테마 색)
+├── sw.js            # 서비스 워커 (오프라인 캐시)
+├── privacy.html     # 개인정보처리방침
+├── tailwind.config.js / tailwind.input.css  # Tailwind 빌드 설정
+├── vendor/          # 빌드된 Tailwind CSS, FontAwesome, 구글 폰트 CSS
+├── fonts/           # 로컬 폰트 파일 (woff2)
 ├── images/
-│   └── endings/     # 엔딩 일러스트 (WebP, 불러오지 못하면 아이콘으로 대체)
+│   ├── endings/     # 엔딩 일러스트 (WebP, 불러오지 못하면 아이콘으로 대체)
+│   ├── lobby/       # 로비 배경 일러스트
+│   └── icons/       # 앱 아이콘 (현재 임시 이미지)
 └── README.md        # 프로젝트 소개 및 가이드 문서
 ```
 
