@@ -3,6 +3,7 @@
   "short_name": "EXIT CASINO",
   "description": "카지노 탈출: 빈털터리의 마지막 승부. 블랙잭, 룰렛, 텍사스 홀덤으로 되찾는 마지막 기회. 실제 돈이 오가지 않는 가상 게임입니다.",
   "lang": "ko",
+  "id": "exit-casino",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
