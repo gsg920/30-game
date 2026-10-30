@@ -1,7 +1,7 @@
 {
-  "name": "Royal Casino",
-  "short_name": "Royal Casino",
-  "description": "블랙잭, 룰렛, 텍사스 홀덤을 즐기는 싱글플레이 카지노 미니게임",
+  "name": "EXIT CASINO - 빈털터리의 마지막 승부",
+  "short_name": "EXIT CASINO",
+  "description": "카지노 탈출: 빈털터리의 마지막 승부. 블랙잭, 룰렛, 텍사스 홀덤으로 되찾는 마지막 기회. 실제 돈이 오가지 않는 가상 게임입니다.",
   "lang": "ko",
   "start_url": "./index.html",
   "scope": "./",
