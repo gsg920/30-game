@@ -12,6 +12,103 @@ let balance = 1000;
         // 이긴 판의 이익만 더한 누적 승리금이 이 값 이상이면 최고 엔딩 대신 블랙리스트 엔딩이 된다.
         const BLACKLIST_PROFIT = 500000;
 
+        // ===== 저장 =====
+        // 진행 상황(SAVE_KEY)은 엔딩이나 파산으로 끝나면 지워지고, 본 엔딩 기록(ENDINGS_KEY)은 계속 남는다.
+        const SAVE_KEY = 'exitCasino.save.v1';
+        const ENDINGS_KEY = 'exitCasino.endings.v1';
+        // 엔딩/파산 화면이 열려 있는 동안에는 진행 상황을 다시 저장하지 않는다.
+        let saveLocked = false;
+
+        const ENDINGS = [
+            { id: 'highroller', title: '전설의 하이롤러', icon: 'fa-crown', hint: '잔액 $100,000 이상과 모든 소지품을 되찾고 떠난다.' },
+            { id: 'blacklist', title: '블랙리스트', icon: 'fa-user-slash', hint: '모든 것을 되찾고도 너무 많이 따서 입장 금지 명단에 오른다.', hidden: true },
+            { id: 'car', title: '내 차로 귀가', icon: 'fa-car', hint: '옷과 자동차를 되찾고 떠난다.' },
+            { id: 'taxi', title: '택시를 타고 귀가', icon: 'fa-taxi', hint: '옷과 스마트폰을 되찾고 떠난다.' },
+            { id: 'bus', title: '버스를 타고 귀가', icon: 'fa-bus', hint: '옷만 되찾고 돈이 남은 채 떠난다.' },
+            { id: 'broke', title: '빈털터리 귀환', icon: 'fa-person-walking', hint: '옷을 사고 남은 돈이 0원인 채 떠난다.' },
+            { id: 'bankrupt', title: '빈털터리의 최후', icon: 'fa-skull', hint: '돈과 소지품을 모두 잃는다.' }
+        ];
+
+        function readStorage(key) {
+            try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+        }
+
+        function writeStorage(key, value) {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* 저장소를 쓸 수 없어도 게임은 계속된다 */ }
+        }
+
+        function removeStorage(key) {
+            try { localStorage.removeItem(key); } catch (e) { /* 위와 같다 */ }
+        }
+
+        // 판이 시작되기 전에 걸어 둔 베팅은 돌려받은 것으로 저장하고, 이미 시작된 판의 베팅은 잃은 것으로 저장한다.
+        // 새로고침으로 패나 결과를 보고 도망치는 것을 막기 위해서다.
+        function saveProgress() {
+            if (saveLocked) return;
+            const refundable =
+                (bjInRound ? 0 : Math.max(0, bjBet || 0)) +
+                (thInRound ? 0 : Math.max(0, thBet || 0)) +
+                (rInSpin ? 0 : Object.values(rouletteBets).reduce((sum, amount) => sum + amount, 0));
+            const total = balance + refundable;
+            const pristine = total === 1000 && lifetimeProfit === 0 && !Object.values(ownedItems).some(Boolean);
+            if (pristine) return;
+            writeStorage(SAVE_KEY, { balance: total, lifetimeProfit, owned: { ...ownedItems } });
+        }
+
+        function loadProgress() {
+            const data = readStorage(SAVE_KEY);
+            if (!data || !Number.isFinite(data.balance) || data.balance < 0) return false;
+            balance = Math.floor(data.balance);
+            lifetimeProfit = Number.isFinite(data.lifetimeProfit) && data.lifetimeProfit > 0 ? Math.floor(data.lifetimeProfit) : 0;
+            Object.keys(ownedItems).forEach(id => { ownedItems[id] = !!(data.owned && data.owned[id]); });
+            return true;
+        }
+
+        // 저장된 진행이 있으면 불러와 이어서 시작한다. 이어하기면 true.
+        function restoreGame() {
+            renderEndingsProgress();
+            if (!loadProgress()) return false;
+            closeIntroModal();
+            if (balance === 0 && ownedItems.clothes) lockControlsWhenBroke();
+            else if (balance < 10) checkBankruptOrEnding();
+            return true;
+        }
+
+        function getSeenEndings() {
+            const seen = readStorage(ENDINGS_KEY);
+            return Array.isArray(seen) ? seen : [];
+        }
+
+        function recordEnding(id) {
+            const seen = getSeenEndings();
+            if (!seen.includes(id)) writeStorage(ENDINGS_KEY, [...seen, id]);
+            renderEndingsProgress();
+        }
+
+        function renderEndingsProgress() {
+            const seen = getSeenEndings().filter(id => ENDINGS.some(ending => ending.id === id));
+            const el = document.getElementById('endings-progress');
+            if (el) el.innerText = `${seen.length}/${ENDINGS.length}`;
+        }
+
+        function renderEndings() {
+            const seen = getSeenEndings();
+            document.getElementById('endings-items').innerHTML = ENDINGS.map(ending => {
+                const found = seen.includes(ending.id);
+                const file = endingImages[ending.id];
+                const thumb = found && file
+                    ? `<img src="${ENDING_IMAGE_DIR + file}" alt="" class="w-16 h-11 object-cover rounded-lg border border-slate-700 flex-shrink-0" onerror="this.classList.add('hidden')">`
+                    : `<i class="fa-solid ${found ? ending.icon : 'fa-lock'} w-16 text-center text-xl ${found ? 'text-amber-400' : 'text-slate-600'}"></i>`;
+                return `<div class="flex items-center gap-3 p-3 rounded-xl border ${found ? 'border-amber-700/50 bg-amber-950/20' : 'border-slate-800 bg-slate-900/70'}">${thumb}<div class="flex-1 min-w-0"><div class="text-sm font-bold ${found ? 'text-white' : 'text-slate-500'}">${found ? ending.title : '???'}</div><div class="text-xs ${found ? 'text-slate-400' : 'text-slate-600'}">${found || !ending.hidden ? ending.hint : '숨겨진 엔딩'}</div></div></div>`;
+            }).join('');
+        }
+
+        function openEndingsModal() { renderEndings(); document.getElementById('endings-modal').classList.remove('hidden'); }
+        function closeEndingsModal() { document.getElementById('endings-modal').classList.add('hidden'); }
+
+        window.addEventListener('pagehide', saveProgress);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) saveProgress(); });
+
         const suits = ['♠', '♥', '♦', '♣'];
         const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
@@ -57,6 +154,7 @@ let balance = 1000;
         function updateGlobalBalanceUI() {
             document.getElementById('global-balance').innerText = `$${balance.toLocaleString()}`;
             if (!document.getElementById('shop-modal').classList.contains('hidden')) renderShop();
+            saveProgress();
         }
 
         function switchView(viewName) {
@@ -258,6 +356,9 @@ let balance = 1000;
                 forceSellItemsIfBroke();
                 if (balance < 10) {
                     clearAllInEffects();
+                    recordEnding('bankrupt');
+                    saveLocked = true;
+                    removeStorage(SAVE_KEY);
                     playSound('kickout');
                     showEndingImage('bankrupt-image', 'bankrupt-fallback', endingImages.bankrupt);
                     document.getElementById('bankrupt-modal').classList.remove('hidden');
@@ -310,25 +411,33 @@ let balance = 1000;
                 return;
             }
             clearAllInEffects();
-            let title, icon, story, image = null, isBlocked = false;
+            let title, icon, story, image = null, isBlocked = false, endingId = null;
 
             const hasEverything = balance >= 100000 && ownedItems.clothes && ownedItems.wallet && ownedItems.phone && ownedItems.car;
             if (hasEverything && lifetimeProfit >= BLACKLIST_PROFIT) {
-                title = '블랙리스트'; icon = 'fa-user-slash'; image = endingImages.blacklist; story = `전 재산과 모든 소지품을 되찾았지만, 너무 많이 따 버렸다. 카지노는 당신의 이름을 입장 금지 명단에 올렸다. 이제 이 카지노의 문은 다시 열리지 않는다.`;
+                endingId = 'blacklist'; story = `전 재산과 모든 소지품을 되찾았지만, 너무 많이 따 버렸다. 카지노는 당신의 이름을 입장 금지 명단에 올렸다. 이제 이 카지노의 문은 다시 열리지 않는다.`;
             } else if (hasEverything) {
-                title = '전설의 하이롤러'; icon = 'fa-crown'; image = endingImages.highroller; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. VIP 대접을 받으며 당당히 카지노를 떠난다. 이제 당신은 전설의 하이롤러다.`;
+                endingId = 'highroller'; story = `전 재산을 잃었던 당신은 $${balance.toLocaleString()}의 현금과 모든 소지품을 되찾았다. VIP 대접을 받으며 당당히 카지노를 떠난다. 이제 당신은 전설의 하이롤러다.`;
             } else if (!ownedItems.clothes) {
-                title = '아직 떠날 수 없다'; icon = 'fa-ban'; 
+                title = '아직 떠날 수 없다'; icon = 'fa-ban';
                 story = '전당포에 맡긴 최소한의 입을 옷조차 되찾지 못했습니다. 카지노에서 돈을 더 벌어 전당포에서 옷을 먼저 되찾으세요!';
                 isBlocked = true;
             } else if (balance === 0 && ownedItems.clothes) {
-                title = '빈털터리 귀환'; icon = 'fa-person-walking'; image = endingImages.broke; story = '카지노를 떠나기 위해 옷은 겨우 되찾았지만, 수중에 남은 돈은 한 푼도 없다. 결국 빈털터리로 집에 돌아갑니다.';
+                endingId = 'broke'; story = '카지노를 떠나기 위해 옷은 겨우 되찾았지만, 수중에 남은 돈은 한 푼도 없다. 결국 빈털터리로 집에 돌아갑니다.';
             } else if (ownedItems.car) {
-                title = '내 차로 귀가'; icon = 'fa-car'; image = endingImages.car; story = '옷과 자동차를 되찾고 당당하게 전용 차량으로 카지노를 떠납니다.';
+                endingId = 'car'; story = '옷과 자동차를 되찾고 당당하게 전용 차량으로 카지노를 떠납니다.';
             } else if (ownedItems.phone) {
-                title = '택시를 타고 귀가'; icon = 'fa-taxi'; image = endingImages.taxi; story = '스마트폰으로 택시를 불러 편안히 귀가합니다.';
+                endingId = 'taxi'; story = '스마트폰으로 택시를 불러 편안히 귀가합니다.';
             } else {
-                title = '버스를 타고 귀가'; icon = 'fa-bus'; image = endingImages.bus; story = '옷은 되찾았고 약간의 돈도 남았다. 택시를 부를 형편은 아니지만, 버스를 타고 집으로 돌아갑니다.';
+                endingId = 'bus'; story = '옷은 되찾았고 약간의 돈도 남았다. 택시를 부를 형편은 아니지만, 버스를 타고 집으로 돌아갑니다.';
+            }
+
+            if (endingId) {
+                const ending = ENDINGS.find(entry => entry.id === endingId);
+                title = ending.title; icon = ending.icon; image = endingImages[endingId];
+                recordEnding(endingId);
+                saveLocked = true;
+                removeStorage(SAVE_KEY);
             }
 
             document.getElementById('ending-title').innerText = title;
@@ -348,6 +457,8 @@ let balance = 1000;
         }
 
         function restartGame() {
+            removeStorage(SAVE_KEY);
+            saveLocked = false;
             unlockControlsAfterRestart();
             clearAllInEffects();
             bjInRound = false;

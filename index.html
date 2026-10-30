@@ -112,6 +112,10 @@
                 </button>
             </div>
         </div>
+
+        <button onclick="openEndingsModal()" class="mt-6 text-sm text-amber-300 hover:text-amber-200 transition flex items-center gap-2 bg-slate-900/80 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-700/70 font-bold">
+            <i class="fa-solid fa-book-open"></i><span>엔딩 도감 <span id="endings-progress">0/7</span></span>
+        </button>
     </main>
 
 
@@ -404,6 +408,16 @@
         </div>
     </div>
 
+    <!-- MODAL: Ending Collection -->
+    <div id="endings-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop bg-black/80">
+        <div class="bg-slate-950 border border-slate-700 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-black text-amber-400"><i class="fa-solid fa-book-open mr-2"></i>엔딩 도감</h2><button onclick="closeEndingsModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="endings-items" class="space-y-2"></div>
+            <p class="text-xs text-slate-500 mt-4">본 엔딩은 새로 시작해도 기록으로 남습니다.</p>
+            <button onclick="closeEndingsModal()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl">닫기</button>
+        </div>
+    </div>
+
     <!-- MODAL: Bankrupt Ending -->
     <div id="bankrupt-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/90 hidden">
         <div class="bg-slate-950 border-2 border-red-600 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center relative overflow-hidden door-slam-anim">
@@ -468,6 +482,7 @@
     <!-- Initialization -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
+            restoreGame();
             setupBjPlayerSeats();
             initRouletteBoard();
             setupThPlayerSeats();
