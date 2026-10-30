@@ -4,6 +4,32 @@
             background-color: #0b0f19;
             color: #f3f4f6;
             overflow-x: hidden;
+            min-height: 100vh;
+            min-height: 100dvh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 더블탭 확대 지연과 길게 눌러 선택되는 동작을 막는다. */
+        button, [onclick], input, select {
+            touch-action: manipulation;
+        }
+
+        /* 노치와 하단 제스처 영역을 피한다. */
+        @media (max-width: 639px) {
+            body {
+                padding-top: max(0.5rem, env(safe-area-inset-top));
+                padding-right: max(0.5rem, env(safe-area-inset-right));
+                padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+                padding-left: max(0.5rem, env(safe-area-inset-left));
+            }
+        }
+
+        /* 터치 기기에서는 버튼이 너무 작지 않게 한다. */
+        @media (pointer: coarse) {
+            button {
+                min-height: 38px;
+                min-width: 38px;
+            }
         }
 
         /* 로비 배경 일러스트: 로비 화면에서만 보이며, 어두운 막으로 글자와 카드가 잘 읽히게 한다. */
